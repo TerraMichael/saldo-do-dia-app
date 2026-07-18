@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "Saldo do Dia",
+    "slug": "saldo-do-dia-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "saldododia",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "android": {
+      "package": "com.terramichael.saldododia"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-localization",
+        {
+          "supportedLocales": {
+            "android": ["pt-BR"]
+          }
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "defaultLocale": "pt-BR"
+    }
+  }
+}
