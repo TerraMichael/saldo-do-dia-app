@@ -4,8 +4,6 @@ Aplicativo mobile que responde, de forma simples, **quanto você pode gastar hoj
 
 Este repositório contém somente a fundação técnica do produto. Os fluxos financeiros ainda não foram implementados.
 
-O domínio de limite diário já está disponível como funções puras, sem dependência da interface. Valores monetários são representados por números inteiros em centavos.
-
 ## Stack
 
 - React Native com Expo (SDK 57)
