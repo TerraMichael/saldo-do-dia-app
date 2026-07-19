@@ -82,13 +82,27 @@ Requisitos documentados: Node.js 20.19 ou superior e npm 10 ou superior.
 ### Fundação do aplicativo
 
 - `app/_layout.tsx` cria a pilha raiz sem cabeçalho e usa status bar escura.
-- `app/index.tsx` contém uma tela inicial estática com o nome **Saldo do Dia**, a
+- `app/index.tsx` contém uma tela inicial com o nome **Saldo do Dia**, a
   frase **Descubra quanto você pode gastar hoje** e o botão **Começar**.
-- O botão ainda não navega nem executa ação.
+- O botão navega para um onboarding de três etapas: preenchimento, revisão e
+  conclusão temporária.
 - O visual atual usa fundo verde muito claro, tipografia escura e ação principal
   verde. Ele é uma fundação, não um design system final.
 - Não há assets binários versionados; eles foram deliberadamente removidos da
   fundação inicial.
+
+### Onboarding inicial
+
+- `src/features/onboarding` concentra parsing e formatação de moeda brasileira,
+  validações, construção da configuração e estado em memória com Context.
+- O fluxo coleta saldo atual, próximo recebimento, contas pendentes e reserva.
+- A data usa o seletor nativo de `@react-native-community/datetimepicker`.
+- Datas selecionadas são convertidas pelos componentes locais da data, sem
+  `toISOString`, evitando deslocamento de um dia por UTC.
+- A revisão exibe os quatro dados antes da confirmação.
+- A confirmação reutiliza `calcularPlanoDiario` e mostra uma conclusão temporária
+  com **Tudo pronto** e o limite diário.
+- Nenhum dado é persistido; fechar ou abandonar o fluxo descarta a configuração.
 
 ### Domínios previstos
 
@@ -180,10 +194,10 @@ npm run typecheck
 npm test
 ```
 
-`npm test` executa explicitamente `tests/foundation.test.js` e
-`tests/daily-limit.test.ts` com o test runner nativo do Node.js por meio do `tsx`.
-Os caminhos explícitos mantêm o comando compatível com Windows PowerShell sem
-depender da expansão de globs feita pelo shell.
+`npm test` executa explicitamente `tests/foundation.test.js`,
+`tests/daily-limit.test.ts` e `tests/onboarding.test.ts` com o test runner nativo
+do Node.js por meio do `tsx`. Os caminhos explícitos mantêm o comando compatível
+com Windows PowerShell sem depender da expansão de globs feita pelo shell.
 
 O `README.md` ainda descreve o repositório como contendo somente a fundação e diz
 que os fluxos financeiros não foram implementados. Interprete isso como “nenhum
@@ -192,13 +206,10 @@ existe, embora ainda não esteja ligada a uma tela ou persistência.
 
 ## 8. O que ainda não existe
 
-- fluxo funcional de onboarding;
-- formulários para saldo, recebimento, reserva ou contas;
-- navegação disparada pelo botão **Começar**;
-- tela que exiba o limite diário calculado;
 - cadastro e edição de gastos;
 - histórico;
 - persistência local concreta;
+- tela principal definitiva;
 - componentes compartilhados ou design system formal;
 - tratamento de acessibilidade além dos papéis básicos já presentes;
 - testes de interface ou navegação;
@@ -211,14 +222,11 @@ antes de consolidar uma decisão.
 
 Esta seção é um **roadmap sugerido**, não um conjunto de requisitos já aprovado:
 
-1. definir o menor onboarding possível para coletar saldo atual, reserva, contas
-   pendentes e próximo recebimento;
-2. modelar os dados e contratos de armazenamento local necessários a esse fluxo;
-3. conectar o botão inicial ao onboarding via Expo Router;
-4. criar uma tela principal que apresente o limite diário e explique de forma
+1. modelar os dados e contratos de armazenamento local necessários ao onboarding;
+2. criar uma tela principal que apresente o limite diário e explique de forma
    humana como ele foi obtido;
-5. adicionar registro de gastos e atualização coerente do saldo;
-6. evoluir histórico e edição somente depois do ciclo principal funcionar.
+3. adicionar registro de gastos e atualização coerente do saldo;
+4. evoluir histórico e edição somente depois do ciclo principal funcionar.
 
 Em cada etapa, mantenha estados de erro, valores negativos, datas-limite,
 arredondamento e acessibilidade visíveis no desenho da solução.

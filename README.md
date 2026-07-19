@@ -2,7 +2,8 @@
 
 Aplicativo mobile que responde, de forma simples, **quanto você pode gastar hoje sem ficar sem dinheiro até o próximo recebimento**.
 
-Este repositório contém somente a fundação técnica do produto. Os fluxos financeiros ainda não foram implementados.
+O MVP possui uma fundação técnica, a regra de cálculo do limite diário e um
+onboarding inicial mantido somente em memória.
 
 ## Stack
 
@@ -44,8 +45,20 @@ npm run typecheck
 npm test
 ```
 
-O comando `npm test` executa todos os testes JavaScript e TypeScript existentes
-com o test runner nativo do Node.js por meio do `tsx`.
+O comando `npm test` executa explicitamente os testes JavaScript e TypeScript
+existentes com o test runner nativo do Node.js por meio do `tsx`.
+
+## Fluxo disponível
+
+O botão **Começar** abre um onboarding de três etapas:
+
+1. preenchimento do saldo atual, próximo recebimento, contas pendentes e reserva;
+2. revisão dos dados;
+3. conclusão temporária com o limite diário calculado.
+
+Os valores são convertidos para centavos e o cálculo reutiliza o domínio
+`daily-limit`. Nesta etapa, os dados existem somente em memória e são perdidos ao
+encerrar o fluxo ou o aplicativo.
 
 ## Estrutura principal
 
