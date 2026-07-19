@@ -135,6 +135,14 @@ export function HomeScreen() {
 
         <Pressable
           accessibilityRole="button"
+          onPress={() => router.push('/historico')}
+          style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed]}
+        >
+          <Text style={styles.secondaryButtonText}>Ver histórico</Text>
+        </Pressable>
+
+        <Pressable
+          accessibilityRole="button"
           onPress={() => router.push('/onboarding')}
           style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed]}
         >
