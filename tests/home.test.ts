@@ -51,7 +51,7 @@ test('apresenta valor disponível igual a zero sem valor livre', () => {
   const apresentacao = criarApresentacaoHome(configuracao, calcularPlanoDiario(configuracao));
 
   assert.equal(apresentacao.estado, 'sem-valor-livre');
-  assert.equal(apresentacao.limiteDiario, 'R$ 0,00');
+  assert.equal(apresentacao.restanteHoje, 'R$ 0,00');
   assert.equal(apresentacao.valorDisponivel, 'R$ 0,00');
   assert.match(apresentacao.mensagemEstado, /Não há valor livre/);
 });
@@ -64,7 +64,7 @@ test('apresenta déficit sem oferecer valor negativo para gastar', () => {
   const apresentacao = criarApresentacaoHome(configuracao, calcularPlanoDiario(configuracao));
 
   assert.equal(apresentacao.estado, 'deficit');
-  assert.equal(apresentacao.limiteDiario, 'R$ 0,00');
+  assert.equal(apresentacao.restanteHoje, 'R$ 0,00');
   assert.equal(apresentacao.valorDisponivel, 'R$ 0,00');
   assert.equal(apresentacao.deficit, 'R$ 50,00');
   assert.match(apresentacao.mensagemEstado, /Faltam R\$ 50,00/);
@@ -76,7 +76,7 @@ test('formata o limite diário em moeda brasileira', () => {
     calcularPlanoDiario(configuracaoBase),
   );
 
-  assert.equal(apresentacao.limiteDiario, 'R$ 100,00');
+  assert.equal(apresentacao.restanteHoje, 'R$ 100,00');
 });
 
 test('informa a quantidade de dias restante', () => {
@@ -122,6 +122,28 @@ test('integra onboarding, cálculo diário e apresentação da Home', () => {
 
   assert.equal(resultado.valorDisponivel, 100_000);
   assert.equal(apresentacao.estado, 'positivo');
-  assert.equal(apresentacao.limiteDiario, 'R$ 200,00');
+  assert.equal(apresentacao.restanteHoje, 'R$ 200,00');
   assert.equal(apresentacao.quantidadeDeDiasTexto, '5 dias');
+});
+
+test('apresenta restante, excedente e limite futuro após gasto acima do limite diário', () => {
+  const configuracao: EntradaCalculoDiario = {
+    saldoAtual: 270_00,
+    reserva: 0,
+    contasPendentes: 115_00,
+    dataAtual: '2026-07-01',
+    dataProximoRecebimento: '2026-07-09',
+    gastosRegistrados: [{ valor: 30_00, data: '2026-07-01' }],
+  };
+  const apresentacao = criarApresentacaoHome(
+    configuracao,
+    calcularPlanoDiario(configuracao),
+  );
+
+  assert.equal(apresentacao.restanteHoje, 'R$ 0,00');
+  assert.equal(apresentacao.gastoHoje, 'R$ 30,00');
+  assert.equal(apresentacao.limitePlanejadoHoje, 'R$ 23,12');
+  assert.equal(apresentacao.excedenteHoje, 'R$ 6,88');
+  assert.equal(apresentacao.limiteDiasFuturos, 'R$ 22,14');
+  assert.equal(apresentacao.quantidadeDeDiasFuturos, 7);
 });

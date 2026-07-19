@@ -136,5 +136,11 @@ test('integra a configuração do onboarding com o cálculo diário existente', 
     limiteDiario: 10_000,
     quantidadeDeDiasRestantes: 7,
     totalGastosRegistrados: 0,
+    totalGastosHoje: 0,
+    limitePlanejadoHoje: 10_000,
+    restanteHoje: 10_000,
+    excedenteHoje: 0,
+    quantidadeDeDiasFuturos: 6,
+    limiteDiasFuturos: 10_000,
   });
 });

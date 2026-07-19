@@ -1,43 +1,89 @@
-import { createContext, type PropsWithChildren, useContext, useMemo, useState } from 'react';
+import { createContext, type PropsWithChildren, useContext, useMemo, useReducer } from 'react';
 
 import {
   calcularPlanoDiario,
   type EntradaCalculoDiario,
   type ResultadoCalculoDiario,
 } from '../daily-limit';
+import {
+  registrarGasto as executarRegistroGasto,
+  type RegistroGastoConcluido,
+} from '../expenses';
+import { obterDataCivilHoje } from './model';
 
 interface EstadoOnboarding {
   configuracao: EntradaCalculoDiario | null;
   resultado: ResultadoCalculoDiario | null;
   definirConfiguracao: (configuracao: EntradaCalculoDiario) => void;
   confirmarConfiguracao: () => ResultadoCalculoDiario;
+  registrarGasto: (valor: string, dataAtual?: string) => RegistroGastoConcluido;
 }
 
 const ContextoOnboarding = createContext<EstadoOnboarding | null>(null);
 
+interface PlanejamentoEmMemoria {
+  configuracao: EntradaCalculoDiario | null;
+  resultado: ResultadoCalculoDiario | null;
+}
+
+type AcaoPlanejamento =
+  | { tipo: 'CONFIGURAR'; configuracao: EntradaCalculoDiario }
+  | { tipo: 'ATUALIZAR_PLANO'; planejamento: RegistroGastoConcluido };
+
+function reduzirPlanejamento(
+  estado: PlanejamentoEmMemoria,
+  acao: AcaoPlanejamento,
+): PlanejamentoEmMemoria {
+  if (acao.tipo === 'CONFIGURAR') {
+    return { configuracao: acao.configuracao, resultado: null };
+  }
+
+  return acao.planejamento;
+}
+
 export function OnboardingProvider({ children }: PropsWithChildren) {
-  const [configuracao, setConfiguracao] = useState<EntradaCalculoDiario | null>(null);
-  const [resultado, setResultado] = useState<ResultadoCalculoDiario | null>(null);
+  const [estado, dispatch] = useReducer(reduzirPlanejamento, {
+    configuracao: null,
+    resultado: null,
+  });
 
   const valor = useMemo<EstadoOnboarding>(
     () => ({
-      configuracao,
-      resultado,
+      configuracao: estado.configuracao,
+      resultado: estado.resultado,
       definirConfiguracao: (novaConfiguracao) => {
-        setConfiguracao(novaConfiguracao);
-        setResultado(null);
+        dispatch({ tipo: 'CONFIGURAR', configuracao: novaConfiguracao });
       },
       confirmarConfiguracao: () => {
-        if (!configuracao) {
+        if (!estado.configuracao) {
           throw new Error('A configuração inicial ainda não foi preenchida.');
         }
 
-        const novoResultado = calcularPlanoDiario(configuracao);
-        setResultado(novoResultado);
+        const novoResultado = calcularPlanoDiario(estado.configuracao);
+        dispatch({
+          tipo: 'ATUALIZAR_PLANO',
+          planejamento: {
+            configuracao: estado.configuracao,
+            resultado: novoResultado,
+          },
+        });
         return novoResultado;
       },
+      registrarGasto: (valorGasto, dataAtual = obterDataCivilHoje()) => {
+        if (!estado.configuracao || !estado.resultado) {
+          throw new Error('O planejamento precisa estar confirmado antes de registrar um gasto.');
+        }
+
+        const planejamento = executarRegistroGasto(
+          estado.configuracao,
+          valorGasto,
+          dataAtual,
+        );
+        dispatch({ tipo: 'ATUALIZAR_PLANO', planejamento });
+        return planejamento;
+      },
     }),
-    [configuracao, resultado],
+    [estado],
   );
 
   return <ContextoOnboarding.Provider value={valor}>{children}</ContextoOnboarding.Provider>;

@@ -3,6 +3,11 @@ import {
   type Centavos,
   type EntradaCalculoDiario,
 } from '../daily-limit';
+import {
+  converterMoedaBrasileiraParaCentavos as converterMoedaCompartilhada,
+  ErroMoeda,
+  formatarCentavosComoMoedaBrasileira as formatarMoedaCompartilhada,
+} from '../../shared/money';
 
 export type CampoOnboarding =
   | 'saldoAtual'
@@ -45,51 +50,28 @@ export function criarDadosFormularioDaConfiguracao(
   };
 }
 
-const FORMATO_MOEDA_BRASILEIRA = /^-?(?:\d{1,3}(?:\.\d{3})+|\d+)(?:,\d{1,2})?$/;
 const FORMATO_DATA_CIVIL = /^(\d{4})-(\d{2})-(\d{2})$/;
 
 export function converterMoedaBrasileiraParaCentavos(valor: string): Centavos {
-  const normalizado = valor.trim().replace(/^R\$\s?/, '').replace(/\s/g, '');
-
-  if (!normalizado || !FORMATO_MOEDA_BRASILEIRA.test(normalizado)) {
-    throw new ErroOnboarding(
-      'saldoAtual',
-      'VALOR_INVALIDO',
-      'Informe um valor válido, como R$ 1.234,56.',
-    );
+  try {
+    return converterMoedaCompartilhada(valor);
+  } catch (erro) {
+    if (erro instanceof ErroMoeda) {
+      throw new ErroOnboarding('saldoAtual', 'VALOR_INVALIDO', erro.message);
+    }
+    throw erro;
   }
-
-  const negativo = normalizado.startsWith('-');
-  const semSinal = negativo ? normalizado.slice(1) : normalizado;
-  const [reaisTexto, centavosTexto = ''] = semSinal.split(',');
-  const reais = Number(reaisTexto.replace(/\./g, ''));
-  const centavos = Number(centavosTexto.padEnd(2, '0'));
-  const resultado = (reais * 100 + centavos) * (negativo ? -1 : 1);
-
-  if (!Number.isSafeInteger(resultado)) {
-    throw new ErroOnboarding(
-      'saldoAtual',
-      'VALOR_INVALIDO',
-      'O valor informado é grande demais.',
-    );
-  }
-
-  return resultado;
 }
 
 export function formatarCentavosComoMoedaBrasileira(valor: Centavos): string {
-  if (!Number.isSafeInteger(valor)) {
-    throw new ErroOnboarding('saldoAtual', 'VALOR_INVALIDO', 'O valor monetário é inválido.');
+  try {
+    return formatarMoedaCompartilhada(valor);
+  } catch (erro) {
+    if (erro instanceof ErroMoeda) {
+      throw new ErroOnboarding('saldoAtual', 'VALOR_INVALIDO', erro.message);
+    }
+    throw erro;
   }
-
-  const negativo = valor < 0;
-  const absoluto = Math.abs(valor);
-  const reais = Math.floor(absoluto / 100)
-    .toString()
-    .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-  const centavos = (absoluto % 100).toString().padStart(2, '0');
-
-  return `R$ ${negativo ? '-' : ''}${reais},${centavos}`;
 }
 
 export function formatarDataCivilParaExibicao(data: string): string {

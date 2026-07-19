@@ -57,10 +57,15 @@ O botão **Começar** abre um onboarding:
 3. confirmação e acesso à tela principal.
 
 Os valores são convertidos para centavos e o cálculo reutiliza o domínio
-`daily-limit`. A tela principal mostra o limite diário, os valores do planejamento
+`daily-limit`. A tela principal mostra quanto ainda pode ser gasto hoje, o limite
+planejado do dia, o gasto de hoje e a previsão para os dias futuros, além dos valores do planejamento
 e os estados positivo, sem valor livre ou déficit. É possível editar o
-planejamento; o registro de gastos ainda está desabilitado. Nesta etapa, os dados
-existem somente em memória e são perdidos ao encerrar o aplicativo.
+planejamento e registrar gastos, que reduzem o saldo atual e recalculam
+imediatamente o restante do dia. Gastos são datados em memória para que o valor
+consumido hoje não seja redistribuído novamente pelo mesmo dia. A Home mostra
+somente o total gasto no ciclo, sem
+histórico individual. Nesta etapa, os dados existem somente em memória e são
+perdidos ao encerrar o aplicativo.
 
 ## Estrutura principal
 
