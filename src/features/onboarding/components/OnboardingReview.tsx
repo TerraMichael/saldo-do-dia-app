@@ -1,4 +1,5 @@
 import { useRouter } from 'expo-router';
+import { useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -25,6 +26,9 @@ function LinhaRevisao({ label, value }: LinhaRevisaoProps) {
 export function OnboardingReview() {
   const router = useRouter();
   const { configuracao, confirmarConfiguracao } = useOnboarding();
+  const [salvando, setSalvando] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+  const salvamentoEmAndamento = useRef(false);
 
   if (!configuracao) {
     return (
@@ -45,9 +49,27 @@ export function OnboardingReview() {
     );
   }
 
-  function confirmar() {
-    confirmarConfiguracao();
-    router.replace('/home');
+  async function confirmar() {
+    if (salvamentoEmAndamento.current) {
+      return;
+    }
+
+    salvamentoEmAndamento.current = true;
+    setSalvando(true);
+    setErro(null);
+    try {
+      await confirmarConfiguracao();
+      router.replace('/home');
+    } catch (falha) {
+      setErro(
+        falha instanceof Error
+          ? falha.message
+          : 'Não foi possível salvar o planejamento. Tente novamente.',
+      );
+    } finally {
+      salvamentoEmAndamento.current = false;
+      setSalvando(false);
+    }
   }
 
   return (
@@ -86,12 +108,26 @@ export function OnboardingReview() {
           />
         </View>
 
+        {erro ? (
+          <Text accessibilityRole="alert" style={styles.error}>
+            {erro}
+          </Text>
+        ) : null}
+
         <Pressable
           accessibilityRole="button"
-          onPress={confirmar}
-          style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}
+          accessibilityState={{ disabled: salvando }}
+          disabled={salvando}
+          onPress={() => void confirmar()}
+          style={({ pressed }) => [
+            styles.primaryButton,
+            salvando && styles.disabled,
+            pressed && styles.pressed,
+          ]}
         >
-          <Text style={styles.primaryButtonText}>Confirmar</Text>
+          <Text style={styles.primaryButtonText}>
+            {salvando ? 'Salvando…' : 'Confirmar'}
+          </Text>
         </Pressable>
       </ScrollView>
     </SafeAreaView>
@@ -126,5 +162,7 @@ const styles = StyleSheet.create({
     paddingVertical: 17,
   },
   primaryButtonText: { color: '#FFFFFF', fontSize: 17, fontWeight: '800' },
+  error: { color: '#A52D2D', fontSize: 14, lineHeight: 20, marginTop: 18 },
+  disabled: { opacity: 0.55 },
   pressed: { opacity: 0.82 },
 });

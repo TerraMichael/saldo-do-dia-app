@@ -1,9 +1,21 @@
-import { useRouter } from 'expo-router';
+import { Redirect, useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useOnboarding } from '../src/features/onboarding';
+import { PlanningStateScreen } from '../src/features/onboarding/components/PlanningStateScreen';
+
 export default function HomeScreen() {
   const router = useRouter();
+  const { status } = useOnboarding();
+
+  if (status === 'carregando' || status === 'expirado' || status === 'erro') {
+    return <PlanningStateScreen />;
+  }
+
+  if (status === 'pronto') {
+    return <Redirect href="/home" />;
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>

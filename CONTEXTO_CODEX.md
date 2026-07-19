@@ -61,6 +61,7 @@ pelo produto.
 - React 19.1;
 - TypeScript 5.9 em modo `strict`;
 - Expo Router com rotas tipadas;
+- AsyncStorage para persistência local do planejamento;
 - Expo Localization configurado para `pt-BR` no Android;
 - nova arquitetura do React Native habilitada;
 - ESLint com a configuração flat do Expo;
@@ -102,7 +103,8 @@ Requisitos documentados: Node.js 20.19 ou superior e npm 10 ou superior.
 - A revisão exibe os quatro dados antes da confirmação.
 - A confirmação reutiliza `calcularPlanoDiario` e substitui o fluxo pela tela
   principal, evitando retornar à revisão pelo botão voltar.
-- Nenhum dado é persistido; fechar ou abandonar o fluxo descarta a configuração.
+- A confirmação persiste a configuração localmente antes de publicar o
+  planejamento calculado.
 
 ### Tela principal
 
@@ -117,8 +119,8 @@ Requisitos documentados: Node.js 20.19 ou superior e npm 10 ou superior.
 - **Editar planejamento** retorna ao onboarding com os dados atuais preenchidos.
 - **Registrar gasto** abre um formulário de valor único; após confirmar, saldo,
   total gasto e orçamento restante de hoje são atualizados em memória.
-- O provider do planejamento fica no layout raiz para compartilhar uma única
-  configuração em memória entre onboarding e Home.
+- O provider do planejamento fica no layout raiz, hidrata a configuração local e
+  compartilha configuração e resultado entre onboarding e Home.
 
 ### Registro de gastos em memória
 
@@ -140,7 +142,7 @@ Requisitos documentados: Node.js 20.19 ou superior e npm 10 ou superior.
 - A Home mostra o total do ciclo e os agregados do dia; lista, edição e exclusão
   ficam fora desta etapa.
 - Configuração e resultado são mantidos juntos em uma única atualização do
-  Context, sem persistência.
+  Context, somente depois que a configuração foi persistida.
 - Parsing e formatação monetária genéricos ficam em `src/shared/money.ts`, com os
   exports anteriores do onboarding preservados.
 
@@ -206,14 +208,46 @@ datas inválidas e prevenção de `NaN`/`Infinity`.
 
 ## 5. Persistência e dados
 
-Ainda não há implementação de persistência. `src/storage` contém somente a
-orientação arquitetural: módulos devem depender de abstrações locais, e dados
-financeiros não devem sair do aparelho.
+O planejamento é persistido localmente com
+`@react-native-async-storage/async-storage`. A chave centralizada é
+`@saldo-do-dia/planejamento:v1`, e o documento possui o formato:
 
-Antes de escolher uma tecnologia local, confirme as necessidades concretas dos
-fluxos. Não instale uma biblioteca apenas para antecipar uma necessidade. A futura
-camada deve permitir que os domínios permaneçam independentes do mecanismo físico
-de armazenamento.
+```ts
+{
+  versao: 1;
+  configuracao: EntradaCalculoDiario;
+}
+```
+
+Somente a configuração, que é a fonte de verdade, é armazenada.
+`ResultadoCalculoDiario` nunca é persistido: ele é recalculado por
+`calcularPlanoDiario` após cada leitura ou operação.
+
+A desserialização parte de `unknown` e valida objeto raiz, versão, inteiros
+seguros, restrições de sinal, datas civis e cada gasto datado. JSON inválido,
+versão desconhecida ou campos corrompidos levam a uma tela de recuperação; os
+dados só são removidos após a ação explícita **Recomeçar planejamento**. Falhas
+temporárias de leitura permitem tentar novamente.
+
+O provider começa em `carregando`, sem piscar onboarding ou Home. Ausência de
+dados leva ao fluxo inicial; dados válidos levam à Home; recebimento vencido leva
+ao estado `expirado`; falhas levam ao estado `erro`.
+
+Na inicialização e quando o aplicativo retorna ao primeiro plano, a data civil
+local é comparada com `dataAtual`. Em um novo dia, a configuração recebe a nova
+data, o resultado é recalculado e a configuração é salva. Não se usa
+`toISOString` para produzir a data local.
+
+Se o recebimento passou, saldo, reserva, contas e gastos são preservados e a
+interface solicita a edição do planejamento. Nenhum ciclo é criado
+automaticamente.
+
+Confirmação do onboarding e registro de gasto seguem a ordem calcular, persistir
+configuração e então publicar configuração/resultado juntos. Uma falha de
+gravação mantém o estado anterior consistente e permite tentar novamente.
+
+AsyncStorage é assíncrono, persistente e não criptografado. Não armazene senha,
+token, credencial, segredo ou dado de autenticação nessa camada.
 
 ## 6. Arquitetura esperada
 
@@ -241,7 +275,8 @@ npm test
 
 `npm test` executa explicitamente `tests/foundation.test.js`,
 `tests/daily-limit.test.ts`, `tests/onboarding.test.ts`, `tests/home.test.ts` e
-`tests/expenses.test.ts` com o test runner nativo do Node.js por meio do `tsx`.
+`tests/expenses.test.ts` e `tests/storage.test.ts` com o test runner nativo do
+Node.js por meio do `tsx`.
 Os caminhos explícitos mantêm o comando compatível com Windows PowerShell sem
 depender da expansão de globs feita pelo shell.
 
@@ -254,7 +289,6 @@ existe, embora ainda não esteja ligada a uma tela ou persistência.
 
 - histórico detalhado, edição e exclusão de gastos;
 - histórico;
-- persistência local concreta;
 - componentes compartilhados ou design system formal;
 - tratamento de acessibilidade além dos papéis básicos já presentes;
 - testes de interface ou navegação;
@@ -267,8 +301,8 @@ antes de consolidar uma decisão.
 
 Esta seção é um **roadmap sugerido**, não um conjunto de requisitos já aprovado:
 
-1. modelar os dados e contratos de armazenamento local necessários ao onboarding;
-2. evoluir histórico e edição somente depois do ciclo principal funcionar.
+1. evoluir histórico e edição somente depois do ciclo principal funcionar;
+2. definir migrações somente quando uma versão futura do formato exigir.
 
 Em cada etapa, mantenha estados de erro, valores negativos, datas-limite,
 arredondamento e acessibilidade visíveis no desenho da solução.

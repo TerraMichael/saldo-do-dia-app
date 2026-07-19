@@ -1,3 +1,15 @@
 # Armazenamento local
 
-Esta pasta receberá as interfaces e implementações de persistência no dispositivo. Dados financeiros não devem sair do aparelho e os módulos de produto devem depender de abstrações locais, não de serviços remotos.
+Esta pasta contém o contrato de persistência do planejamento, a validação do
+formato versionado, o adaptador AsyncStorage e um adaptador em memória para
+testes.
+
+- chave: `@saldo-do-dia/planejamento:v1`;
+- versão do documento: `1`;
+- fonte persistida: somente `EntradaCalculoDiario`;
+- `ResultadoCalculoDiario` é sempre recalculado;
+- dados inválidos não são removidos silenciosamente.
+
+AsyncStorage não é criptografado. Não armazene senhas, tokens, credenciais ou
+segredos. Os módulos de produto dependem de `ArmazenamentoPlanejamento`, e não
+importam AsyncStorage diretamente.
