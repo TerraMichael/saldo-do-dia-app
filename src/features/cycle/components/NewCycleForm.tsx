@@ -1,25 +1,24 @@
-import DateTimePicker, {
-  type DateTimePickerEvent,
-} from '@react-native-community/datetimepicker';
+import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import {
-  BackHandler,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { BackHandler, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
   converterMoedaBrasileiraParaCentavos,
   formatarCentavosComoMoedaBrasileira,
 } from '../../../shared/money';
+import {
+  AppButton,
+  AppHeader,
+  AppScreen,
+  AppStateView,
+  colors,
+  MoneyInput,
+  radii,
+  sizes,
+  spacing,
+  typography,
+} from '../../../ui';
 import {
   criarDataLocalDaDataCivil,
   formatarDataCivilParaExibicao,
@@ -27,58 +26,12 @@ import {
   obterDataCivilHoje,
   useOnboarding,
 } from '../../onboarding';
-import {
-  ErroNovoCiclo,
-  iniciarNovoCiclo,
-  type CampoNovoCiclo,
-} from '..';
+import { ErroNovoCiclo, iniciarNovoCiclo, type CampoNovoCiclo } from '..';
 
 type ErrosFormulario = Partial<Record<CampoNovoCiclo, string>>;
 
-interface CampoMonetarioProps {
-  label: string;
-  valor: string;
-  erro?: string;
-  onBlur: () => void;
-  onChangeText: (valor: string) => void;
-  onFocus?: () => void;
-}
-
-function CampoMonetario({
-  label,
-  valor,
-  erro,
-  onBlur,
-  onChangeText,
-  onFocus,
-}: CampoMonetarioProps) {
-  return (
-    <View style={styles.field}>
-      <Text style={styles.label}>{label}</Text>
-      <TextInput
-        accessibilityLabel={label}
-        keyboardType="decimal-pad"
-        onBlur={onBlur}
-        onChangeText={onChangeText}
-        onFocus={onFocus}
-        placeholder="R$ 0,00"
-        placeholderTextColor="#849088"
-        style={[styles.input, erro && styles.inputError]}
-        value={valor}
-      />
-      {erro ? (
-        <Text accessibilityRole="alert" style={styles.error}>
-          {erro}
-        </Text>
-      ) : null}
-    </View>
-  );
-}
-
 function formatarEntrada(valor: string): string {
-  if (!valor.trim()) {
-    return valor;
-  }
+  if (!valor.trim()) return valor;
   try {
     return formatarCentavosComoMoedaBrasileira(
       converterMoedaBrasileiraParaCentavos(valor),
@@ -90,9 +43,7 @@ function formatarEntrada(valor: string): string {
 
 function limparSeZero(valor: string, limpar: () => void) {
   try {
-    if (converterMoedaBrasileiraParaCentavos(valor) === 0) {
-      limpar();
-    }
+    if (converterMoedaBrasileiraParaCentavos(valor) === 0) limpar();
   } catch {
     // A entrada permanece disponível para correção.
   }
@@ -120,9 +71,7 @@ export function NewCycleForm() {
     prepararNovoCiclo,
     cancelarNovoCiclo,
   } = useOnboarding();
-  const [saldoAtual, setSaldoAtual] = useState(
-    rascunhoNovoCiclo?.saldoAtual ?? '',
-  );
+  const [saldoAtual, setSaldoAtual] = useState(rascunhoNovoCiclo?.saldoAtual ?? '');
   const [contasPendentes, setContasPendentes] = useState(
     rascunhoNovoCiclo?.contasPendentes ?? 'R$ 0,00',
   );
@@ -146,16 +95,10 @@ export function NewCycleForm() {
 
   if (!configuracao) {
     return (
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.centered}>
-          <Text accessibilityRole="header" style={styles.title}>
-            Planejamento não encontrado
-          </Text>
-          <Text style={styles.description}>
-            Crie seu planejamento antes de iniciar um novo ciclo.
-          </Text>
-        </View>
-      </SafeAreaView>
+      <AppStateView
+        description="Crie seu planejamento antes de iniciar um novo ciclo."
+        title="Planejamento não encontrado"
+      />
     );
   }
 
@@ -180,12 +123,7 @@ export function NewCycleForm() {
   }
 
   function revisar() {
-    const dados = {
-      saldoAtual,
-      contasPendentes,
-      reserva,
-      dataProximoRecebimento,
-    };
+    const dados = { saldoAtual, contasPendentes, reserva, dataProximoRecebimento };
     try {
       iniciarNovoCiclo(dados, hoje);
       prepararNovoCiclo(dados);
@@ -201,177 +139,120 @@ export function NewCycleForm() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.flex}
-      >
-        <ScrollView
-          contentContainerStyle={styles.container}
-          keyboardShouldPersistTaps="handled"
-        >
-          <View>
-            <Text style={styles.step}>ETAPA 1 DE 2</Text>
-            <Text accessibilityRole="header" style={styles.title}>
-              Novo ciclo
-            </Text>
-            <Text style={styles.description}>
-              Informe como ficou seu dinheiro depois de receber.
-            </Text>
-          </View>
+    <AppScreen keyboard scroll>
+      <AppHeader
+        backLabel="Cancelar"
+        description="Informe como ficou seu dinheiro depois de receber."
+        eyebrow="ETAPA 1 DE 2"
+        onBack={cancelar}
+        title="Novo ciclo"
+      />
 
-          <View style={styles.form}>
-            <CampoMonetario
-              erro={erros.saldoAtual}
-              label="Saldo atual depois de receber"
-              onBlur={() => setSaldoAtual(formatarEntrada(saldoAtual))}
-              onChangeText={(valor) => {
-                setSaldoAtual(valor);
-                limparErro('saldoAtual');
-              }}
-              valor={saldoAtual}
-            />
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => {
-                setSaldoAtual((valor) => alternarSinal(valor));
-                limparErro('saldoAtual');
-              }}
-              style={styles.signButton}
-            >
-              <Text style={styles.signButtonText}>Alternar saldo positivo ou negativo</Text>
-            </Pressable>
-
-            <CampoMonetario
-              erro={erros.contasPendentes}
-              label="Contas pendentes"
-              onBlur={() => setContasPendentes(formatarEntrada(contasPendentes))}
-              onChangeText={(valor) => {
-                setContasPendentes(valor);
-                limparErro('contasPendentes');
-              }}
-              onFocus={() =>
-                limparSeZero(contasPendentes, () => setContasPendentes(''))
+      <View style={styles.form}>
+        <MoneyInput
+          error={erros.saldoAtual}
+          label="Saldo atual depois de receber"
+          onBlur={() => setSaldoAtual(formatarEntrada(saldoAtual))}
+          onChangeText={(valor) => {
+            setSaldoAtual(valor);
+            limparErro('saldoAtual');
+          }}
+          value={saldoAtual}
+        />
+        <AppButton
+          label="Alternar saldo positivo ou negativo"
+          onPress={() => {
+            setSaldoAtual((valor) => alternarSinal(valor));
+            limparErro('saldoAtual');
+          }}
+          variant="tertiary"
+        />
+        <MoneyInput
+          error={erros.contasPendentes}
+          label="Contas pendentes"
+          onBlur={() => setContasPendentes(formatarEntrada(contasPendentes))}
+          onChangeText={(valor) => {
+            setContasPendentes(valor);
+            limparErro('contasPendentes');
+          }}
+          onFocus={() => limparSeZero(contasPendentes, () => setContasPendentes(''))}
+          value={contasPendentes}
+        />
+        <MoneyInput
+          error={erros.reserva}
+          label="Reserva protegida"
+          onBlur={() => setReserva(formatarEntrada(reserva))}
+          onChangeText={(valor) => {
+            setReserva(valor);
+            limparErro('reserva');
+          }}
+          onFocus={() => limparSeZero(reserva, () => setReserva(''))}
+          value={reserva}
+        />
+        <View style={styles.field}>
+          <Text style={styles.label}>Próximo recebimento</Text>
+          <Pressable
+            accessibilityHint="Abre o seletor de data."
+            accessibilityLabel="Selecionar próximo recebimento"
+            accessibilityRole="button"
+            onPress={() => setMostrarSeletor(true)}
+            style={({ pressed }) => [
+              styles.dateButton,
+              erros.dataProximoRecebimento && styles.inputError,
+              pressed && styles.pressed,
+            ]}
+          >
+            <Text
+              style={
+                dataProximoRecebimento ? styles.dateText : styles.datePlaceholder
               }
-              valor={contasPendentes}
-            />
-            <CampoMonetario
-              erro={erros.reserva}
-              label="Reserva protegida"
-              onBlur={() => setReserva(formatarEntrada(reserva))}
-              onChangeText={(valor) => {
-                setReserva(valor);
-                limparErro('reserva');
-              }}
-              onFocus={() => limparSeZero(reserva, () => setReserva(''))}
-              valor={reserva}
-            />
-
-            <View style={styles.field}>
-              <Text style={styles.label}>Próximo recebimento</Text>
-              <Pressable
-                accessibilityLabel="Selecionar próximo recebimento"
-                accessibilityRole="button"
-                onPress={() => setMostrarSeletor(true)}
-                style={[
-                  styles.input,
-                  styles.dateButton,
-                  erros.dataProximoRecebimento && styles.inputError,
-                ]}
-              >
-                <Text
-                  style={
-                    dataProximoRecebimento
-                      ? styles.dateText
-                      : styles.datePlaceholder
-                  }
-                >
-                  {dataProximoRecebimento
-                    ? formatarDataCivilParaExibicao(dataProximoRecebimento)
-                    : 'Selecionar data'}
-                </Text>
-              </Pressable>
-              {erros.dataProximoRecebimento ? (
-                <Text accessibilityRole="alert" style={styles.error}>
-                  {erros.dataProximoRecebimento}
-                </Text>
-              ) : null}
-              {mostrarSeletor ? (
-                <DateTimePicker
-                  minimumDate={criarDataLocalDaDataCivil(amanha)}
-                  mode="date"
-                  onChange={selecionarData}
-                  value={criarDataLocalDaDataCivil(
-                    dataProximoRecebimento || amanha,
-                  )}
-                />
-              ) : null}
-            </View>
-          </View>
-
-          <Pressable
-            accessibilityRole="button"
-            onPress={revisar}
-            style={({ pressed }) => [
-              styles.primaryButton,
-              pressed && styles.pressed,
-            ]}
-          >
-            <Text style={styles.primaryButtonText}>Revisar novo ciclo</Text>
+            >
+              {dataProximoRecebimento
+                ? formatarDataCivilParaExibicao(dataProximoRecebimento)
+                : 'Selecionar data'}
+            </Text>
           </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            onPress={cancelar}
-            style={({ pressed }) => [
-              styles.secondaryButton,
-              pressed && styles.pressed,
-            ]}
-          >
-            <Text style={styles.secondaryButtonText}>Cancelar</Text>
-          </Pressable>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+          {erros.dataProximoRecebimento ? (
+            <Text accessibilityRole="alert" style={styles.error}>
+              {erros.dataProximoRecebimento}
+            </Text>
+          ) : null}
+          {mostrarSeletor ? (
+            <DateTimePicker
+              minimumDate={criarDataLocalDaDataCivil(amanha)}
+              mode="date"
+              onChange={selecionarData}
+              value={criarDataLocalDaDataCivil(dataProximoRecebimento || amanha)}
+            />
+          ) : null}
+        </View>
+      </View>
+
+      <View style={styles.actions}>
+        <AppButton label="Revisar novo ciclo" onPress={revisar} />
+        <AppButton label="Cancelar" onPress={cancelar} variant="secondary" />
+      </View>
+    </AppScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#F4F8F5' },
-  flex: { flex: 1 },
-  centered: { flex: 1, justifyContent: 'center', padding: 24 },
-  container: { flexGrow: 1, paddingBottom: 32, paddingHorizontal: 24, paddingTop: 18 },
-  step: { color: '#28734F', fontSize: 12, fontWeight: '800', letterSpacing: 1.1 },
-  title: { color: '#17251E', fontSize: 32, fontWeight: '800', lineHeight: 40, marginTop: 7 },
-  description: { color: '#526159', fontSize: 16, lineHeight: 24, marginTop: 8 },
-  form: { gap: 20, marginTop: 28 },
-  field: { gap: 7 },
-  label: { color: '#263B30', fontSize: 15, fontWeight: '700' },
-  input: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#CAD8CF',
-    borderRadius: 14,
+  form: { gap: spacing.lg, marginTop: spacing.xl },
+  field: { gap: spacing.xs },
+  label: { color: colors.text, ...typography.label },
+  dateButton: {
+    backgroundColor: colors.surface,
+    borderColor: colors.borderStrong,
+    borderRadius: radii.md,
     borderWidth: 1,
-    color: '#17251E',
-    fontSize: 17,
-    minHeight: 54,
-    paddingHorizontal: 16,
+    justifyContent: 'center',
+    minHeight: sizes.inputHeight,
+    paddingHorizontal: spacing.md,
   },
-  inputError: { borderColor: '#B53A3A' },
-  error: { color: '#A52D2D', fontSize: 13, lineHeight: 18 },
-  signButton: { alignSelf: 'flex-start', marginTop: -14, paddingVertical: 4 },
-  signButtonText: { color: '#28734F', fontSize: 14, fontWeight: '700' },
-  dateButton: { justifyContent: 'center' },
-  dateText: { color: '#17251E', fontSize: 17 },
-  datePlaceholder: { color: '#849088', fontSize: 17 },
-  primaryButton: {
-    alignItems: 'center',
-    backgroundColor: '#28734F',
-    borderRadius: 16,
-    marginTop: 30,
-    paddingVertical: 17,
-  },
-  primaryButtonText: { color: '#FFFFFF', fontSize: 17, fontWeight: '800' },
-  secondaryButton: { alignItems: 'center', marginTop: 10, paddingVertical: 14 },
-  secondaryButtonText: { color: '#28734F', fontSize: 16, fontWeight: '800' },
-  pressed: { opacity: 0.8 },
+  inputError: { borderColor: colors.error, borderWidth: 2 },
+  dateText: { color: colors.text, fontSize: 17 },
+  datePlaceholder: { color: colors.placeholder, fontSize: 17 },
+  error: { color: colors.error, ...typography.bodySmall },
+  actions: { gap: spacing.xs, marginTop: spacing.xxl },
+  pressed: { opacity: 0.78 },
 });

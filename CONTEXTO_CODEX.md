@@ -89,9 +89,29 @@ Requisitos documentados: Node.js 20.19 ou superior e npm 10 ou superior.
 - O botão navega para o onboarding; após preenchimento e revisão, a confirmação
   abre a tela principal.
 - O visual atual usa fundo verde muito claro, tipografia escura e ação principal
-  verde. Ele é uma fundação, não um design system final.
+  verde. Tokens e componentes reutilizáveis ficam em `src/ui`, sem dependência
+  externa de componentes ou estilos.
 - Não há assets binários versionados; eles foram deliberadamente removidos da
   fundação inicial.
+
+### Fundação visual compartilhada
+
+- `src/ui/theme.ts` centraliza cores, espaçamentos, raios, tipografia, bordas,
+  elevação leve e dimensões mínimas de interação.
+- `src/ui/components` contém estruturas reutilizadas de tela, cabeçalho, botão,
+  card, campo monetário controlado, linha informativa, feedback, seção e estado.
+- A camada visual não importa Context, armazenamento, presenters ou regras
+  financeiras.
+- A direção permanece clara e acolhedora, com verde como cor principal, âmbar
+  para atenção e vermelho para erro, déficit e exclusão.
+- Home, onboarding, novo ciclo, gastos, histórico, revisões e estados do sistema
+  usam a mesma hierarquia visual e alvos de toque mínimos.
+- A Home separa resumo de hoje e planejamento, posicionando **Registrar gasto**
+  logo após o valor principal.
+- Formulários preservam parsing e formatação das features; `MoneyInput` apenas
+  apresenta valor, foco, ajuda, erro e estado desabilitado.
+- Não foram adicionadas bibliotecas de UI, estilos, ícones ou testes de interface.
+- Modo escuro, animações complexas e assets de marca continuam fora do escopo.
 
 ### Onboarding inicial
 
@@ -349,8 +369,8 @@ existe, embora ainda não esteja ligada a uma tela ou persistência.
 
 - edição da data de gastos;
 - categorias, descrições e horários individuais de gastos;
-- componentes compartilhados ou design system formal;
-- tratamento de acessibilidade além dos papéis básicos já presentes;
+- validação visual automatizada e testes de interface;
+- auditoria com leitores de tela em diferentes fabricantes Android;
 - testes de interface ou navegação;
 - histórico permanente de ciclos encerrados;
 
