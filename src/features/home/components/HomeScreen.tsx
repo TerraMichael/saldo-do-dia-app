@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useOnboarding } from '../../onboarding';
+import { PlanningStateScreen } from '../../onboarding/components/PlanningStateScreen';
 import { criarApresentacaoHome } from '../presenter';
 
 interface LinhaPlanejamentoProps {
@@ -21,7 +22,11 @@ function LinhaPlanejamento({ label, value }: LinhaPlanejamentoProps) {
 
 export function HomeScreen() {
   const router = useRouter();
-  const { configuracao, resultado } = useOnboarding();
+  const { status, configuracao, resultado } = useOnboarding();
+
+  if (status === 'carregando' || status === 'expirado' || status === 'erro') {
+    return <PlanningStateScreen />;
+  }
 
   if (!configuracao || !resultado) {
     return (

@@ -201,3 +201,33 @@ test('recebimento hoje não cria limite futuro e mantém o restante de hoje', ()
   assert.equal(resultado.limiteDiasFuturos, null);
   assert.equal(resultado.restanteHoje, 185_00);
 });
+
+test('déficit sem gasto hoje não produz excedente', () => {
+  const resultado = calcularPlanoDiario({
+    saldoAtual: -100_00,
+    reserva: 0,
+    contasPendentes: 115_00,
+    dataAtual: '2026-07-01',
+    dataProximoRecebimento: '2026-07-09',
+    gastosRegistrados: [],
+  });
+
+  assert.equal(resultado.valorDisponivel, -215_00);
+  assert.equal(resultado.limitePlanejadoHoje, -26_88);
+  assert.equal(resultado.excedenteHoje, 0);
+});
+
+test('déficit considera todo gasto de hoje como excedente', () => {
+  const resultado = calcularPlanoDiario({
+    saldoAtual: -130_00,
+    reserva: 0,
+    contasPendentes: 115_00,
+    dataAtual: '2026-07-01',
+    dataProximoRecebimento: '2026-07-09',
+    gastosRegistrados: [{ valor: 30_00, data: '2026-07-01' }],
+  });
+
+  assert.ok(resultado.limitePlanejadoHoje < 0);
+  assert.equal(resultado.totalGastosHoje, 30_00);
+  assert.equal(resultado.excedenteHoje, 30_00);
+});

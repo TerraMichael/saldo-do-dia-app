@@ -166,7 +166,8 @@ export function calcularPlanoDiario(entrada: EntradaCalculoDiario): ResultadoCal
     quantidadeDeDiasRestantes,
   );
   const restanteHoje = Math.max(0, limitePlanejadoHoje - totalGastosHoje);
-  const excedenteHoje = Math.max(0, totalGastosHoje - limitePlanejadoHoje);
+  const limitePermitidoHoje = Math.max(0, limitePlanejadoHoje);
+  const excedenteHoje = Math.max(0, totalGastosHoje - limitePermitidoHoje);
   validarCentavos(restanteHoje, 'restanteHoje');
   validarCentavos(excedenteHoje, 'excedenteHoje');
   const quantidadeDeDiasFuturos = Math.max(0, quantidadeDeDiasRestantes - 1);

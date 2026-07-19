@@ -36,6 +36,7 @@ interface CampoMonetarioProps {
   value: string;
   onChangeText: (valor: string) => void;
   onBlur: () => void;
+  onFocus?: () => void;
   error?: string;
   hint?: string;
 }
@@ -45,6 +46,7 @@ function CampoMonetario({
   value,
   onChangeText,
   onBlur,
+  onFocus,
   error,
   hint,
 }: CampoMonetarioProps) {
@@ -56,9 +58,9 @@ function CampoMonetario({
         keyboardType="decimal-pad"
         onBlur={onBlur}
         onChangeText={onChangeText}
+        onFocus={onFocus}
         placeholder="R$ 0,00"
         placeholderTextColor="#849088"
-        selectTextOnFocus
         style={[styles.input, error && styles.inputError]}
         value={value}
       />
@@ -81,6 +83,16 @@ function formatarEntradaMonetaria(valor: string): string {
     return formatarCentavosComoMoedaBrasileira(converterMoedaBrasileiraParaCentavos(valor));
   } catch {
     return valor;
+  }
+}
+
+function limparEntradaSeZero(valor: string, limpar: () => void) {
+  try {
+    if (converterMoedaBrasileiraParaCentavos(valor) === 0) {
+      limpar();
+    }
+  } catch {
+    // Uma entrada incompleta deve permanecer disponível para correção.
   }
 }
 
@@ -131,13 +143,16 @@ export function OnboardingForm() {
 
   function continuar() {
     try {
-      const configuracao = criarConfiguracaoInicial({
+      const novaConfiguracao = criarConfiguracaoInicial({
         saldoAtual,
         contasPendentes,
         reserva,
         dataProximoRecebimento,
       });
-      definirConfiguracao(configuracao);
+      definirConfiguracao({
+        ...novaConfiguracao,
+        gastosRegistrados: configuracao?.gastosRegistrados ?? [],
+      });
       setErros({});
       router.push('/onboarding/revisao');
     } catch (erro) {
@@ -178,7 +193,7 @@ export function OnboardingForm() {
               Conte sobre seu momento
             </Text>
             <Text style={styles.description}>
-              Esses dados ficam somente nesta sessão por enquanto.
+              Seus dados ficam salvos somente neste dispositivo.
             </Text>
           </View>
 
@@ -248,6 +263,9 @@ export function OnboardingForm() {
                 setContasPendentes(valor);
                 limparErro('contasPendentes');
               }}
+              onFocus={() =>
+                limparEntradaSeZero(contasPendentes, () => setContasPendentes(''))
+              }
               value={contasPendentes}
             />
 
@@ -260,6 +278,7 @@ export function OnboardingForm() {
                 setReserva(valor);
                 limparErro('reserva');
               }}
+              onFocus={() => limparEntradaSeZero(reserva, () => setReserva(''))}
               value={reserva}
             />
           </View>

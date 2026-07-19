@@ -67,7 +67,25 @@ test('apresenta déficit sem oferecer valor negativo para gastar', () => {
   assert.equal(apresentacao.restanteHoje, 'R$ 0,00');
   assert.equal(apresentacao.valorDisponivel, 'R$ 0,00');
   assert.equal(apresentacao.deficit, 'R$ 50,00');
+  assert.equal(apresentacao.excedenteHoje, null);
   assert.match(apresentacao.mensagemEstado, /Faltam R\$ 50,00/);
+});
+
+test('não apresenta excedente na Home quando há déficit sem gasto hoje', () => {
+  const configuracao: EntradaCalculoDiario = {
+    saldoAtual: -100_00,
+    reserva: 0,
+    contasPendentes: 115_00,
+    dataAtual: '2026-07-01',
+    dataProximoRecebimento: '2026-07-09',
+    gastosRegistrados: [],
+  };
+  const resultado = calcularPlanoDiario(configuracao);
+  const apresentacao = criarApresentacaoHome(configuracao, resultado);
+
+  assert.equal(apresentacao.deficit, 'R$ 215,00');
+  assert.equal(resultado.excedenteHoje, 0);
+  assert.equal(apresentacao.excedenteHoje, null);
 });
 
 test('formata o limite diário em moeda brasileira', () => {

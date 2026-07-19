@@ -63,7 +63,7 @@ export function ExpenseForm() {
     );
   }
 
-  function confirmar() {
+  async function confirmar() {
     if (envioEmAndamento.current) {
       return;
     }
@@ -73,14 +73,18 @@ export function ExpenseForm() {
     setErro(null);
 
     try {
-      registrarGasto(valor);
+      await registrarGasto(valor);
       router.replace('/home');
     } catch (falha) {
       if (falha instanceof ErroRegistroGasto) {
         setErro(falha.message);
         return;
       }
-      throw falha;
+      setErro(
+        falha instanceof Error
+          ? falha.message
+          : 'Não foi possível salvar o gasto. Tente novamente.',
+      );
     } finally {
       envioEmAndamento.current = false;
       setEnviando(false);
@@ -120,7 +124,6 @@ export function ExpenseForm() {
               }}
               placeholder="R$ 0,00"
               placeholderTextColor="#849088"
-              selectTextOnFocus
               style={[styles.input, erro && styles.inputError]}
               value={valor}
             />
@@ -136,7 +139,7 @@ export function ExpenseForm() {
               accessibilityRole="button"
               accessibilityState={{ disabled: enviando }}
               disabled={enviando}
-              onPress={confirmar}
+              onPress={() => void confirmar()}
               style={({ pressed }) => [
                 styles.primaryButton,
                 enviando && styles.disabled,

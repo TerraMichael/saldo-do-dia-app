@@ -4,6 +4,14 @@ const test = require('node:test');
 
 const appConfig = JSON.parse(readFileSync('app.json', 'utf8')).expo;
 const home = readFileSync('app/index.tsx', 'utf8');
+const onboardingForm = readFileSync(
+  'src/features/onboarding/components/OnboardingForm.tsx',
+  'utf8',
+);
+const expenseForm = readFileSync(
+  'src/features/expenses/components/ExpenseForm.tsx',
+  'utf8',
+);
 
 test('configura a identidade e o alvo Android do aplicativo', () => {
   assert.equal(appConfig.name, 'Saldo do Dia');
@@ -17,4 +25,9 @@ test('a tela inicial contém a mensagem principal e a ação inicial', () => {
   assert.match(home, /Saldo do Dia/);
   assert.match(home, /Descubra quanto você pode gastar hoje/);
   assert.match(home, /Começar/);
+});
+
+test('campos monetários não selecionam automaticamente o primeiro valor digitado', () => {
+  assert.doesNotMatch(onboardingForm, /selectTextOnFocus/);
+  assert.doesNotMatch(expenseForm, /selectTextOnFocus/);
 });

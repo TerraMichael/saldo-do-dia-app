@@ -2,7 +2,7 @@ import type {
   EntradaCalculoDiario,
   ResultadoCalculoDiario,
 } from '../daily-limit';
-import { formatarDataCivilParaExibicao } from '../onboarding';
+import { formatarDataCivilParaExibicao } from '../onboarding/model';
 import { formatarCentavosComoMoedaBrasileira } from '../../shared/money';
 
 export type EstadoFinanceiroHome = 'positivo' | 'sem-valor-livre' | 'deficit';
