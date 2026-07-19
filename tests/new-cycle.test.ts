@@ -286,7 +286,7 @@ test('botões Voltar e Cancelar não confirmam a operação', () => {
   assert.match(formulario, /hardwareBackPress/);
   assert.match(formulario, /cancelarNovoCiclo\(\)/);
   assert.match(revisao, /router\.back\(\)/);
-  assert.match(revisao, />Cancelar</);
+  assert.match(revisao, /label="Cancelar"/);
 });
 
 test('confirmação duplicada é impedida por trava síncrona', () => {

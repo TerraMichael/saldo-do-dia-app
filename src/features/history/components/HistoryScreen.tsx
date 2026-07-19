@@ -1,32 +1,22 @@
 import { useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
-import {
-  Alert,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 
+import {
+  AppButton,
+  AppCard,
+  AppHeader,
+  AppScreen,
+  AppStateView,
+  colors,
+  InfoRow,
+  InlineFeedback,
+  spacing,
+  typography,
+} from '../../../ui';
 import { useOnboarding } from '../../onboarding';
 import { PlanningStateScreen } from '../../onboarding/components/PlanningStateScreen';
 import { criarApresentacaoHistorico } from '../presenter';
-
-interface ResumoProps {
-  label: string;
-  valor: string;
-}
-
-function Resumo({ label, valor }: ResumoProps) {
-  return (
-    <View style={styles.summaryItem}>
-      <Text style={styles.summaryLabel}>{label}</Text>
-      <Text style={styles.summaryValue}>{valor}</Text>
-    </View>
-  );
-}
 
 export function HistoryScreen() {
   const router = useRouter();
@@ -41,23 +31,14 @@ export function HistoryScreen() {
 
   if (!configuracao) {
     return (
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.centered}>
-          <Text accessibilityRole="header" style={styles.title}>
-            Configure seu planejamento
-          </Text>
-          <Text style={styles.description}>
-            Crie um planejamento antes de consultar o histórico.
-          </Text>
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => router.replace('/onboarding')}
-            style={styles.primaryButton}
-          >
-            <Text style={styles.primaryButtonText}>Começar</Text>
-          </Pressable>
-        </View>
-      </SafeAreaView>
+      <AppStateView
+        description="Crie um planejamento antes de consultar o histórico."
+        primaryAction={{
+          label: 'Começar',
+          onPress: () => router.replace('/onboarding'),
+        }}
+        title="Configure seu planejamento"
+      />
     );
   }
 
@@ -67,10 +48,7 @@ export function HistoryScreen() {
   );
 
   function solicitarExclusao(id: string) {
-    if (exclusaoEmAndamento.current) {
-      return;
-    }
-
+    if (exclusaoEmAndamento.current) return;
     Alert.alert(
       'Excluir gasto?',
       'O saldo e o planejamento serão recalculados após a exclusão.',
@@ -80,9 +58,7 @@ export function HistoryScreen() {
           text: 'Excluir',
           style: 'destructive',
           onPress: () => {
-            if (exclusaoEmAndamento.current) {
-              return;
-            }
+            if (exclusaoEmAndamento.current) return;
             exclusaoEmAndamento.current = true;
             setIdProcessando(id);
             setErro(null);
@@ -105,222 +81,158 @@ export function HistoryScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.container}>
-        <Pressable
-          accessibilityRole="button"
-          hitSlop={12}
-          onPress={() => router.back()}
-          style={styles.backButton}
-        >
-          <Text style={styles.backText}>‹ Voltar</Text>
-        </Pressable>
+    <AppScreen scroll>
+      <AppHeader
+        description="Confira os gastos registrados até o próximo recebimento."
+        eyebrow="CICLO ATUAL"
+        onBack={() => router.back()}
+        title="Histórico de gastos"
+      />
 
-        <Text style={styles.eyebrow}>CICLO ATUAL</Text>
-        <Text accessibilityRole="header" style={styles.title}>
-          Histórico de gastos
-        </Text>
-        <Text style={styles.description}>
-          Confira os gastos registrados até o próximo recebimento.
-        </Text>
+      <AppCard style={styles.summary} variant="highlight">
+        <InfoRow label="Total no ciclo" value={apresentacao.totalCiclo} />
+        <InfoRow label="Gasto hoje" value={apresentacao.totalHoje} />
+        <InfoRow
+          label="Quantidade"
+          last
+          value={apresentacao.quantidadeRegistrosTexto}
+        />
+      </AppCard>
 
-        <View style={styles.summaryCard}>
-          <Resumo label="Total no ciclo" valor={apresentacao.totalCiclo} />
-          <Resumo label="Gasto hoje" valor={apresentacao.totalHoje} />
-          <Resumo
-            label="Quantidade"
-            valor={apresentacao.quantidadeRegistrosTexto}
-          />
+      {erro ? (
+        <View style={styles.feedback}>
+          <InlineFeedback message={erro} variant="error" />
         </View>
-        {erro ? (
-          <Text accessibilityRole="alert" style={styles.error}>
-            {erro}
-          </Text>
-        ) : null}
+      ) : null}
 
-        {apresentacao.vazio ? (
-          <View style={styles.emptyCard}>
-            <Text accessibilityRole="header" style={styles.emptyTitle}>
-              Nenhum gasto registrado
-            </Text>
-            <Text style={styles.emptyText}>
-              Seus gastos aparecerão aqui depois do primeiro registro.
-            </Text>
-            <Pressable
-              accessibilityRole="button"
+      {apresentacao.vazio ? (
+        <AppCard style={styles.emptyCard}>
+          <Text accessibilityRole="header" style={styles.emptyTitle}>
+            Nenhum gasto registrado
+          </Text>
+          <Text style={styles.emptyText}>
+            Seus gastos aparecerão aqui depois do primeiro registro.
+          </Text>
+          <View style={styles.emptyAction}>
+            <AppButton
+              label="Registrar gasto"
               onPress={() => router.push('/registrar-gasto')}
-              style={({ pressed }) => [
-                styles.primaryButton,
-                pressed && styles.pressed,
-              ]}
-            >
-              <Text style={styles.primaryButtonText}>Registrar gasto</Text>
-            </Pressable>
+            />
           </View>
-        ) : (
-          <View style={styles.groups}>
-            {apresentacao.grupos.map((grupo) => (
-              <View key={grupo.chave} style={styles.groupCard}>
-                <View style={styles.groupHeader}>
-                  <View>
-                    <Text style={styles.groupDate}>{grupo.data}</Text>
-                    <Text style={styles.groupCount}>
-                      {grupo.quantidade}{' '}
-                      {grupo.quantidade === 1 ? 'gasto' : 'gastos'}
-                    </Text>
-                  </View>
-                  <Text
-                    accessibilityLabel={`Total em ${grupo.data}: ${grupo.total}`}
-                    style={styles.groupTotal}
-                  >
-                    {grupo.total}
+        </AppCard>
+      ) : (
+        <View style={styles.groups}>
+          {apresentacao.grupos.map((grupo) => (
+            <AppCard key={grupo.chave} style={styles.groupCard}>
+              <View style={styles.groupHeader}>
+                <View style={styles.groupHeading}>
+                  <Text style={styles.groupDate}>{grupo.data}</Text>
+                  <Text style={styles.groupCount}>
+                    {grupo.quantidade} {grupo.quantidade === 1 ? 'gasto' : 'gastos'}
                   </Text>
                 </View>
+                <Text
+                  accessibilityLabel={`Total em ${grupo.data}: ${grupo.total}`}
+                  style={styles.groupTotal}
+                >
+                  {grupo.total}
+                </Text>
+              </View>
 
-                {grupo.itens.map((item) => (
-                  <View key={item.chave} style={styles.expenseRow}>
-                    <View style={styles.expenseMain}>
-                      <Text style={styles.expenseLabel}>Gasto registrado</Text>
-                      <Text style={styles.expenseValue}>{item.valor}</Text>
-                    </View>
-                    <View style={styles.expenseActions}>
-                      <Pressable
-                        accessibilityLabel={`Editar gasto de ${item.valor}`}
-                        accessibilityRole="button"
+              {grupo.itens.map((item) => (
+                <View key={item.chave} style={styles.expenseRow}>
+                  <View style={styles.expenseMain}>
+                    <Text style={styles.expenseLabel}>Gasto registrado</Text>
+                    <Text style={styles.expenseValue}>{item.valor}</Text>
+                  </View>
+                  <View style={styles.expenseActions}>
+                    <View style={styles.itemAction}>
+                      <AppButton
                         disabled={idProcessando !== null}
+                        label="Editar"
                         onPress={() =>
                           router.push({
                             pathname: '/editar-gasto',
                             params: { id: item.id },
                           })
                         }
-                        style={({ pressed }) => [
-                          styles.itemButton,
-                          pressed && styles.pressed,
-                        ]}
-                      >
-                        <Text style={styles.itemButtonText}>Editar</Text>
-                      </Pressable>
-                      <Pressable
-                        accessibilityLabel={`Excluir gasto de ${item.valor}`}
-                        accessibilityRole="button"
+                        variant="secondary"
+                      />
+                    </View>
+                    <View style={styles.itemAction}>
+                      <AppButton
+                        accessibilityHint={`Exclui o gasto de ${item.valor} após confirmação.`}
                         disabled={idProcessando !== null}
+                        label={idProcessando === item.id ? 'Excluindo…' : 'Excluir'}
                         onPress={() => solicitarExclusao(item.id)}
-                        style={({ pressed }) => [
-                          styles.itemButton,
-                          pressed && styles.pressed,
-                        ]}
-                      >
-                        <Text style={styles.deleteButtonText}>
-                          {idProcessando === item.id ? 'Excluindo…' : 'Excluir'}
-                        </Text>
-                      </Pressable>
+                        processing={idProcessando === item.id}
+                        variant="destructive"
+                      />
                     </View>
                   </View>
-                ))}
-              </View>
-            ))}
-          </View>
-        )}
-      </ScrollView>
-    </SafeAreaView>
+                </View>
+              ))}
+            </AppCard>
+          ))}
+        </View>
+      )}
+    </AppScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#F4F8F5' },
-  container: { paddingBottom: 36, paddingHorizontal: 20, paddingTop: 8 },
-  centered: { flex: 1, justifyContent: 'center', paddingHorizontal: 24 },
-  backButton: { alignSelf: 'flex-start', marginBottom: 18, paddingVertical: 4 },
-  backText: { color: '#28734F', fontSize: 16, fontWeight: '700' },
-  eyebrow: { color: '#28734F', fontSize: 12, fontWeight: '800', letterSpacing: 1.1 },
-  title: { color: '#17251E', fontSize: 32, fontWeight: '800', lineHeight: 40, marginTop: 6 },
-  description: { color: '#526159', fontSize: 15, lineHeight: 22, marginTop: 7 },
-  summaryCard: {
-    backgroundColor: '#E3F2E8',
-    borderColor: '#C4DECE',
-    borderRadius: 18,
-    borderWidth: 1,
-    marginTop: 22,
-    paddingHorizontal: 16,
+  summary: { marginTop: spacing.xl },
+  feedback: { marginTop: spacing.md },
+  emptyCard: { alignItems: 'center', marginTop: spacing.xl, padding: spacing.xl },
+  emptyTitle: { color: colors.text, textAlign: 'center', ...typography.section },
+  emptyText: {
+    color: colors.textMuted,
+    marginTop: spacing.xs,
+    textAlign: 'center',
+    ...typography.bodySmall,
   },
-  summaryItem: {
-    alignItems: 'center',
-    borderBottomColor: '#CFE3D6',
-    borderBottomWidth: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    minHeight: 56,
-  },
-  summaryLabel: { color: '#526159', fontSize: 14, fontWeight: '600' },
-  summaryValue: { color: '#1E6847', fontSize: 16, fontWeight: '800' },
-  emptyCard: {
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderColor: '#D9E4DC',
-    borderRadius: 18,
-    borderWidth: 1,
-    marginTop: 24,
-    padding: 22,
-  },
-  emptyTitle: { color: '#17251E', fontSize: 21, fontWeight: '800', textAlign: 'center' },
-  emptyText: { color: '#68766E', fontSize: 14, lineHeight: 21, marginTop: 8, textAlign: 'center' },
-  groups: { gap: 16, marginTop: 24 },
-  groupCard: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#D9E4DC',
-    borderRadius: 18,
-    borderWidth: 1,
-    overflow: 'hidden',
-  },
+  emptyAction: { alignSelf: 'stretch', marginTop: spacing.lg },
+  groups: { gap: spacing.md, marginTop: spacing.xl },
+  groupCard: { overflow: 'hidden', padding: 0 },
   groupHeader: {
-    alignItems: 'center',
-    backgroundColor: '#F0F6F2',
+    alignItems: 'flex-start',
+    backgroundColor: colors.surfaceMuted,
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    padding: spacing.md,
   },
-  groupDate: { color: '#17251E', fontSize: 17, fontWeight: '800' },
-  groupCount: { color: '#68766E', fontSize: 12, marginTop: 3 },
-  groupTotal: { color: '#1E6847', fontSize: 17, fontWeight: '800' },
+  groupHeading: { flexGrow: 1, flexShrink: 1, minWidth: 130 },
+  groupDate: { color: colors.text, fontSize: 17, fontWeight: '800' },
+  groupCount: { color: colors.textMuted, fontSize: 12, marginTop: spacing.xxs },
+  groupTotal: {
+    color: colors.primaryDark,
+    flexShrink: 1,
+    fontSize: 17,
+    fontWeight: '800',
+    textAlign: 'right',
+  },
   expenseRow: {
-    borderTopColor: '#E8EEE9',
+    borderTopColor: colors.divider,
     borderTopWidth: 1,
-    minHeight: 54,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    padding: spacing.md,
   },
   expenseMain: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
     justifyContent: 'space-between',
   },
+  expenseLabel: { color: colors.textMuted, flexShrink: 1, ...typography.bodySmall },
+  expenseValue: { color: colors.text, fontSize: 16, fontWeight: '700' },
   expenseActions: {
     flexDirection: 'row',
-    gap: 18,
+    flexWrap: 'wrap',
+    gap: spacing.xs,
     justifyContent: 'flex-end',
-    marginTop: 10,
+    marginTop: spacing.sm,
   },
-  expenseLabel: { color: '#68766E', fontSize: 14 },
-  expenseValue: { color: '#17251E', fontSize: 16, fontWeight: '700' },
-  itemButton: { paddingVertical: 6 },
-  itemButtonText: { color: '#28734F', fontSize: 14, fontWeight: '800' },
-  deleteButtonText: { color: '#A13B2A', fontSize: 14, fontWeight: '800' },
-  error: {
-    color: '#A52D2D',
-    fontSize: 14,
-    lineHeight: 20,
-    marginTop: 14,
-  },
-  primaryButton: {
-    alignItems: 'center',
-    alignSelf: 'stretch',
-    backgroundColor: '#28734F',
-    borderRadius: 16,
-    marginTop: 22,
-    paddingVertical: 16,
-  },
-  primaryButtonText: { color: '#FFFFFF', fontSize: 17, fontWeight: '800' },
-  pressed: { opacity: 0.78 },
+  itemAction: { minWidth: 108 },
 });

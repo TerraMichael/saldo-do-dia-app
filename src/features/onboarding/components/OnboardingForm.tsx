@@ -1,20 +1,20 @@
-import DateTimePicker, {
-  type DateTimePickerEvent,
-} from '@react-native-community/datetimepicker';
+import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import {
+  AppButton,
+  AppHeader,
+  AppScreen,
+  colors,
+  MoneyInput,
+  radii,
+  sizes,
+  spacing,
+  typography,
+} from '../../../ui';
+import { useOnboarding } from '../context';
 import {
   criarConfiguracaoInicial,
   criarDadosFormularioDaConfiguracao,
@@ -27,60 +27,15 @@ import {
   converterMoedaBrasileiraParaCentavos,
   type CampoOnboarding,
 } from '../model';
-import { useOnboarding } from '../context';
 
 type ErrosFormulario = Partial<Record<CampoOnboarding, string>>;
 
-interface CampoMonetarioProps {
-  label: string;
-  value: string;
-  onChangeText: (valor: string) => void;
-  onBlur: () => void;
-  onFocus?: () => void;
-  error?: string;
-  hint?: string;
-}
-
-function CampoMonetario({
-  label,
-  value,
-  onChangeText,
-  onBlur,
-  onFocus,
-  error,
-  hint,
-}: CampoMonetarioProps) {
-  return (
-    <View style={styles.field}>
-      <Text style={styles.label}>{label}</Text>
-      <TextInput
-        accessibilityLabel={label}
-        keyboardType="decimal-pad"
-        onBlur={onBlur}
-        onChangeText={onChangeText}
-        onFocus={onFocus}
-        placeholder="R$ 0,00"
-        placeholderTextColor="#849088"
-        style={[styles.input, error && styles.inputError]}
-        value={value}
-      />
-      {hint && !error ? <Text style={styles.hint}>{hint}</Text> : null}
-      {error ? (
-        <Text accessibilityRole="alert" style={styles.error}>
-          {error}
-        </Text>
-      ) : null}
-    </View>
-  );
-}
-
 function formatarEntradaMonetaria(valor: string): string {
-  if (!valor.trim()) {
-    return valor;
-  }
-
+  if (!valor.trim()) return valor;
   try {
-    return formatarCentavosComoMoedaBrasileira(converterMoedaBrasileiraParaCentavos(valor));
+    return formatarCentavosComoMoedaBrasileira(
+      converterMoedaBrasileiraParaCentavos(valor),
+    );
   } catch {
     return valor;
   }
@@ -88,9 +43,7 @@ function formatarEntradaMonetaria(valor: string): string {
 
 function limparEntradaSeZero(valor: string, limpar: () => void) {
   try {
-    if (converterMoedaBrasileiraParaCentavos(valor) === 0) {
-      limpar();
-    }
+    if (converterMoedaBrasileiraParaCentavos(valor) === 0) limpar();
   } catch {
     // Uma entrada incompleta deve permanecer disponível para correção.
   }
@@ -98,16 +51,9 @@ function limparEntradaSeZero(valor: string, limpar: () => void) {
 
 function alternarSinal(valor: string): string {
   const texto = valor.trim();
-
-  if (texto.startsWith('R$ -')) {
-    return texto.replace('R$ -', 'R$ ');
-  }
-  if (texto.startsWith('-')) {
-    return texto.slice(1);
-  }
-  if (texto.startsWith('R$ ')) {
-    return texto.replace('R$ ', 'R$ -');
-  }
+  if (texto.startsWith('R$ -')) return texto.replace('R$ -', 'R$ ');
+  if (texto.startsWith('-')) return texto.slice(1);
+  if (texto.startsWith('R$ ')) return texto.replace('R$ ', 'R$ -');
   return `-${texto || '0,00'}`;
 }
 
@@ -134,7 +80,6 @@ export function OnboardingForm() {
 
   function selecionarData(evento: DateTimePickerEvent, data?: Date) {
     setMostrarSeletor(false);
-
     if (evento.type === 'set' && data) {
       setDataProximoRecebimento(formatarDataLocalComoCivil(data));
       limparErro('dataProximoRecebimento');
@@ -170,169 +115,126 @@ export function OnboardingForm() {
     : criarDataLocalDaDataCivil(hoje);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.flex}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-        >
-          <View>
-            <Pressable
-              accessibilityRole="button"
-              hitSlop={12}
-              onPress={() => router.back()}
-              style={styles.backButton}
-            >
-              <Text style={styles.backText}>‹ Voltar</Text>
-            </Pressable>
-            <Text style={styles.step}>ETAPA 1 DE 3</Text>
-            <Text accessibilityRole="header" style={styles.title}>
-              Conte sobre seu momento
-            </Text>
-            <Text style={styles.description}>
-              Seus dados ficam salvos somente neste dispositivo.
-            </Text>
-          </View>
+    <AppScreen keyboard scroll>
+      <AppHeader
+        backLabel="Voltar"
+        description="Seus dados ficam salvos somente neste dispositivo."
+        eyebrow="ETAPA 1 DE 3"
+        onBack={() => router.back()}
+        title="Conte sobre seu momento"
+      />
 
-          <View style={styles.form}>
-            <CampoMonetario
-              error={erros.saldoAtual}
-              hint="Use o botão abaixo se o saldo estiver negativo."
-              label="Saldo atual"
-              onBlur={() => setSaldoAtual(formatarEntradaMonetaria(saldoAtual))}
-              onChangeText={(valor) => {
-                setSaldoAtual(valor);
-                limparErro('saldoAtual');
-              }}
-              value={saldoAtual}
-            />
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => {
-                setSaldoAtual((valor) => alternarSinal(valor));
-                limparErro('saldoAtual');
-              }}
-              style={styles.signButton}
-            >
-              <Text style={styles.signButtonText}>Alternar saldo positivo ou negativo</Text>
-            </Pressable>
+      <View style={styles.form}>
+        <MoneyInput
+          error={erros.saldoAtual}
+          hint="Use o botão abaixo se o saldo estiver negativo."
+          label="Saldo atual"
+          onBlur={() => setSaldoAtual(formatarEntradaMonetaria(saldoAtual))}
+          onChangeText={(valor) => {
+            setSaldoAtual(valor);
+            limparErro('saldoAtual');
+          }}
+          value={saldoAtual}
+        />
+        <AppButton
+          accessibilityHint="Alterna o sinal do saldo atual entre positivo e negativo."
+          label="Alternar saldo positivo ou negativo"
+          onPress={() => {
+            setSaldoAtual((valor) => alternarSinal(valor));
+            limparErro('saldoAtual');
+          }}
+          variant="tertiary"
+        />
 
-            <View style={styles.field}>
-              <Text style={styles.label}>Próximo recebimento</Text>
-              <Pressable
-                accessibilityLabel="Selecionar data do próximo recebimento"
-                accessibilityRole="button"
-                onPress={() => setMostrarSeletor(true)}
-                style={[styles.input, styles.dateButton, erros.dataProximoRecebimento && styles.inputError]}
-              >
-                <Text
-                  style={
-                    dataProximoRecebimento ? styles.dateText : styles.datePlaceholder
-                  }
-                >
-                  {dataProximoRecebimento
-                    ? formatarDataCivilParaExibicao(dataProximoRecebimento)
-                    : 'Selecionar data'}
-                </Text>
-              </Pressable>
-              {erros.dataProximoRecebimento ? (
-                <Text accessibilityRole="alert" style={styles.error}>
-                  {erros.dataProximoRecebimento}
-                </Text>
-              ) : null}
-              {mostrarSeletor ? (
-                <DateTimePicker
-                  minimumDate={criarDataLocalDaDataCivil(hoje)}
-                  mode="date"
-                  onChange={selecionarData}
-                  value={dataSelecionada}
-                />
-              ) : null}
-            </View>
-
-            <CampoMonetario
-              error={erros.contasPendentes}
-              label="Total de contas pendentes"
-              onBlur={() =>
-                setContasPendentes(formatarEntradaMonetaria(contasPendentes))
-              }
-              onChangeText={(valor) => {
-                setContasPendentes(valor);
-                limparErro('contasPendentes');
-              }}
-              onFocus={() =>
-                limparEntradaSeZero(contasPendentes, () => setContasPendentes(''))
-              }
-              value={contasPendentes}
-            />
-
-            <CampoMonetario
-              error={erros.reserva}
-              hint="Opcional"
-              label="Valor que deseja reservar"
-              onBlur={() => setReserva(formatarEntradaMonetaria(reserva))}
-              onChangeText={(valor) => {
-                setReserva(valor);
-                limparErro('reserva');
-              }}
-              onFocus={() => limparEntradaSeZero(reserva, () => setReserva(''))}
-              value={reserva}
-            />
-          </View>
-
+        <View style={styles.field}>
+          <Text style={styles.label}>Próximo recebimento</Text>
           <Pressable
+            accessibilityHint="Abre o seletor de data."
+            accessibilityLabel="Selecionar data do próximo recebimento"
             accessibilityRole="button"
-            onPress={continuar}
-            style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}
+            onPress={() => setMostrarSeletor(true)}
+            style={({ pressed }) => [
+              styles.dateButton,
+              erros.dataProximoRecebimento && styles.inputError,
+              pressed && styles.pressed,
+            ]}
           >
-            <Text style={styles.primaryButtonText}>Revisar dados</Text>
+            <Text
+              style={
+                dataProximoRecebimento ? styles.dateText : styles.datePlaceholder
+              }
+            >
+              {dataProximoRecebimento
+                ? formatarDataCivilParaExibicao(dataProximoRecebimento)
+                : 'Selecionar data'}
+            </Text>
           </Pressable>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+          {erros.dataProximoRecebimento ? (
+            <Text accessibilityRole="alert" style={styles.error}>
+              {erros.dataProximoRecebimento}
+            </Text>
+          ) : null}
+          {mostrarSeletor ? (
+            <DateTimePicker
+              minimumDate={criarDataLocalDaDataCivil(hoje)}
+              mode="date"
+              onChange={selecionarData}
+              value={dataSelecionada}
+            />
+          ) : null}
+        </View>
+
+        <MoneyInput
+          error={erros.contasPendentes}
+          label="Total de contas pendentes"
+          onBlur={() => setContasPendentes(formatarEntradaMonetaria(contasPendentes))}
+          onChangeText={(valor) => {
+            setContasPendentes(valor);
+            limparErro('contasPendentes');
+          }}
+          onFocus={() =>
+            limparEntradaSeZero(contasPendentes, () => setContasPendentes(''))
+          }
+          value={contasPendentes}
+        />
+        <MoneyInput
+          error={erros.reserva}
+          hint="Opcional"
+          label="Valor que deseja reservar"
+          onBlur={() => setReserva(formatarEntradaMonetaria(reserva))}
+          onChangeText={(valor) => {
+            setReserva(valor);
+            limparErro('reserva');
+          }}
+          onFocus={() => limparEntradaSeZero(reserva, () => setReserva(''))}
+          value={reserva}
+        />
+      </View>
+
+      <View style={styles.action}>
+        <AppButton label="Revisar dados" onPress={continuar} />
+      </View>
+    </AppScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#F4F8F5' },
-  flex: { flex: 1 },
-  scrollContent: { flexGrow: 1, paddingHorizontal: 24, paddingBottom: 32 },
-  backButton: { alignSelf: 'flex-start', marginBottom: 20, marginTop: 8, paddingVertical: 4 },
-  backText: { color: '#28734F', fontSize: 16, fontWeight: '700' },
-  step: { color: '#28734F', fontSize: 12, fontWeight: '800', letterSpacing: 1.1 },
-  title: { color: '#17251E', fontSize: 30, fontWeight: '800', lineHeight: 38, marginTop: 8 },
-  description: { color: '#526159', fontSize: 16, lineHeight: 24, marginTop: 8 },
-  form: { gap: 20, marginTop: 28 },
-  field: { gap: 7 },
-  label: { color: '#263B30', fontSize: 15, fontWeight: '700' },
-  input: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#CAD8CF',
-    borderRadius: 14,
+  form: { gap: spacing.lg, marginTop: spacing.xl },
+  field: { gap: spacing.xs },
+  label: { color: colors.text, ...typography.label },
+  dateButton: {
+    backgroundColor: colors.surface,
+    borderColor: colors.borderStrong,
+    borderRadius: radii.md,
     borderWidth: 1,
-    color: '#17251E',
-    fontSize: 17,
-    minHeight: 54,
-    paddingHorizontal: 16,
+    justifyContent: 'center',
+    minHeight: sizes.inputHeight,
+    paddingHorizontal: spacing.md,
   },
-  inputError: { borderColor: '#B53A3A' },
-  hint: { color: '#68766E', fontSize: 13, lineHeight: 18 },
-  error: { color: '#A52D2D', fontSize: 13, lineHeight: 18 },
-  signButton: { alignSelf: 'flex-start', marginTop: -14, paddingVertical: 4 },
-  signButtonText: { color: '#28734F', fontSize: 14, fontWeight: '700' },
-  dateButton: { justifyContent: 'center' },
-  dateText: { color: '#17251E', fontSize: 17 },
-  datePlaceholder: { color: '#849088', fontSize: 17 },
-  primaryButton: {
-    alignItems: 'center',
-    backgroundColor: '#28734F',
-    borderRadius: 16,
-    marginTop: 32,
-    paddingVertical: 17,
-  },
-  primaryButtonText: { color: '#FFFFFF', fontSize: 17, fontWeight: '800' },
-  pressed: { opacity: 0.82 },
+  inputError: { borderColor: colors.error, borderWidth: 2 },
+  dateText: { color: colors.text, fontSize: 17 },
+  datePlaceholder: { color: colors.placeholder, fontSize: 17 },
+  error: { color: colors.error, ...typography.bodySmall },
+  action: { marginTop: spacing.xxl },
+  pressed: { opacity: 0.78 },
 });

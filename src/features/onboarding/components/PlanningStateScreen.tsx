@@ -1,8 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppStateView } from '../../../ui';
 import { useOnboarding } from '../context';
 
 export function PlanningStateScreen() {
@@ -18,10 +17,7 @@ export function PlanningStateScreen() {
   const acaoEmAndamento = useRef(false);
 
   async function executar(acao: () => Promise<void>) {
-    if (acaoEmAndamento.current) {
-      return;
-    }
-
+    if (acaoEmAndamento.current) return;
     acaoEmAndamento.current = true;
     setProcessando(true);
     setErroAcao(null);
@@ -41,130 +37,63 @@ export function PlanningStateScreen() {
 
   if (status === 'carregando') {
     return (
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.container}>
-          <Text accessibilityRole="header" style={styles.title}>
-            Carregando seu planejamento
-          </Text>
-          <Text style={styles.description}>Aguarde só um instante.</Text>
-        </View>
-      </SafeAreaView>
+      <AppStateView
+        description="Aguarde só um instante."
+        loading
+        title="Carregando seu planejamento"
+      />
     );
   }
 
-  const expirado = status === 'expirado';
+  if (status === 'expirado') {
+    return (
+      <AppStateView
+        description="A data do seu recebimento passou. Atualize seu planejamento."
+        feedback={erroAcao}
+        primaryAction={{
+          label: 'Já recebi — iniciar novo ciclo',
+          onPress: () => router.push('/novo-ciclo'),
+          processing: processando,
+        }}
+        secondaryAction={{
+          label: 'Ainda não recebi — ajustar planejamento',
+          onPress: () => router.replace('/onboarding'),
+          variant: 'secondary',
+        }}
+        title="Atualize seu planejamento"
+      />
+    );
+  }
+
   const dadosCorrompidos =
     status === 'erro' && falhaHidratacao?.origem === 'dados-corrompidos';
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        <Text accessibilityRole="header" style={styles.title}>
-          {expirado ? 'Atualize seu planejamento' : 'Não foi possível carregar'}
-        </Text>
-        <Text style={styles.description}>
-          {expirado
-            ? 'A data do seu recebimento passou. Atualize seu planejamento.'
-            : falhaHidratacao?.mensagem ??
-              'Não foi possível carregar os dados do planejamento.'}
-        </Text>
-
-        {erroAcao ? (
-          <Text accessibilityRole="alert" style={styles.error}>
-            {erroAcao}
-          </Text>
-        ) : null}
-
-        {expirado ? (
-          <>
-            <Pressable
-              accessibilityRole="button"
-              disabled={processando}
-              onPress={() => router.push('/novo-ciclo')}
-              style={({ pressed }) => [
-                styles.primaryButton,
-                pressed && styles.pressed,
-              ]}
-            >
-              <Text style={styles.primaryButtonText}>Já recebi — iniciar novo ciclo</Text>
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              disabled={processando}
-              onPress={() => router.replace('/onboarding')}
-              style={({ pressed }) => [
-                styles.secondaryButton,
-                pressed && styles.pressed,
-              ]}
-            >
-              <Text style={styles.secondaryButtonText}>
-                Ainda não recebi — ajustar planejamento
-              </Text>
-            </Pressable>
-          </>
-        ) : null}
-
-        {status === 'erro' && !dadosCorrompidos ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityState={{ disabled: processando }}
-            disabled={processando}
-            onPress={() => void executar(tentarHidratar)}
-            style={({ pressed }) => [
-              styles.primaryButton,
-              processando && styles.disabled,
-              pressed && styles.pressed,
-            ]}
-          >
-            <Text style={styles.primaryButtonText}>
-              {processando ? 'Tentando…' : 'Tentar novamente'}
-            </Text>
-          </Pressable>
-        ) : null}
-
-        {dadosCorrompidos ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityState={{ disabled: processando }}
-            disabled={processando}
-            onPress={() =>
-              void executar(async () => {
-                await recomecarPlanejamento();
-                router.replace('/');
-              })
+    <AppStateView
+      description={
+        falhaHidratacao?.mensagem ??
+        'Não foi possível carregar os dados do planejamento.'
+      }
+      feedback={erroAcao}
+      primaryAction={
+        dadosCorrompidos
+          ? {
+              label: 'Recomeçar planejamento',
+              onPress: () =>
+                void executar(async () => {
+                  await recomecarPlanejamento();
+                  router.replace('/');
+                }),
+              processing: processando,
+              variant: 'destructive',
             }
-            style={({ pressed }) => [
-              styles.primaryButton,
-              processando && styles.disabled,
-              pressed && styles.pressed,
-            ]}
-          >
-            <Text style={styles.primaryButtonText}>
-              {processando ? 'Removendo…' : 'Recomeçar planejamento'}
-            </Text>
-          </Pressable>
-        ) : null}
-      </View>
-    </SafeAreaView>
+          : {
+              label: 'Tentar novamente',
+              onPress: () => void executar(tentarHidratar),
+              processing: processando,
+            }
+      }
+      title="Não foi possível carregar"
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#F4F8F5' },
-  container: { flex: 1, justifyContent: 'center', paddingHorizontal: 24 },
-  title: { color: '#17251E', fontSize: 30, fontWeight: '800', lineHeight: 38 },
-  description: { color: '#526159', fontSize: 16, lineHeight: 24, marginTop: 10 },
-  error: { color: '#A52D2D', fontSize: 14, lineHeight: 20, marginTop: 16 },
-  primaryButton: {
-    alignItems: 'center',
-    backgroundColor: '#28734F',
-    borderRadius: 16,
-    marginTop: 24,
-    paddingVertical: 17,
-  },
-  primaryButtonText: { color: '#FFFFFF', fontSize: 17, fontWeight: '800' },
-  secondaryButton: { alignItems: 'center', marginTop: 10, paddingVertical: 14 },
-  secondaryButtonText: { color: '#28734F', fontSize: 16, fontWeight: '800', textAlign: 'center' },
-  disabled: { opacity: 0.55 },
-  pressed: { opacity: 0.8 },
-});

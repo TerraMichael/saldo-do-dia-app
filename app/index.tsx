@@ -1,9 +1,15 @@
 import { Redirect, useRouter } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { useOnboarding } from '../src/features/onboarding';
 import { PlanningStateScreen } from '../src/features/onboarding/components/PlanningStateScreen';
+import {
+  AppButton,
+  AppScreen,
+  colors,
+  spacing,
+  typography,
+} from '../src/ui';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -18,7 +24,7 @@ export default function HomeScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <AppScreen contentStyle={styles.container}>
       <View style={styles.container}>
         <View style={styles.content}>
           <Text style={styles.eyebrow}>SEU DINHEIRO, SEM COMPLICAÇÃO</Text>
@@ -28,26 +34,20 @@ export default function HomeScreen() {
           <Text style={styles.description}>Descubra quanto você pode gastar hoje</Text>
         </View>
 
-        <Pressable
-          accessibilityRole="button"
+        <AppButton
+          accessibilityHint="Inicia a configuração do seu planejamento financeiro."
+          label="Começar"
           onPress={() => router.push('/onboarding')}
-          style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
-        >
-          <Text style={styles.buttonText}>Começar</Text>
-        </Pressable>
+        />
       </View>
-    </SafeAreaView>
+    </AppScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#F4F8F5' },
-  container: { flex: 1, justifyContent: 'space-between', paddingHorizontal: 24, paddingVertical: 32 },
+  container: { flex: 1, justifyContent: 'space-between', paddingVertical: spacing.xl },
   content: { flex: 1, justifyContent: 'center' },
-  eyebrow: { color: '#28734F', fontSize: 12, fontWeight: '700', letterSpacing: 1.2, marginBottom: 16 },
-  title: { color: '#17251E', fontSize: 44, fontWeight: '800', letterSpacing: -1.5, lineHeight: 52 },
-  description: { color: '#526159', fontSize: 20, lineHeight: 30, marginTop: 12, maxWidth: 320 },
-  button: { alignItems: 'center', backgroundColor: '#28734F', borderRadius: 16, paddingVertical: 18 },
-  buttonPressed: { opacity: 0.82 },
-  buttonText: { color: '#FFFFFF', fontSize: 17, fontWeight: '700' },
+  eyebrow: { color: colors.primary, letterSpacing: 1.2, marginBottom: spacing.md, ...typography.eyebrow },
+  title: { color: colors.text, fontSize: 44, fontWeight: '800', letterSpacing: -1.5, lineHeight: 52 },
+  description: { color: colors.textSecondary, fontSize: 20, lineHeight: 30, marginTop: spacing.sm, maxWidth: 320 },
 });

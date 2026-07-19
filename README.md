@@ -138,11 +138,34 @@ segredos não devem ser armazenados nessa camada.
 app/                  # Rotas e layouts do Expo Router
 src/
   features/           # Domínios futuros (onboarding, saldo, contas, gastos etc.)
+  ui/                 # Tokens e componentes visuais compartilhados
   storage/            # Contratos, validação e adaptador AsyncStorage
 tests/                # Verificações automatizadas da fundação do projeto
 ```
 
 As funcionalidades serão separadas por domínio dentro de `src/features`, evitando acoplamento entre as telas, as regras do cálculo diário e a persistência. Rotas devem apenas compor os fluxos e delegar regras de negócio aos respectivos módulos.
+
+## Interface e experiência
+
+O aplicativo mantém um tema claro, acolhedor e Android-first: superfícies brancas
+sobre fundo verde muito claro, verde nas ações principais, âmbar em alertas e
+vermelho reservado para erro, déficit e exclusão.
+
+Os tokens de cor, espaçamento, tipografia, raio, borda, elevação e dimensões
+mínimas ficam em `src/ui/theme.ts`. A camada `src/ui` também reúne componentes
+reutilizados de tela, cabeçalho, botão, card, campo monetário, linha informativa,
+feedback e estados do sistema. Esses componentes são somente visuais e não
+conhecem cálculo financeiro, Context ou persistência.
+
+A Home separa o resumo de hoje do planejamento até o próximo recebimento e mantém
+**Registrar gasto** como ação principal. Formulários, revisões, histórico e
+estados de carregamento ou erro compartilham hierarquia, áreas de toque e feedback
+consistentes. A implementação usa apenas React Native, `StyleSheet` e componentes
+nativos; nenhuma biblioteca externa de UI ou estilos foi adicionada.
+
+Ainda não existem modo escuro, animações elaboradas nem assets próprios de marca.
+A validação visual em diferentes fabricantes e configurações de fonte continua
+dependendo de testes em dispositivos reais.
 
 ## Continuidade no Codex CLI
 
