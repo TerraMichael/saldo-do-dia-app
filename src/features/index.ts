@@ -7,6 +7,7 @@ export const productFeatures = [
   'expenses',
   'daily-limit',
   'history',
+  'cycle',
 ] as const;
 
 export type ProductFeature = (typeof productFeatures)[number];

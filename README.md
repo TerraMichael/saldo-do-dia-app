@@ -67,6 +67,24 @@ imediatamente o restante do dia. Gastos são datados em memória para que o valo
 consumido hoje não seja redistribuído novamente pelo mesmo dia. A Home mostra
 o total gasto no ciclo e oferece acesso ao histórico individual.
 
+## Ciclo atual e novo recebimento
+
+O planejamento e o histórico representam somente o ciclo vigente. A Home oferece
+a ação discreta **Novo recebimento**, que pode ser usada mesmo quando o pagamento
+chega antes da data prevista. Quando a data passa, o aplicativo distingue:
+
+- **Já recebi — iniciar novo ciclo:** informa o saldo real depois de receber,
+  novas contas, reserva e a próxima data;
+- **Ainda não recebi — ajustar planejamento:** corrige o planejamento existente
+  e preserva os gastos já registrados.
+
+No novo ciclo, o saldo informado é a nova fonte de verdade; ele não é somado ao
+saldo anterior. A revisão informa quantos gastos e qual total deixarão de aparecer.
+Somente após a confirmação e a gravação bem-sucedida os gastos são zerados, o
+histórico fica vazio e o novo planejamento passa a ser exibido.
+
+Ainda não existe histórico permanente, relatório ou backup de ciclos encerrados.
+
 ## Histórico de gastos
 
 A tela **Histórico de gastos** usa `configuracao.gastosRegistrados` como única
@@ -95,6 +113,9 @@ automaticamente: o aplicativo valida o documento legado, atribui IDs
 determinísticos, confirma a gravação v2 e somente então tenta remover a chave v1.
 Se a gravação v2 falhar, os dados v1 não são removidos. Se as duas chaves
 existirem, v2 tem prioridade.
+
+Iniciar um novo ciclo apenas substitui a configuração armazenada nessa mesma
+estrutura v2. Nenhuma nova versão ou segunda cópia de histórico é criada.
 
 Ao abrir o aplicativo, os dados são lidos, validados campo a campo e atualizados
 para a data civil local. Quando o aplicativo volta ao primeiro plano em um novo

@@ -19,6 +19,7 @@ export {
   confirmarPlanejamentoPersistido,
   editarGastoPersistido,
   excluirGastoPersistido,
+  iniciarNovoCicloPersistido,
   registrarGastoPersistido,
   type PlanejamentoConfirmado,
 } from './planning-service';
