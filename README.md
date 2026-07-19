@@ -2,8 +2,8 @@
 
 Aplicativo mobile que responde, de forma simples, **quanto você pode gastar hoje sem ficar sem dinheiro até o próximo recebimento**.
 
-O MVP possui uma fundação técnica, a regra de cálculo do limite diário e um
-onboarding inicial mantido somente em memória.
+O MVP possui uma fundação técnica, onboarding inicial e uma tela principal que
+apresenta o planejamento calculado. Os dados permanecem somente em memória.
 
 ## Stack
 
@@ -50,15 +50,17 @@ existentes com o test runner nativo do Node.js por meio do `tsx`.
 
 ## Fluxo disponível
 
-O botão **Começar** abre um onboarding de três etapas:
+O botão **Começar** abre um onboarding:
 
 1. preenchimento do saldo atual, próximo recebimento, contas pendentes e reserva;
 2. revisão dos dados;
-3. conclusão temporária com o limite diário calculado.
+3. confirmação e acesso à tela principal.
 
 Os valores são convertidos para centavos e o cálculo reutiliza o domínio
-`daily-limit`. Nesta etapa, os dados existem somente em memória e são perdidos ao
-encerrar o fluxo ou o aplicativo.
+`daily-limit`. A tela principal mostra o limite diário, os valores do planejamento
+e os estados positivo, sem valor livre ou déficit. É possível editar o
+planejamento; o registro de gastos ainda está desabilitado. Nesta etapa, os dados
+existem somente em memória e são perdidos ao encerrar o aplicativo.
 
 ## Estrutura principal
 

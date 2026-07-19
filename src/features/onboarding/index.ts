@@ -1,6 +1,7 @@
 export { OnboardingProvider, useOnboarding } from './context';
 export {
   criarConfiguracaoInicial,
+  criarDadosFormularioDaConfiguracao,
   criarDataLocalDaDataCivil,
   ErroOnboarding,
   formatarCentavosComoMoedaBrasileira,
