@@ -16,10 +16,13 @@
         "expo-localization",
         {
           "supportedLocales": {
-            "android": ["pt-BR"]
+            "android": [
+              "pt-BR"
+            ]
           }
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": true

@@ -8,9 +8,10 @@
     "android": "expo start --android",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test tests/foundation.test.js tests/daily-limit.test.ts"
+    "test": "tsx --test tests/foundation.test.js tests/daily-limit.test.ts tests/onboarding.test.ts"
   },
   "dependencies": {
+    "@react-native-community/datetimepicker": "8.4.4",
     "expo": "^54.0.0",
     "expo-constants": "~18.0.13",
     "expo-linking": "~8.0.12",
