@@ -115,6 +115,7 @@ export function HistoryScreen() {
           </Text>
           <View style={styles.emptyAction}>
             <AppButton
+              icon="cash-minus"
               label="Registrar gasto"
               onPress={() => router.push('/registrar-gasto')}
             />
@@ -149,6 +150,7 @@ export function HistoryScreen() {
                     <View style={styles.itemAction}>
                       <AppButton
                         disabled={idProcessando !== null}
+                        icon="pencil-outline"
                         label="Editar"
                         onPress={() =>
                           router.push({
@@ -163,6 +165,7 @@ export function HistoryScreen() {
                       <AppButton
                         accessibilityHint={`Exclui o gasto de ${item.valor} após confirmação.`}
                         disabled={idProcessando !== null}
+                        icon="trash-can-outline"
                         label={idProcessando === item.id ? 'Excluindo…' : 'Excluir'}
                         onPress={() => solicitarExclusao(item.id)}
                         processing={idProcessando === item.id}

@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
 
-import { AppStateView } from '../../../ui';
+import { AppStateView, LaunchLoadingScreen } from '../../../ui';
 import { useOnboarding } from '../context';
 
 export function PlanningStateScreen() {
@@ -36,13 +36,7 @@ export function PlanningStateScreen() {
   }
 
   if (status === 'carregando') {
-    return (
-      <AppStateView
-        description="Aguarde só um instante."
-        loading
-        title="Carregando seu planejamento"
-      />
-    );
+    return <LaunchLoadingScreen />;
   }
 
   if (status === 'expirado') {
@@ -51,6 +45,7 @@ export function PlanningStateScreen() {
         description="A data do seu recebimento passou. Atualize seu planejamento."
         feedback={erroAcao}
         primaryAction={{
+          icon: 'calendar-refresh',
           label: 'Já recebi — iniciar novo ciclo',
           onPress: () => router.push('/novo-ciclo'),
           processing: processando,

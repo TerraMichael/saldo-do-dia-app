@@ -6,6 +6,7 @@ import { PlanningStateScreen } from '../src/features/onboarding/components/Plann
 import {
   AppButton,
   AppScreen,
+  BrandMark,
   colors,
   spacing,
   typography,
@@ -27,6 +28,7 @@ export default function HomeScreen() {
     <AppScreen contentStyle={styles.container}>
       <View style={styles.container}>
         <View style={styles.content}>
+          <BrandMark size={112} style={styles.brand} />
           <Text style={styles.eyebrow}>SEU DINHEIRO, SEM COMPLICAÇÃO</Text>
           <Text accessibilityRole="header" style={styles.title}>
             Saldo do Dia
@@ -47,6 +49,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: 'space-between', paddingVertical: spacing.xl },
   content: { flex: 1, justifyContent: 'center' },
+  brand: { alignSelf: 'flex-start', marginBottom: spacing.xl },
   eyebrow: { color: colors.primary, letterSpacing: 1.2, marginBottom: spacing.md, ...typography.eyebrow },
   title: { color: colors.text, fontSize: 44, fontWeight: '800', letterSpacing: -1.5, lineHeight: 52 },
   description: { color: colors.textSecondary, fontSize: 20, lineHeight: 30, marginTop: spacing.sm, maxWidth: 320 },

@@ -1,3 +1,4 @@
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { colors, radii, spacing, typography } from '../theme';
@@ -16,24 +17,45 @@ export function InlineFeedback({
   variant = 'info',
 }: InlineFeedbackProps) {
   const alert = variant === 'error' || variant === 'warning';
+  const icon =
+    variant === 'error'
+      ? 'alert-circle-outline'
+      : variant === 'warning'
+        ? 'alert-outline'
+        : variant === 'success'
+          ? 'check-circle-outline'
+          : 'information-outline';
   return (
     <View
       accessibilityRole={alert ? 'alert' : undefined}
       style={[styles.base, styles[variant]]}
     >
-      {title ? <Text style={[styles.title, styles[`${variant}Text`]]}>{title}</Text> : null}
-      <Text style={[styles.message, styles[`${variant}Text`]]}>{message}</Text>
+      <MaterialCommunityIcons
+        accessibilityElementsHidden
+        accessible={false}
+        color={styles[`${variant}Text`].color}
+        importantForAccessibility="no-hide-descendants"
+        name={icon}
+        size={20}
+      />
+      <View style={styles.content}>
+        {title ? <Text style={[styles.title, styles[`${variant}Text`]]}>{title}</Text> : null}
+        <Text style={[styles.message, styles[`${variant}Text`]]}>{message}</Text>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   base: {
+    alignItems: 'flex-start',
     borderRadius: radii.md,
     borderWidth: 1,
     gap: spacing.xxs,
+    flexDirection: 'row',
     padding: spacing.sm,
   },
+  content: { flex: 1, gap: spacing.xxs },
   info: { backgroundColor: colors.surfaceMuted, borderColor: colors.border },
   success: { backgroundColor: colors.successSoft, borderColor: colors.primaryBorder },
   warning: { backgroundColor: colors.warningSoft, borderColor: colors.warningBorder },

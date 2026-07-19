@@ -1,16 +1,20 @@
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import type { ComponentProps } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
 
 import { colors, radii, sizes, spacing, typography } from '../theme';
 
 type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | 'destructive';
 
-interface AppButtonProps {
+export interface AppButtonProps {
   label: string;
   onPress: () => void;
   variant?: ButtonVariant;
   disabled?: boolean;
   processing?: boolean;
+  accessibilityLabel?: string;
   accessibilityHint?: string;
+  icon?: ComponentProps<typeof MaterialCommunityIcons>['name'];
 }
 
 export function AppButton({
@@ -19,7 +23,9 @@ export function AppButton({
   variant = 'primary',
   disabled = false,
   processing = false,
+  accessibilityLabel,
   accessibilityHint,
+  icon,
 }: AppButtonProps) {
   const indisponivel = disabled || processing;
   const indicadorClaro = variant === 'primary' || variant === 'destructive';
@@ -27,6 +33,7 @@ export function AppButton({
   return (
     <Pressable
       accessibilityHint={accessibilityHint}
+      accessibilityLabel={accessibilityLabel ?? label}
       accessibilityRole="button"
       accessibilityState={{ busy: processing, disabled: indisponivel }}
       disabled={indisponivel}
@@ -42,6 +49,16 @@ export function AppButton({
         <ActivityIndicator
           color={indicadorClaro ? colors.white : colors.primary}
           size="small"
+        />
+      ) : null}
+      {!processing && icon ? (
+        <MaterialCommunityIcons
+          accessibilityElementsHidden
+          accessible={false}
+          color={indicadorClaro ? colors.white : colors.primary}
+          importantForAccessibility="no-hide-descendants"
+          name={icon}
+          size={20}
         />
       ) : null}
       <Text style={[styles.label, styles[`${variant}Label`]]}>{label}</Text>

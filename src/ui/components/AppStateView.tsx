@@ -1,6 +1,7 @@
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
-import { AppButton } from './AppButton';
+import { AppButton, type AppButtonProps } from './AppButton';
+import { BrandMark } from './BrandMark';
 import { AppCard } from './AppCard';
 import { AppScreen } from './AppScreen';
 import { colors, spacing, typography } from '../theme';
@@ -10,6 +11,7 @@ interface StateAction {
   onPress: () => void;
   processing?: boolean;
   variant?: 'primary' | 'secondary' | 'tertiary' | 'destructive';
+  icon?: AppButtonProps['icon'];
 }
 
 interface AppStateViewProps {
@@ -32,6 +34,7 @@ export function AppStateView({
   return (
     <AppScreen centered>
       <AppCard style={styles.card}>
+        {!loading ? <BrandMark size={72} style={styles.brand} /> : null}
         {loading ? (
           <ActivityIndicator
             accessibilityLabel="Carregando"
@@ -65,6 +68,7 @@ export function AppStateView({
 
 const styles = StyleSheet.create({
   card: { padding: spacing.xl },
+  brand: { marginBottom: spacing.xs },
   title: { color: colors.text, marginTop: spacing.md, ...typography.title },
   description: {
     color: colors.textSecondary,

@@ -6,11 +6,13 @@ import {
   StyleSheet,
   View,
   type StyleProp,
+  type LayoutChangeEvent,
   type ViewStyle,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { colors, sizes, spacing } from '../theme';
+import { useMarkInitialScreenReady } from './LaunchSplashController';
 
 interface AppScreenProps extends PropsWithChildren {
   centered?: boolean;
@@ -26,6 +28,11 @@ export function AppScreen({
   contentStyle,
   children,
 }: AppScreenProps) {
+  const markInitialScreenReady = useMarkInitialScreenReady();
+  const handleLayout = (_event: LayoutChangeEvent) => {
+    markInitialScreenReady?.();
+  };
+
   const content = scroll ? (
     <ScrollView
       contentContainerStyle={[
@@ -51,7 +58,7 @@ export function AppScreen({
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView onLayout={handleLayout} style={styles.safeArea}>
       {keyboard ? (
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
