@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+import { type Href, useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
 
@@ -98,6 +98,14 @@ export function HistoryScreen() {
           value={apresentacao.quantidadeRegistrosTexto}
         />
       </AppCard>
+      <View style={styles.cyclesAction}>
+        <AppButton
+          icon="archive-clock-outline"
+          label="Ver ciclos anteriores"
+          onPress={() => router.push('/ciclos' as Href)}
+          variant="secondary"
+        />
+      </View>
 
       {erro ? (
         <View style={styles.feedback}>
@@ -185,6 +193,7 @@ export function HistoryScreen() {
 
 const styles = StyleSheet.create({
   summary: { marginTop: spacing.xl },
+  cyclesAction: { marginTop: spacing.sm },
   feedback: { marginTop: spacing.md },
   emptyCard: { alignItems: 'center', marginTop: spacing.xl, padding: spacing.xl },
   emptyTitle: { color: colors.text, textAlign: 'center', ...typography.section },

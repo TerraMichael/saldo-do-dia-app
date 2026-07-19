@@ -34,6 +34,10 @@ const configuracaoBase: EntradaCalculoDiario = {
     { id: 'gasto-b', valor: 20_00, data: hoje },
   ],
 };
+const dadosBase = {
+  cicloAtual: { id: 'ciclo-atual', inicio: null, configuracao: configuracaoBase },
+  ciclosEncerrados: [],
+};
 
 test('novo gasto recebe o ID fornecido pelo gerador injetável', () => {
   let chamadas = 0;
@@ -187,23 +191,23 @@ test('edição rejeita valor vazio, zero, negativo e inválido', () => {
 test('falha de persistência mantém configuração anterior na edição e exclusão', async () => {
   const adaptador = new AdaptadorMemoria();
   const armazenamento = criarArmazenamentoPlanejamento(adaptador);
-  await armazenamento.salvar(configuracaoBase);
+  await armazenamento.salvar(dadosBase);
   adaptador.falharGravacao = true;
 
   await assert.rejects(() =>
     editarGastoPersistido(
       armazenamento,
-      configuracaoBase,
+      dadosBase,
       'gasto-a',
       '50,00',
       hoje,
     ),
   );
   await assert.rejects(() =>
-    excluirGastoPersistido(armazenamento, configuracaoBase, 'gasto-a', hoje),
+    excluirGastoPersistido(armazenamento, dadosBase, 'gasto-a', hoje),
   );
   adaptador.falharGravacao = false;
-  assert.deepEqual(await armazenamento.carregar(), configuracaoBase);
+  assert.deepEqual((await armazenamento.carregar())?.cicloAtual.configuracao, configuracaoBase);
 });
 
 test('histórico atualiza os totais após edição e exclusão', () => {

@@ -129,7 +129,7 @@ export function NewCycleReview() {
 
       <View style={styles.warning}>
         <InlineFeedback
-          message="Os gastos do ciclo atual deixarão de aparecer no histórico."
+          message="Os gastos sairão do histórico atual e ficarão disponíveis em Ciclos anteriores."
           title="Encerramento do ciclo atual"
           variant="warning"
         />

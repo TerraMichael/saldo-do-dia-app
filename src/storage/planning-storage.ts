@@ -1,13 +1,18 @@
-import type { EntradaCalculoDiario } from '../features/daily-limit';
+import type { DadosPlanejamento } from '../features/cycle-history/model';
 import {
   desserializarPlanejamento,
   desserializarPlanejamentoV1,
+  desserializarPlanejamentoV2,
   ErroSerializacaoPlanejamento,
   serializarPlanejamento,
 } from './serialization';
-import { migrarConfiguracaoV1ParaV2 } from './migration';
+import {
+  migrarConfiguracaoV1ParaV2,
+  migrarConfiguracaoV2ParaV3,
+} from './migration';
 
-export const CHAVE_PLANEJAMENTO = '@saldo-do-dia/planejamento:v2';
+export const CHAVE_PLANEJAMENTO = '@saldo-do-dia/planejamento:v3';
+export const CHAVE_PLANEJAMENTO_V2 = '@saldo-do-dia/planejamento:v2';
 export const CHAVE_PLANEJAMENTO_LEGADO = '@saldo-do-dia/planejamento:v1';
 
 export interface AdaptadorChaveValor {
@@ -15,145 +20,73 @@ export interface AdaptadorChaveValor {
   salvar(chave: string, valor: string): Promise<void>;
   remover(chave: string): Promise<void>;
 }
-
 export interface ArmazenamentoPlanejamento {
-  carregar(): Promise<EntradaCalculoDiario | null>;
-  salvar(configuracao: EntradaCalculoDiario): Promise<void>;
+  carregar(): Promise<DadosPlanejamento | null>;
+  salvar(dados: DadosPlanejamento): Promise<void>;
   remover(): Promise<void>;
 }
-
-export type CodigoErroArmazenamento =
-  | 'LEITURA'
-  | 'GRAVACAO'
-  | 'REMOCAO'
-  | 'DADOS_INVALIDOS';
-
+export type CodigoErroArmazenamento = 'LEITURA' | 'GRAVACAO' | 'REMOCAO' | 'DADOS_INVALIDOS';
 export class ErroArmazenamentoPlanejamento extends Error {
-  constructor(
-    public readonly codigo: CodigoErroArmazenamento,
-    mensagem: string,
-    public readonly causa?: unknown,
-  ) {
+  constructor(public readonly codigo: CodigoErroArmazenamento, mensagem: string, public readonly causa?: unknown) {
     super(mensagem);
     this.name = 'ErroArmazenamentoPlanejamento';
   }
 }
 
-export function criarArmazenamentoPlanejamento(
-  adaptador: AdaptadorChaveValor,
-): ArmazenamentoPlanejamento {
+export function criarArmazenamentoPlanejamento(adaptador: AdaptadorChaveValor): ArmazenamentoPlanejamento {
+  async function obter(chave: string) {
+    try { return await adaptador.obter(chave); }
+    catch (causa) { throw new ErroArmazenamentoPlanejamento('LEITURA', 'Não foi possível ler o planejamento salvo.', causa); }
+  }
+  async function migrarESalvar(dados: DadosPlanejamento, chaveAntiga: string) {
+    try { await adaptador.salvar(CHAVE_PLANEJAMENTO, serializarPlanejamento(dados)); }
+    catch (causa) { throw new ErroArmazenamentoPlanejamento('GRAVACAO', 'Não foi possível migrar o planejamento salvo. Tente novamente.', causa); }
+    try { await adaptador.remover(chaveAntiga); } catch { /* v3 já está confirmada */ }
+    return dados;
+  }
   return {
     async carregar() {
-      let textoV2: string | null;
-
-      try {
-        textoV2 = await adaptador.obter(CHAVE_PLANEJAMENTO);
-      } catch (causa) {
-        throw new ErroArmazenamentoPlanejamento(
-          'LEITURA',
-          'Não foi possível ler o planejamento salvo.',
-          causa,
-        );
+      const textoV3 = await obter(CHAVE_PLANEJAMENTO);
+      if (textoV3 !== null) {
+        try { return desserializarPlanejamento(textoV3); }
+        catch (causa) { throw new ErroArmazenamentoPlanejamento('DADOS_INVALIDOS', 'Não foi possível carregar os dados do planejamento.', causa); }
       }
-
+      const textoV2 = await obter(CHAVE_PLANEJAMENTO_V2);
       if (textoV2 !== null) {
         try {
-          return desserializarPlanejamento(textoV2);
+          return await migrarESalvar(
+            migrarConfiguracaoV2ParaV3(desserializarPlanejamentoV2(textoV2)),
+            CHAVE_PLANEJAMENTO_V2,
+          );
         } catch (causa) {
-          if (causa instanceof ErroSerializacaoPlanejamento) {
-            throw new ErroArmazenamentoPlanejamento(
-              'DADOS_INVALIDOS',
-              'Não foi possível carregar os dados do planejamento.',
-              causa,
-            );
-          }
-          throw causa;
+          if (causa instanceof ErroArmazenamentoPlanejamento) throw causa;
+          throw new ErroArmazenamentoPlanejamento('DADOS_INVALIDOS', 'Não foi possível carregar os dados do planejamento.', causa);
         }
       }
-
-      let textoV1: string | null;
+      const textoV1 = await obter(CHAVE_PLANEJAMENTO_LEGADO);
+      if (textoV1 === null) return null;
       try {
-        textoV1 = await adaptador.obter(CHAVE_PLANEJAMENTO_LEGADO);
+        const v2 = migrarConfiguracaoV1ParaV2(desserializarPlanejamentoV1(textoV1));
+        return await migrarESalvar(migrarConfiguracaoV2ParaV3(v2), CHAVE_PLANEJAMENTO_LEGADO);
       } catch (causa) {
-        throw new ErroArmazenamentoPlanejamento(
-          'LEITURA',
-          'Não foi possível ler o planejamento salvo.',
-          causa,
-        );
-      }
-      if (textoV1 === null) {
-        return null;
-      }
-
-      let configuracaoMigrada: EntradaCalculoDiario;
-      try {
-        configuracaoMigrada = migrarConfiguracaoV1ParaV2(
-          desserializarPlanejamentoV1(textoV1),
-        );
-      } catch (causa) {
-        throw new ErroArmazenamentoPlanejamento(
-          'DADOS_INVALIDOS',
-          'Não foi possível carregar os dados do planejamento.',
-          causa,
-        );
-      }
-
-      try {
-        await adaptador.salvar(
-          CHAVE_PLANEJAMENTO,
-          serializarPlanejamento(configuracaoMigrada),
-        );
-      } catch (causa) {
-        throw new ErroArmazenamentoPlanejamento(
-          'GRAVACAO',
-          'Não foi possível migrar o planejamento salvo. Tente novamente.',
-          causa,
-        );
-      }
-
-      try {
-        await adaptador.remover(CHAVE_PLANEJAMENTO_LEGADO);
-      } catch {
-        // A cópia v2 já foi confirmada; a v1 pode ser removida numa próxima carga.
-      }
-
-      return configuracaoMigrada;
-    },
-
-    async salvar(configuracao) {
-      let texto: string;
-
-      try {
-        texto = serializarPlanejamento(configuracao);
-      } catch (causa) {
-        throw new ErroArmazenamentoPlanejamento(
-          'DADOS_INVALIDOS',
-          'O planejamento contém dados inválidos e não pode ser salvo.',
-          causa,
-        );
-      }
-
-      try {
-        await adaptador.salvar(CHAVE_PLANEJAMENTO, texto);
-      } catch (causa) {
-        throw new ErroArmazenamentoPlanejamento(
-          'GRAVACAO',
-          'Não foi possível salvar o planejamento. Tente novamente.',
-          causa,
-        );
+        if (causa instanceof ErroArmazenamentoPlanejamento) throw causa;
+        throw new ErroArmazenamentoPlanejamento('DADOS_INVALIDOS', 'Não foi possível carregar os dados do planejamento.', causa);
       }
     },
-
+    async salvar(dados) {
+      try { await adaptador.salvar(CHAVE_PLANEJAMENTO, serializarPlanejamento(dados)); }
+      catch (causa) {
+        const codigo = causa instanceof ErroSerializacaoPlanejamento ? 'DADOS_INVALIDOS' : 'GRAVACAO';
+        throw new ErroArmazenamentoPlanejamento(codigo, 'Não foi possível salvar o planejamento. Tente novamente.', causa);
+      }
+    },
     async remover() {
       try {
         await adaptador.remover(CHAVE_PLANEJAMENTO_LEGADO);
+        await adaptador.remover(CHAVE_PLANEJAMENTO_V2);
         await adaptador.remover(CHAVE_PLANEJAMENTO);
       } catch (causa) {
-        throw new ErroArmazenamentoPlanejamento(
-          'REMOCAO',
-          'Não foi possível remover o planejamento. Tente novamente.',
-          causa,
-        );
+        throw new ErroArmazenamentoPlanejamento('REMOCAO', 'Não foi possível remover o planejamento. Tente novamente.', causa);
       }
     },
   };

@@ -69,7 +69,7 @@ o total gasto no ciclo e oferece acesso ao histórico individual.
 
 ## Ciclo atual e novo recebimento
 
-O planejamento e o histórico representam somente o ciclo vigente. A Home oferece
+O planejamento ativo continua representando o ciclo vigente. A Home oferece
 a ação discreta **Novo recebimento**, que pode ser usada mesmo quando o pagamento
 chega antes da data prevista. Quando a data passa, o aplicativo distingue:
 
@@ -83,7 +83,10 @@ saldo anterior. A revisão informa quantos gastos e qual total deixarão de apar
 Somente após a confirmação e a gravação bem-sucedida os gastos são zerados, o
 histórico fica vazio e o novo planejamento passa a ser exibido.
 
-Ainda não existe histórico permanente, relatório ou backup de ciclos encerrados.
+Ao confirmar um novo recebimento, o ciclo vigente é arquivado na mesma gravação
+que cria o próximo ciclo. A tela **Ciclos anteriores**, acessível pelo histórico
+de gastos, lista os ciclos encerrados e seus gastos em modo somente leitura.
+Comparação, exclusão, restauração, relatório e backup de ciclos ainda não existem.
 
 ## Histórico de gastos
 
@@ -101,21 +104,20 @@ Ainda não há edição de data, descrição ou categoria de gastos.
 
 ## Persistência local
 
-Somente a configuração que serve como fonte de verdade é armazenada no
-AsyncStorage, usando a chave versionada
-`@saldo-do-dia/planejamento:v2`. O formato atual contém `versao: 2` e
-`configuracao`; o resultado financeiro nunca é persistido e sempre é recalculado
-por `calcularPlanoDiario`.
+O AsyncStorage usa a chave versionada `@saldo-do-dia/planejamento:v3`. O documento
+contém o ciclo atual, sua fotografia inicial imutável e a coleção de ciclos
+encerrados. O resultado financeiro e os totais de apresentação nunca são
+persistidos; o ciclo atual é recalculado por `calcularPlanoDiario`.
 
 Cada gasto persistido possui `id`, `valor` em centavos e `data` civil. Instalações
-com dados na chave antiga `@saldo-do-dia/planejamento:v1` são migradas
-automaticamente: o aplicativo valida o documento legado, atribui IDs
-determinísticos, confirma a gravação v2 e somente então tenta remover a chave v1.
-Se a gravação v2 falhar, os dados v1 não são removidos. Se as duas chaves
-existirem, v2 tem prioridade.
+com dados v1 ou v2 são validadas e migradas automaticamente. Os IDs
+determinísticos dos gastos legados são preservados, e a origem só é removida
+depois que o documento v3 completo foi gravado.
 
-Iniciar um novo ciclo apenas substitui a configuração armazenada nessa mesma
-estrutura v2. Nenhuma nova versão ou segunda cópia de histórico é criada.
+Instalações v2 são migradas com `inicio: null`, pois seus dados não permitem
+inventar a fotografia inicial. A prioridade é v3, v2, v1; qualquer chave legada
+só é removida depois da gravação v3 confirmada. Não existe chave separada para o
+histórico: arquivamento e criação do novo ciclo são uma única gravação atômica.
 
 Ao abrir o aplicativo, os dados são lidos, validados campo a campo e atualizados
 para a data civil local. Quando o aplicativo volta ao primeiro plano em um novo

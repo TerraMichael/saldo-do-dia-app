@@ -1,4 +1,5 @@
 import type { EntradaCalculoDiario } from '../features/daily-limit';
+import type { DadosPlanejamento } from '../features/cycle-history/model';
 import type { ConfiguracaoPlanejamentoV1 } from './serialization';
 
 export function criarIdDeterministicoGastoLegado(
@@ -19,5 +20,24 @@ export function migrarConfiguracaoV1ParaV2(
       valor: gasto.valor,
       data: gasto.data,
     })),
+  };
+}
+
+export function criarIdDeterministicoCicloMigrado(
+  configuracao: EntradaCalculoDiario,
+): string {
+  return `ciclo-legado:${configuracao.dataAtual}:${configuracao.dataProximoRecebimento}`;
+}
+
+export function migrarConfiguracaoV2ParaV3(
+  configuracao: EntradaCalculoDiario,
+): DadosPlanejamento {
+  return {
+    cicloAtual: {
+      id: criarIdDeterministicoCicloMigrado(configuracao),
+      inicio: null,
+      configuracao,
+    },
+    ciclosEncerrados: [],
   };
 }
