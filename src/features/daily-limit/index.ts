@@ -6,13 +6,18 @@ const MILISSEGUNDOS_POR_DIA = 24 * 60 * 60 * 1000;
  */
 export type Centavos = number;
 
+export interface GastoRegistrado {
+  valor: Centavos;
+  data: string;
+}
+
 export interface EntradaCalculoDiario {
   saldoAtual: Centavos;
   reserva: Centavos;
   contasPendentes: Centavos;
   dataAtual: string;
   dataProximoRecebimento: string;
-  gastosRegistrados: readonly Centavos[];
+  gastosRegistrados: readonly GastoRegistrado[];
 }
 
 export interface ResultadoCalculoDiario {
@@ -20,6 +25,12 @@ export interface ResultadoCalculoDiario {
   limiteDiario: Centavos;
   quantidadeDeDiasRestantes: number;
   totalGastosRegistrados: Centavos;
+  totalGastosHoje: Centavos;
+  limitePlanejadoHoje: Centavos;
+  restanteHoje: Centavos;
+  excedenteHoje: Centavos;
+  quantidadeDeDiasFuturos: number;
+  limiteDiasFuturos: Centavos | null;
 }
 
 export type CodigoErroCalculoFinanceiro =
@@ -134,17 +145,48 @@ export function calcularPlanoDiario(entrada: EntradaCalculoDiario): ResultadoCal
     entrada.dataAtual,
     entrada.dataProximoRecebimento,
   );
-  const totalGastosRegistrados = entrada.gastosRegistrados.reduce((total, gasto, indice) => {
-    validarCentavos(gasto, `gastosRegistrados[${indice}]`);
-    const novoTotal = total + gasto;
+  const { totalGastosRegistrados, totalGastosHoje } = entrada.gastosRegistrados.reduce(
+    (totais, gasto, indice) => {
+    validarCentavos(gasto.valor, `gastosRegistrados[${indice}].valor`);
+    converterData(gasto.data, `gastosRegistrados[${indice}].data`);
+    const novoTotal = totais.totalGastosRegistrados + gasto.valor;
     validarCentavos(novoTotal, 'totalGastosRegistrados');
-    return novoTotal;
-  }, 0);
+    const novoTotalHoje =
+      gasto.data === entrada.dataAtual ? totais.totalGastosHoje + gasto.valor : totais.totalGastosHoje;
+    validarCentavos(novoTotalHoje, 'totalGastosHoje');
+    return {
+      totalGastosRegistrados: novoTotal,
+      totalGastosHoje: novoTotalHoje,
+    };
+  }, { totalGastosRegistrados: 0, totalGastosHoje: 0 });
+  const valorDisponivelNoInicioDoDia = valorDisponivel + totalGastosHoje;
+  validarCentavos(valorDisponivelNoInicioDoDia, 'valorDisponivelNoInicioDoDia');
+  const limitePlanejadoHoje = calcularLimiteDiario(
+    valorDisponivelNoInicioDoDia,
+    quantidadeDeDiasRestantes,
+  );
+  const restanteHoje = Math.max(0, limitePlanejadoHoje - totalGastosHoje);
+  const excedenteHoje = Math.max(0, totalGastosHoje - limitePlanejadoHoje);
+  validarCentavos(restanteHoje, 'restanteHoje');
+  validarCentavos(excedenteHoje, 'excedenteHoje');
+  const quantidadeDeDiasFuturos = Math.max(0, quantidadeDeDiasRestantes - 1);
+  const valorDisponivelParaDiasFuturos = valorDisponivel - restanteHoje;
+  validarCentavos(valorDisponivelParaDiasFuturos, 'valorDisponivelParaDiasFuturos');
+  const limiteDiasFuturos =
+    quantidadeDeDiasFuturos > 0
+      ? calcularLimiteDiario(valorDisponivelParaDiasFuturos, quantidadeDeDiasFuturos)
+      : null;
 
   return {
     valorDisponivel,
-    limiteDiario: calcularLimiteDiario(valorDisponivel, quantidadeDeDiasRestantes),
+    limiteDiario: limitePlanejadoHoje,
     quantidadeDeDiasRestantes,
     totalGastosRegistrados,
+    totalGastosHoje,
+    limitePlanejadoHoje,
+    restanteHoje,
+    excedenteHoje,
+    quantidadeDeDiasFuturos,
+    limiteDiasFuturos,
   };
 }

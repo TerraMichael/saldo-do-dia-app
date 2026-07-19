@@ -2,10 +2,8 @@ import type {
   EntradaCalculoDiario,
   ResultadoCalculoDiario,
 } from '../daily-limit';
-import {
-  formatarCentavosComoMoedaBrasileira,
-  formatarDataCivilParaExibicao,
-} from '../onboarding';
+import { formatarDataCivilParaExibicao } from '../onboarding';
+import { formatarCentavosComoMoedaBrasileira } from '../../shared/money';
 
 export type EstadoFinanceiroHome = 'positivo' | 'sem-valor-livre' | 'deficit';
 
@@ -13,11 +11,17 @@ export interface ApresentacaoHome {
   estado: EstadoFinanceiroHome;
   tituloEstado: string;
   mensagemEstado: string;
-  limiteDiario: string;
+  restanteHoje: string;
+  gastoHoje: string;
+  limitePlanejadoHoje: string;
+  excedenteHoje: string | null;
+  limiteDiasFuturos: string | null;
+  quantidadeDeDiasFuturos: number;
   saldoAtual: string;
   valorDisponivel: string;
   contasPendentes: string;
   reserva: string;
+  totalGastosRegistrados: string;
   quantidadeDeDiasRestantes: number;
   quantidadeDeDiasTexto: string;
   dataProximoRecebimento: string;
@@ -30,7 +34,6 @@ export function criarApresentacaoHome(
 ): ApresentacaoHome {
   const temDeficit = resultado.valorDisponivel < 0;
   const semValorLivre = resultado.valorDisponivel === 0;
-  const limiteVisual = Math.max(0, resultado.limiteDiario);
   const valorDisponivelVisual = Math.max(0, resultado.valorDisponivel);
   const deficit = temDeficit
     ? formatarCentavosComoMoedaBrasileira(Math.abs(resultado.valorDisponivel))
@@ -56,11 +59,27 @@ export function criarApresentacaoHome(
     estado,
     tituloEstado,
     mensagemEstado,
-    limiteDiario: formatarCentavosComoMoedaBrasileira(limiteVisual),
+    restanteHoje: formatarCentavosComoMoedaBrasileira(resultado.restanteHoje),
+    gastoHoje: formatarCentavosComoMoedaBrasileira(resultado.totalGastosHoje),
+    limitePlanejadoHoje: formatarCentavosComoMoedaBrasileira(
+      Math.max(0, resultado.limitePlanejadoHoje),
+    ),
+    excedenteHoje:
+      resultado.excedenteHoje > 0
+        ? formatarCentavosComoMoedaBrasileira(resultado.excedenteHoje)
+        : null,
+    limiteDiasFuturos:
+      resultado.limiteDiasFuturos === null
+        ? null
+        : formatarCentavosComoMoedaBrasileira(Math.max(0, resultado.limiteDiasFuturos)),
+    quantidadeDeDiasFuturos: resultado.quantidadeDeDiasFuturos,
     saldoAtual: formatarCentavosComoMoedaBrasileira(configuracao.saldoAtual),
     valorDisponivel: formatarCentavosComoMoedaBrasileira(valorDisponivelVisual),
     contasPendentes: formatarCentavosComoMoedaBrasileira(configuracao.contasPendentes),
     reserva: formatarCentavosComoMoedaBrasileira(configuracao.reserva),
+    totalGastosRegistrados: formatarCentavosComoMoedaBrasileira(
+      resultado.totalGastosRegistrados,
+    ),
     quantidadeDeDiasRestantes,
     quantidadeDeDiasTexto: `${quantidadeDeDiasRestantes} ${
       quantidadeDeDiasRestantes === 1 ? 'dia' : 'dias'

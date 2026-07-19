@@ -58,9 +58,9 @@ export function HomeScreen() {
         <Text style={styles.support}>Uma visão simples do seu dinheiro até receber novamente.</Text>
 
         <View style={[styles.hero, estadoCritico && styles.heroCritical]}>
-          <Text style={styles.heroLabel}>Você pode gastar hoje</Text>
-          <Text accessibilityLabel="Limite diário disponível" style={styles.heroAmount}>
-            {apresentacao.limiteDiario}
+          <Text style={styles.heroLabel}>Você ainda pode gastar hoje</Text>
+          <Text accessibilityLabel="Valor restante para hoje" style={styles.heroAmount}>
+            {apresentacao.restanteHoje}
           </Text>
           <View style={[styles.statusBadge, estadoCritico && styles.statusBadgeCritical]}>
             <Text style={[styles.statusText, estadoCritico && styles.statusTextCritical]}>
@@ -71,6 +71,11 @@ export function HomeScreen() {
           {apresentacao.deficit ? (
             <Text accessibilityRole="alert" style={styles.deficit}>
               Déficit: {apresentacao.deficit}
+            </Text>
+          ) : null}
+          {apresentacao.excedenteHoje ? (
+            <Text accessibilityRole="alert" style={styles.deficit}>
+              Excedente de hoje: {apresentacao.excedenteHoje}
             </Text>
           ) : null}
         </View>
@@ -88,6 +93,24 @@ export function HomeScreen() {
           />
           <LinhaPlanejamento label="Reserva protegida" value={apresentacao.reserva} />
           <LinhaPlanejamento
+            label="Gasto hoje"
+            value={apresentacao.gastoHoje}
+          />
+          <LinhaPlanejamento
+            label="Limite planejado de hoje"
+            value={apresentacao.limitePlanejadoHoje}
+          />
+          {apresentacao.limiteDiasFuturos ? (
+            <LinhaPlanejamento
+              label="A partir de amanhã"
+              value={`${apresentacao.limiteDiasFuturos} por dia`}
+            />
+          ) : null}
+          <LinhaPlanejamento
+            label="Total de gastos registrados"
+            value={apresentacao.totalGastosRegistrados}
+          />
+          <LinhaPlanejamento
             label="Até o próximo recebimento"
             value={apresentacao.quantidadeDeDiasTexto}
           />
@@ -99,12 +122,10 @@ export function HomeScreen() {
 
         <Pressable
           accessibilityRole="button"
-          accessibilityState={{ disabled: true }}
-          disabled
-          style={[styles.primaryButton, styles.disabledButton]}
+          onPress={() => router.push('/registrar-gasto')}
+          style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}
         >
           <Text style={styles.primaryButtonText}>Registrar gasto</Text>
-          <Text style={styles.disabledHint}>Em breve</Text>
         </Pressable>
 
         <Pressable
@@ -188,8 +209,6 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   primaryButtonText: { color: '#FFFFFF', fontSize: 17, fontWeight: '800' },
-  disabledButton: { backgroundColor: '#8DA79A' },
-  disabledHint: { color: '#EAF1ED', fontSize: 12, fontWeight: '700', marginTop: 2 },
   secondaryButton: { alignItems: 'center', marginTop: 10, paddingVertical: 14 },
   secondaryButtonText: { color: '#28734F', fontSize: 16, fontWeight: '800' },
   pressed: { opacity: 0.72 },

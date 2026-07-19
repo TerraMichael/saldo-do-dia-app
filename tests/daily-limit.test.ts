@@ -15,7 +15,10 @@ const entradaBase: EntradaCalculoDiario = {
   contasPendentes: 20_00,
   dataAtual: '2026-07-01',
   dataProximoRecebimento: '2026-07-05',
-  gastosRegistrados: [10_00, 5_50],
+  gastosRegistrados: [
+    { valor: 10_00, data: '2026-06-30' },
+    { valor: 5_50, data: '2026-06-30' },
+  ],
 };
 
 test('calcula o cenário normal e informa os gastos do ciclo sem descontá-los novamente', () => {
@@ -24,6 +27,12 @@ test('calcula o cenário normal e informa os gastos do ciclo sem descontá-los n
     limiteDiario: 20_00,
     quantidadeDeDiasRestantes: 4,
     totalGastosRegistrados: 15_50,
+    totalGastosHoje: 0,
+    limitePlanejadoHoje: 20_00,
+    restanteHoje: 20_00,
+    excedenteHoje: 0,
+    quantidadeDeDiasFuturos: 3,
+    limiteDiasFuturos: 20_00,
   });
 });
 
@@ -92,4 +101,103 @@ test('não produz NaN ou Infinity quando a quantidade de dias é inválida', () 
     () => calcularLimiteDiario(10_00, 0),
     (erro) => erro instanceof ErroCalculoFinanceiro && erro.codigo === 'DATA_INVALIDA',
   );
+});
+
+const cenarioSaldoDoDia: EntradaCalculoDiario = {
+  saldoAtual: 300_00,
+  reserva: 0,
+  contasPendentes: 115_00,
+  dataAtual: '2026-07-01',
+  dataProximoRecebimento: '2026-07-09',
+  gastosRegistrados: [],
+};
+
+test('sem gastos mantém R$ 23,12 como restante de hoje em oito dias', () => {
+  const resultado = calcularPlanoDiario(cenarioSaldoDoDia);
+
+  assert.equal(resultado.restanteHoje, 23_12);
+  assert.equal(resultado.limitePlanejadoHoje, 23_12);
+  assert.equal(resultado.quantidadeDeDiasFuturos, 7);
+});
+
+test('gasto de R$ 10,00 reduz somente o restante de hoje', () => {
+  const resultado = calcularPlanoDiario({
+    ...cenarioSaldoDoDia,
+    saldoAtual: 290_00,
+    gastosRegistrados: [{ valor: 10_00, data: '2026-07-01' }],
+  });
+
+  assert.equal(resultado.restanteHoje, 13_12);
+  assert.equal(resultado.limiteDiasFuturos, 23_12);
+});
+
+test('gasto igual ao limite encerra o orçamento de hoje sem excedente', () => {
+  const resultado = calcularPlanoDiario({
+    ...cenarioSaldoDoDia,
+    saldoAtual: 276_88,
+    gastosRegistrados: [{ valor: 23_12, data: '2026-07-01' }],
+  });
+
+  assert.equal(resultado.restanteHoje, 0);
+  assert.equal(resultado.excedenteHoje, 0);
+});
+
+test('gasto acima do limite gera excedente e redistribui somente os dias futuros', () => {
+  const resultado = calcularPlanoDiario({
+    ...cenarioSaldoDoDia,
+    saldoAtual: 270_00,
+    gastosRegistrados: [{ valor: 30_00, data: '2026-07-01' }],
+  });
+
+  assert.equal(resultado.restanteHoje, 0);
+  assert.equal(resultado.excedenteHoje, 6_88);
+  assert.equal(resultado.limiteDiasFuturos, 22_14);
+  assert.equal(resultado.quantidadeDeDiasFuturos, 7);
+});
+
+test('múltiplos gastos na mesma data são somados como gasto de hoje', () => {
+  const resultado = calcularPlanoDiario({
+    ...cenarioSaldoDoDia,
+    saldoAtual: 270_00,
+    gastosRegistrados: [
+      { valor: 10_00, data: '2026-07-01' },
+      { valor: 20_00, data: '2026-07-01' },
+    ],
+  });
+
+  assert.equal(resultado.totalGastosHoje, 30_00);
+});
+
+test('gastos anteriores permanecem no ciclo, mas não entram no gasto de hoje', () => {
+  const resultado = calcularPlanoDiario({
+    ...cenarioSaldoDoDia,
+    gastosRegistrados: [{ valor: 30_00, data: '2026-06-30' }],
+  });
+
+  assert.equal(resultado.totalGastosHoje, 0);
+  assert.equal(resultado.totalGastosRegistrados, 30_00);
+});
+
+test('mudança de dia recalcula o orçamento com saldo e quantidade de dias atuais', () => {
+  const resultado = calcularPlanoDiario({
+    ...cenarioSaldoDoDia,
+    saldoAtual: 270_00,
+    dataAtual: '2026-07-02',
+    gastosRegistrados: [{ valor: 30_00, data: '2026-07-01' }],
+  });
+
+  assert.equal(resultado.totalGastosHoje, 0);
+  assert.equal(resultado.quantidadeDeDiasRestantes, 7);
+  assert.equal(resultado.restanteHoje, 22_14);
+});
+
+test('recebimento hoje não cria limite futuro e mantém o restante de hoje', () => {
+  const resultado = calcularPlanoDiario({
+    ...cenarioSaldoDoDia,
+    dataProximoRecebimento: cenarioSaldoDoDia.dataAtual,
+  });
+
+  assert.equal(resultado.quantidadeDeDiasFuturos, 0);
+  assert.equal(resultado.limiteDiasFuturos, null);
+  assert.equal(resultado.restanteHoje, 185_00);
 });

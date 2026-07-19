@@ -108,15 +108,41 @@ Requisitos documentados: Node.js 20.19 ou superior e npm 10 ou superior.
 
 - `src/features/home/presenter.ts` transforma configuração e resultado financeiro
   em dados de apresentação, sem duplicar o cálculo do domínio.
-- A Home mostra limite diário, saldo atual, valor disponível, contas, reserva,
-  dias restantes, data do recebimento e o estado do planejamento.
+- A Home destaca quanto ainda pode ser gasto hoje e mostra gasto de hoje, limite
+  planejado do dia, eventual excedente, previsão a partir de amanhã, saldo atual,
+  valor disponível, contas, reserva, dias restantes e data do recebimento.
 - Em valor disponível zero, informa que não há dinheiro livre.
 - Em déficit, preserva o resultado negativo do domínio, mas mostra limite visual
   de `R$ 0,00` e destaca separadamente o valor que falta.
 - **Editar planejamento** retorna ao onboarding com os dados atuais preenchidos.
-- **Registrar gasto** permanece desabilitado e identificado como **Em breve**.
+- **Registrar gasto** abre um formulário de valor único; após confirmar, saldo,
+  total gasto e orçamento restante de hoje são atualizados em memória.
 - O provider do planejamento fica no layout raiz para compartilhar uma única
   configuração em memória entre onboarding e Home.
+
+### Registro de gastos em memória
+
+- `src/features/expenses/register-expense.ts` contém o caso de uso puro.
+- Ao registrar `X`, o saldo corrente é reduzido por `X`, o gasto datado
+  `{ valor: X, data: dataAtual }` é anexado a `gastosRegistrados`, `dataAtual`
+  recebe a data civil local e o plano é
+  recalculado por `calcularPlanoDiario`.
+- Gastos registrados não são descontados novamente do valor disponível; o saldo
+  já representa o dinheiro corrente após o gasto.
+- Gastos cuja data civil coincide com `dataAtual` reconstroem o disponível do
+  início do dia. A partir dele, o domínio calcula limite planejado, restante e
+  excedente de hoje, além do limite para os dias futuros.
+- Gastos de datas anteriores permanecem no total do ciclo, mas não entram em
+  `totalGastosHoje`; quando o dia muda, o orçamento é recalculado usando o saldo
+  corrente e a nova quantidade de dias.
+- Gastos maiores que o saldo são permitidos e podem levar a Home ao estado de
+  déficit.
+- A Home mostra o total do ciclo e os agregados do dia; lista, edição e exclusão
+  ficam fora desta etapa.
+- Configuração e resultado são mantidos juntos em uma única atualização do
+  Context, sem persistência.
+- Parsing e formatação monetária genéricos ficam em `src/shared/money.ts`, com os
+  exports anteriores do onboarding preservados.
 
 ### Domínios previstos
 
@@ -143,13 +169,17 @@ diário. A entrada possui:
 - total de contas pendentes;
 - data atual;
 - data do próximo recebimento;
-- gastos já registrados no ciclo.
+- gastos já registrados no ciclo, cada um com valor em centavos e data civil.
 
 A regra implementada é:
 
 ```text
-valor disponível = saldo atual - reserva - contas pendentes
-limite diário = piso(valor disponível / quantidade de dias restantes)
+valor disponível atual = saldo atual - reserva - contas pendentes
+valor disponível no início do dia = valor disponível atual + gastos de hoje
+limite planejado hoje = piso(valor disponível no início do dia / dias restantes)
+restante hoje = máximo entre zero e (limite planejado hoje - gastos de hoje)
+excedente hoje = máximo entre zero e (gastos de hoje - limite planejado hoje)
+limite futuro = piso((valor disponível atual - restante hoje) / dias futuros)
 ```
 
 Decisões importantes da implementação:
@@ -162,9 +192,10 @@ Decisões importantes da implementação:
 - o limite é arredondado para baixo para nunca oferecer mais que o disponível;
 - valores negativos são preservados: saldo insuficiente resulta em valor
   disponível e limite negativos, em vez de ser silenciosamente truncado para zero;
-- gastos registrados são somados e retornados como informação, mas **não são
-  descontados novamente**, pois o saldo atual fornecido já representa o estado
-  corrente do dinheiro;
+- gastos registrados são datados, somados e retornados como informação, mas
+  **não são descontados novamente**, pois o saldo atual fornecido já representa
+  o estado corrente do dinheiro;
+- quando não há dias futuros, o domínio retorna limite futuro ausente;
 - entradas monetárias que não sejam inteiros seguros e datas inválidas produzem
   `ErroCalculoFinanceiro` com código de domínio;
 - a data do próximo recebimento anterior à data atual é rejeitada.
@@ -209,10 +240,10 @@ npm test
 ```
 
 `npm test` executa explicitamente `tests/foundation.test.js`,
-`tests/daily-limit.test.ts`, `tests/onboarding.test.ts` e `tests/home.test.ts` com
-o test runner nativo do Node.js por meio do `tsx`. Os caminhos explícitos mantêm
-o comando compatível com Windows PowerShell sem depender da expansão de globs
-feita pelo shell.
+`tests/daily-limit.test.ts`, `tests/onboarding.test.ts`, `tests/home.test.ts` e
+`tests/expenses.test.ts` com o test runner nativo do Node.js por meio do `tsx`.
+Os caminhos explícitos mantêm o comando compatível com Windows PowerShell sem
+depender da expansão de globs feita pelo shell.
 
 O `README.md` ainda descreve o repositório como contendo somente a fundação e diz
 que os fluxos financeiros não foram implementados. Interprete isso como “nenhum
@@ -221,7 +252,7 @@ existe, embora ainda não esteja ligada a uma tela ou persistência.
 
 ## 8. O que ainda não existe
 
-- cadastro e edição de gastos;
+- histórico detalhado, edição e exclusão de gastos;
 - histórico;
 - persistência local concreta;
 - componentes compartilhados ou design system formal;
@@ -237,8 +268,7 @@ antes de consolidar uma decisão.
 Esta seção é um **roadmap sugerido**, não um conjunto de requisitos já aprovado:
 
 1. modelar os dados e contratos de armazenamento local necessários ao onboarding;
-2. adicionar registro de gastos e atualização coerente do saldo;
-3. evoluir histórico e edição somente depois do ciclo principal funcionar.
+2. evoluir histórico e edição somente depois do ciclo principal funcionar.
 
 Em cada etapa, mantenha estados de erro, valores negativos, datas-limite,
 arredondamento e acessibilidade visíveis no desenho da solução.

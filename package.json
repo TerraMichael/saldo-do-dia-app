@@ -8,7 +8,7 @@
     "android": "expo start --android",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test tests/foundation.test.js tests/daily-limit.test.ts tests/onboarding.test.ts tests/home.test.ts"
+    "test": "tsx --test tests/foundation.test.js tests/daily-limit.test.ts tests/onboarding.test.ts tests/home.test.ts tests/expenses.test.ts"
   },
   "dependencies": {
     "@react-native-community/datetimepicker": "8.4.4",
