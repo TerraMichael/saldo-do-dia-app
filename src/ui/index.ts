@@ -3,6 +3,7 @@ export { AppCard } from './components/AppCard';
 export { AppHeader } from './components/AppHeader';
 export { AppScreen } from './components/AppScreen';
 export { AppStateView } from './components/AppStateView';
+export { AppTextField } from './components/AppTextField';
 export { BrandMark } from './components/BrandMark';
 export { CollapsibleSection } from './components/CollapsibleSection';
 export { InfoRow } from './components/InfoRow';

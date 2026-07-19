@@ -4,7 +4,11 @@ import {
   type EntradaCalculoDiario,
   type ResultadoCalculoDiario,
 } from '../daily-limit';
-import { converterValorGastoParaCentavos } from './register-expense';
+import {
+  converterValorGastoParaCentavos,
+  type DadosFormularioGasto,
+} from './register-expense';
+import { normalizarDescricaoGasto } from './description';
 
 export type CodigoErroEdicaoGasto =
   | 'GASTO_NAO_ENCONTRADO'
@@ -58,7 +62,7 @@ function recalcular(
 export function editarGasto(
   configuracaoAtual: EntradaCalculoDiario,
   id: string,
-  novoValor: string,
+  dados: DadosFormularioGasto,
   dataAtual: string,
 ): EdicaoGastoConcluida {
   const indice = configuracaoAtual.gastosRegistrados.findIndex(
@@ -71,10 +75,15 @@ export function editarGasto(
     );
   }
 
-  const valor = converterValorGastoParaCentavos(novoValor);
+  const valor = converterValorGastoParaCentavos(dados.valor);
+  const descricao = normalizarDescricaoGasto(dados.descricao);
   const gastoAtual = configuracaoAtual.gastosRegistrados[indice];
 
-  if (valor === gastoAtual.valor && dataAtual === configuracaoAtual.dataAtual) {
+  if (
+    valor === gastoAtual.valor &&
+    descricao === gastoAtual.descricao &&
+    dataAtual === configuracaoAtual.dataAtual
+  ) {
     return {
       configuracao: configuracaoAtual,
       resultado: recalcular(configuracaoAtual),
@@ -93,7 +102,14 @@ export function editarGasto(
 
   const gastosRegistrados = configuracaoAtual.gastosRegistrados.map(
     (gasto, gastoIndice) =>
-      gastoIndice === indice ? { ...gasto, valor } : gasto,
+      gastoIndice === indice
+        ? {
+            id: gasto.id,
+            valor,
+            data: gasto.data,
+            ...(descricao ? { descricao } : {}),
+          }
+        : gasto,
   );
   const configuracao: EntradaCalculoDiario = {
     ...configuracaoAtual,

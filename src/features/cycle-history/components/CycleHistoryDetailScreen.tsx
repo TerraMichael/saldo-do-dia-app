@@ -35,7 +35,13 @@ export function CycleHistoryDetailScreen({ id }: { id: string }) {
         {!ciclo.grupos.length ? <InlineFeedback message="Este ciclo foi encerrado sem gastos registrados." /> : ciclo.grupos.map((grupo) => (
           <AppCard key={grupo.data} style={styles.group}>
             <View style={styles.groupHeader}><Text style={styles.date}>{grupo.data}</Text><Text style={styles.total}>{grupo.total}</Text></View>
-            {grupo.gastos.map((gasto) => <InfoRow key={gasto.id} label="Gasto" value={gasto.valor} />)}
+            {grupo.gastos.map((gasto) => (
+              <InfoRow
+                key={gasto.id}
+                label={gasto.descricao}
+                value={gasto.valor}
+              />
+            ))}
           </AppCard>
         ))}
       </View>

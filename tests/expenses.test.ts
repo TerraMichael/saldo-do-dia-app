@@ -25,7 +25,7 @@ function registrar(
 ) {
   return registrarGasto(
     configuracao,
-    valor,
+    { valor },
     data,
     () => `gasto-${configuracao.gastosRegistrados.length + 1}`,
   );

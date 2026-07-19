@@ -8,6 +8,7 @@ import {
   AppHeader,
   AppScreen,
   AppStateView,
+  AppTextField,
   MoneyInput,
   spacing,
 } from '../../../ui';
@@ -17,6 +18,10 @@ import {
   converterValorGastoParaCentavos,
   ErroRegistroGasto,
 } from '../register-expense';
+import {
+  ErroDescricaoGasto,
+  LIMITE_DESCRICAO_GASTO,
+} from '../description';
 
 interface EditExpenseScreenProps {
   id: string;
@@ -30,7 +35,9 @@ export function EditExpenseScreen({ id }: EditExpenseScreenProps) {
     ? formatarCentavosComoMoedaBrasileira(gasto.valor)
     : '';
   const [valor, setValor] = useState(() => valorOriginal);
-  const [erro, setErro] = useState<string | null>(null);
+  const [descricao, setDescricao] = useState(() => gasto?.descricao ?? '');
+  const [erroValor, setErroValor] = useState<string | null>(null);
+  const [erroDescricao, setErroDescricao] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
   const envioEmAndamento = useRef(false);
   const entradaAlterada = useRef(false);
@@ -52,15 +59,18 @@ export function EditExpenseScreen({ id }: EditExpenseScreenProps) {
     if (envioEmAndamento.current) return;
     envioEmAndamento.current = true;
     setEnviando(true);
-    setErro(null);
+    setErroValor(null);
+    setErroDescricao(null);
     try {
-      await editarGasto(id, valor);
+      await editarGasto(id, { valor, descricao });
       router.replace('/historico');
     } catch (falha) {
-      if (falha instanceof ErroRegistroGasto || falha instanceof ErroEdicaoGasto) {
-        setErro(falha.message);
+      if (falha instanceof ErroDescricaoGasto) {
+        setErroDescricao(falha.message);
+      } else if (falha instanceof ErroRegistroGasto || falha instanceof ErroEdicaoGasto) {
+        setErroValor(falha.message);
       } else {
-        setErro(
+        setErroValor(
           falha instanceof Error
             ? falha.message
             : 'Não foi possível salvar a alteração. Tente novamente.',
@@ -102,19 +112,32 @@ export function EditExpenseScreen({ id }: EditExpenseScreenProps) {
           onBack={() => router.back()}
           title="Editar gasto"
         />
-        <View style={styles.field}>
+        <View style={styles.fields}>
           <MoneyInput
             editable={!enviando}
-            error={erro ?? undefined}
+            error={erroValor ?? undefined}
             label="Valor do gasto"
             onBlur={formatarEntrada}
             onChangeText={(texto) => {
               entradaAlterada.current = true;
               setValor(texto);
-              setErro(null);
+              setErroValor(null);
             }}
             onFocus={prepararEdicao}
             value={valor}
+          />
+          <AppTextField
+            editable={!enviando}
+            error={erroDescricao ?? undefined}
+            hint="Ajuda você a identificar o gasto no histórico."
+            label="Descrição (opcional)"
+            maxLength={LIMITE_DESCRICAO_GASTO}
+            onChangeText={(texto) => {
+              setDescricao(texto);
+              setErroDescricao(null);
+            }}
+            placeholder="Ex.: mercado, almoço ou combustível"
+            value={descricao}
           />
         </View>
       </View>
@@ -138,6 +161,6 @@ export function EditExpenseScreen({ id }: EditExpenseScreenProps) {
 
 const styles = StyleSheet.create({
   content: { justifyContent: 'space-between' },
-  field: { marginTop: spacing.xxl },
+  fields: { gap: spacing.lg, marginTop: spacing.xxl },
   actions: { gap: spacing.xs, marginTop: spacing.xxl },
 });

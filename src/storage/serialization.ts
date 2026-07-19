@@ -5,6 +5,10 @@ import type {
   ResumoInicialCiclo,
 } from '../features/cycle-history/model';
 import type { EntradaCalculoDiario, GastoRegistrado } from '../features/daily-limit';
+import {
+  ErroDescricaoGasto,
+  normalizarDescricaoGasto,
+} from '../features/expenses/description';
 
 export const VERSAO_PLANEJAMENTO_PERSISTIDO = 3 as const;
 export const VERSAO_PLANEJAMENTO_V2 = 2 as const;
@@ -90,7 +94,26 @@ function gastoV2(valor: unknown, indice: number, caminho = 'gastosRegistrados'):
   if (!ehObjeto(valor) || typeof valor.id !== 'string' || !valor.id.trim()) {
     throw new ErroSerializacaoPlanejamento('DADOS_INVALIDOS', `${caminho}[${indice}].id deve ser não vazio.`);
   }
-  return { id: valor.id, ...gastoBase(valor, `${caminho}[${indice}]`) };
+  if (valor.descricao !== undefined && typeof valor.descricao !== 'string') {
+    throw new ErroSerializacaoPlanejamento(
+      'DADOS_INVALIDOS',
+      `${caminho}[${indice}].descricao deve ser uma string.`,
+    );
+  }
+  let descricao: string | undefined;
+  try {
+    descricao = normalizarDescricaoGasto(valor.descricao);
+  } catch (erro) {
+    if (erro instanceof ErroDescricaoGasto) {
+      throw new ErroSerializacaoPlanejamento('DADOS_INVALIDOS', erro.message);
+    }
+    throw erro;
+  }
+  return {
+    id: valor.id,
+    ...gastoBase(valor, `${caminho}[${indice}]`),
+    ...(descricao ? { descricao } : {}),
+  };
 }
 
 function configuracao<T>(

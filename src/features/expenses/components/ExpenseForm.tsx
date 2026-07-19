@@ -8,6 +8,7 @@ import {
   AppHeader,
   AppScreen,
   AppStateView,
+  AppTextField,
   MoneyInput,
   spacing,
 } from '../../../ui';
@@ -16,6 +17,10 @@ import {
   converterValorGastoParaCentavos,
   ErroRegistroGasto,
 } from '../register-expense';
+import {
+  ErroDescricaoGasto,
+  LIMITE_DESCRICAO_GASTO,
+} from '../description';
 
 function formatarEntrada(valor: string): string {
   if (!valor.trim()) return valor;
@@ -32,7 +37,9 @@ export function ExpenseForm() {
   const router = useRouter();
   const { configuracao, registrarGasto } = useOnboarding();
   const [valor, setValor] = useState('');
-  const [erro, setErro] = useState<string | null>(null);
+  const [descricao, setDescricao] = useState('');
+  const [erroValor, setErroValor] = useState<string | null>(null);
+  const [erroDescricao, setErroDescricao] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
   const envioEmAndamento = useRef(false);
 
@@ -53,15 +60,18 @@ export function ExpenseForm() {
     if (envioEmAndamento.current) return;
     envioEmAndamento.current = true;
     setEnviando(true);
-    setErro(null);
+    setErroValor(null);
+    setErroDescricao(null);
     try {
-      await registrarGasto(valor);
+      await registrarGasto({ valor, descricao });
       router.replace('/home');
     } catch (falha) {
-      if (falha instanceof ErroRegistroGasto) {
-        setErro(falha.message);
+      if (falha instanceof ErroDescricaoGasto) {
+        setErroDescricao(falha.message);
+      } else if (falha instanceof ErroRegistroGasto) {
+        setErroValor(falha.message);
       } else {
-        setErro(
+        setErroValor(
           falha instanceof Error
             ? falha.message
             : 'Não foi possível salvar o gasto. Tente novamente.',
@@ -83,18 +93,31 @@ export function ExpenseForm() {
           onBack={() => router.back()}
           title="Registrar gasto"
         />
-        <View style={styles.field}>
+        <View style={styles.fields}>
           <MoneyInput
             editable={!enviando}
-            error={erro ?? undefined}
+            error={erroValor ?? undefined}
             hint="Informe apenas o valor. Gastos maiores que o saldo são permitidos."
             label="Valor do gasto"
             onBlur={() => setValor(formatarEntrada(valor))}
             onChangeText={(texto) => {
               setValor(texto);
-              setErro(null);
+              setErroValor(null);
             }}
             value={valor}
+          />
+          <AppTextField
+            editable={!enviando}
+            error={erroDescricao ?? undefined}
+            hint="Ajuda você a identificar o gasto no histórico."
+            label="Descrição (opcional)"
+            maxLength={LIMITE_DESCRICAO_GASTO}
+            onChangeText={(texto) => {
+              setDescricao(texto);
+              setErroDescricao(null);
+            }}
+            placeholder="Ex.: mercado, almoço ou combustível"
+            value={descricao}
           />
         </View>
       </View>
@@ -118,6 +141,6 @@ export function ExpenseForm() {
 
 const styles = StyleSheet.create({
   content: { justifyContent: 'space-between' },
-  field: { marginTop: spacing.xxl },
+  fields: { gap: spacing.lg, marginTop: spacing.xxl },
   actions: { gap: spacing.xs, marginTop: spacing.xxl },
 });
