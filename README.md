@@ -6,11 +6,16 @@ Este repositório contém somente a fundação técnica do produto. Os fluxos fi
 
 ## Stack
 
-- React Native com Expo (SDK 57)
+- React Native 0.81 com Expo SDK 54
 - TypeScript em modo estrito
 - Expo Router para navegação baseada em arquivos
 - Persistência exclusivamente local (a camada de armazenamento será implementada conforme os fluxos forem criados)
 - npm
+
+> **Compatibilidade temporária:** o projeto está no Expo SDK 54 para abrir no
+> Expo Go atualmente distribuído pela Play Store. As dependências devem continuar
+> alinhadas com `npx expo install --fix` até uma futura atualização planejada do
+> SDK.
 
 ## Requisitos
 

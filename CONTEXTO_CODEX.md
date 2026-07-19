@@ -57,9 +57,9 @@ pelo produto.
 
 ## 3. Stack e configuração atuais
 
-- Expo SDK 57 e React Native 0.86;
-- React 19;
-- TypeScript 6 em modo `strict`;
+- Expo SDK 54 e React Native 0.81;
+- React 19.1;
+- TypeScript 5.9 em modo `strict`;
 - Expo Router com rotas tipadas;
 - Expo Localization configurado para `pt-BR` no Android;
 - nova arquitetura do React Native habilitada;
@@ -69,6 +69,11 @@ pelo produto.
 - identificador Android: `com.terramichael.saldododia`;
 - scheme: `saldododia`;
 - tema atual fixado como claro.
+
+O uso do Expo SDK 54 é temporário e foi adotado para compatibilidade com o Expo
+Go distribuído pela Play Store no dispositivo físico usado no desenvolvimento.
+As dependências foram alinhadas pelo `npx expo install --fix`; não atualize
+pacotes Expo isoladamente sem repetir essa verificação.
 
 Requisitos documentados: Node.js 20.19 ou superior e npm 10 ou superior.
 
@@ -227,6 +232,7 @@ O histórico versionado registra esta evolução:
 3. merge da fundação Expo + TypeScript;
 4. implementação do domínio de cálculo financeiro diário;
 5. sincronização de branch e merge da fundação, domínio, UI e testes.
+6. alinhamento temporário ao Expo SDK 54 para testes no Expo Go da Play Store.
 
 Use `git log --oneline --decorate` e `git show <commit>` para recuperar detalhes.
 Este documento não contém transcrições privadas ou conteúdo que não esteja
