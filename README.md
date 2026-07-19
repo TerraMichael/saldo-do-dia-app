@@ -50,3 +50,9 @@ tests/                # Verificações automatizadas da fundação do projeto
 ```
 
 As funcionalidades serão separadas por domínio dentro de `src/features`, evitando acoplamento entre as telas, as regras do cálculo diário e a persistência. Rotas devem apenas compor os fluxos e delegar regras de negócio aos respectivos módulos.
+
+## Continuidade no Codex CLI
+
+O arquivo [`CONTEXTO_CODEX.md`](./CONTEXTO_CODEX.md) consolida a visão do produto,
+as decisões técnicas, o estado atual, as limitações conhecidas e um prompt de
+início para continuar o desenvolvimento em uma nova sessão do Codex CLI.
