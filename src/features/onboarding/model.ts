@@ -34,6 +34,17 @@ export interface DadosFormularioOnboarding {
   dataProximoRecebimento: string;
 }
 
+export function criarDadosFormularioDaConfiguracao(
+  configuracao: EntradaCalculoDiario,
+): DadosFormularioOnboarding {
+  return {
+    saldoAtual: formatarCentavosComoMoedaBrasileira(configuracao.saldoAtual),
+    contasPendentes: formatarCentavosComoMoedaBrasileira(configuracao.contasPendentes),
+    reserva: formatarCentavosComoMoedaBrasileira(configuracao.reserva),
+    dataProximoRecebimento: configuracao.dataProximoRecebimento,
+  };
+}
+
 const FORMATO_MOEDA_BRASILEIRA = /^-?(?:\d{1,3}(?:\.\d{3})+|\d+)(?:,\d{1,2})?$/;
 const FORMATO_DATA_CIVIL = /^(\d{4})-(\d{2})-(\d{2})$/;
 

@@ -17,6 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import {
   criarConfiguracaoInicial,
+  criarDadosFormularioDaConfiguracao,
   criarDataLocalDaDataCivil,
   ErroOnboarding,
   formatarCentavosComoMoedaBrasileira,
@@ -100,11 +101,18 @@ function alternarSinal(valor: string): string {
 
 export function OnboardingForm() {
   const router = useRouter();
-  const { definirConfiguracao } = useOnboarding();
-  const [saldoAtual, setSaldoAtual] = useState('');
-  const [contasPendentes, setContasPendentes] = useState('R$ 0,00');
-  const [reserva, setReserva] = useState('R$ 0,00');
-  const [dataProximoRecebimento, setDataProximoRecebimento] = useState('');
+  const { configuracao, definirConfiguracao } = useOnboarding();
+  const dadosAtuais = configuracao
+    ? criarDadosFormularioDaConfiguracao(configuracao)
+    : undefined;
+  const [saldoAtual, setSaldoAtual] = useState(dadosAtuais?.saldoAtual ?? '');
+  const [contasPendentes, setContasPendentes] = useState(
+    dadosAtuais?.contasPendentes ?? 'R$ 0,00',
+  );
+  const [reserva, setReserva] = useState(dadosAtuais?.reserva ?? 'R$ 0,00');
+  const [dataProximoRecebimento, setDataProximoRecebimento] = useState(
+    dadosAtuais?.dataProximoRecebimento ?? '',
+  );
   const [mostrarSeletor, setMostrarSeletor] = useState(false);
   const [erros, setErros] = useState<ErrosFormulario>({});
 

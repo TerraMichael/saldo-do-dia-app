@@ -47,7 +47,7 @@ export function OnboardingReview() {
 
   function confirmar() {
     confirmarConfiguracao();
-    router.push('/onboarding/conclusao');
+    router.replace('/home');
   }
 
   return (
