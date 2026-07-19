@@ -36,6 +36,10 @@ const dadosValidos = {
   reserva: 'R$ 100,00',
   dataProximoRecebimento: '2026-08-01',
 };
+const dadosAnteriores = {
+  cicloAtual: { id: 'ciclo-anterior', inicio: null, configuracao: configuracaoAnterior },
+  ciclosEncerrados: [],
+};
 
 test('novo ciclo usa o saldo informado como fonte de verdade', () => {
   const novo = iniciarNovoCiclo(dadosValidos, hoje);
@@ -194,36 +198,38 @@ test('resumo informa o total gasto no ciclo encerrado', () => {
 
 test('cancelamento não modifica nem persiste o planejamento anterior', async () => {
   const armazenamento = criarArmazenamentoPlanejamento(new AdaptadorMemoria());
-  await armazenamento.salvar(configuracaoAnterior);
+  await armazenamento.salvar(dadosAnteriores);
   const antes = JSON.stringify(configuracaoAnterior);
 
   assert.equal(JSON.stringify(configuracaoAnterior), antes);
-  assert.deepEqual(await armazenamento.carregar(), configuracaoAnterior);
+  assert.deepEqual((await armazenamento.carregar())?.cicloAtual.configuracao, configuracaoAnterior);
 });
 
 test('falha de persistência mantém planejamento e histórico anteriores', async () => {
   const adaptador = new AdaptadorMemoria();
   const armazenamento = criarArmazenamentoPlanejamento(adaptador);
-  await armazenamento.salvar(configuracaoAnterior);
+  await armazenamento.salvar(dadosAnteriores);
   adaptador.falharGravacao = true;
 
   await assert.rejects(() =>
-    iniciarNovoCicloPersistido(armazenamento, dadosValidos, hoje),
+    iniciarNovoCicloPersistido(armazenamento, dadosAnteriores, dadosValidos, hoje, () => 'novo'),
   );
   adaptador.falharGravacao = false;
-  assert.deepEqual(await armazenamento.carregar(), configuracaoAnterior);
+  assert.deepEqual((await armazenamento.carregar())?.cicloAtual.configuracao, configuracaoAnterior);
 });
 
 test('persistência bem-sucedida retorna configuração e resultado sincronizados', async () => {
   const armazenamento = criarArmazenamentoPlanejamento(new AdaptadorMemoria());
-  await armazenamento.salvar(configuracaoAnterior);
+  await armazenamento.salvar(dadosAnteriores);
   const novo = await iniciarNovoCicloPersistido(
     armazenamento,
+    dadosAnteriores,
     dadosValidos,
     hoje,
+    () => 'novo',
   );
 
-  assert.deepEqual(await armazenamento.carregar(), novo.configuracao);
+  assert.deepEqual((await armazenamento.carregar())?.cicloAtual.configuracao, novo.configuracao);
   assert.equal(novo.resultado.totalGastosRegistrados, 0);
   assert.equal(novo.configuracao.gastosRegistrados.length, 0);
 });
@@ -232,8 +238,10 @@ test('reinício restaura o novo ciclo pronto para a Home', async () => {
   const armazenamento = criarArmazenamentoPlanejamento(new AdaptadorMemoria());
   const novo = await iniciarNovoCicloPersistido(
     armazenamento,
+    dadosAnteriores,
     dadosValidos,
     hoje,
+    () => 'novo',
   );
   const restaurado = await hidratarPlanejamento(armazenamento, hoje);
 
@@ -298,13 +306,16 @@ test('confirmação duplicada é impedida por trava síncrona', () => {
   assert.match(revisao, /if \(salvamentoEmAndamento\.current\)/);
 });
 
-test('armazenamento continua escrevendo o documento na versão 2', () => {
+test('armazenamento escreve o documento na versão 3', () => {
   const novo = iniciarNovoCiclo(dadosValidos, hoje);
-  const documento = JSON.parse(serializarPlanejamento(novo.configuracao)) as {
+  const documento = JSON.parse(serializarPlanejamento({
+    cicloAtual: { id: 'novo', inicio: null, configuracao: novo.configuracao },
+    ciclosEncerrados: [],
+  })) as {
     versao: number;
   };
-  assert.equal(VERSAO_PLANEJAMENTO_PERSISTIDO, 2);
-  assert.equal(documento.versao, 2);
+  assert.equal(VERSAO_PLANEJAMENTO_PERSISTIDO, 3);
+  assert.equal(documento.versao, 3);
 });
 
 test('novo arquivo é executado explicitamente pelo npm test no PowerShell', () => {

@@ -31,6 +31,10 @@ const configuracaoBase: EntradaCalculoDiario = {
   dataProximoRecebimento: '2026-07-25',
   gastosRegistrados: gastos,
 };
+const dadosBase = {
+  cicloAtual: { id: 'ciclo-atual', inicio: null, configuracao: configuracaoBase },
+  ciclosEncerrados: [],
+};
 
 test('histórico vazio produz resumo zerado e nenhum grupo', () => {
   const apresentacao = criarApresentacaoHistorico([], hoje);
@@ -137,7 +141,7 @@ test('preserva valores com centavos em itens e totais', () => {
 
 test('gastos permanecem disponíveis após salvar e hidratar novamente', async () => {
   const armazenamento = criarArmazenamentoPlanejamento(new AdaptadorMemoria());
-  await armazenamento.salvar(configuracaoBase);
+  await armazenamento.salvar(dadosBase);
   const restaurado = await hidratarPlanejamento(armazenamento, hoje);
 
   assert.equal(restaurado.tipo, 'pronto');

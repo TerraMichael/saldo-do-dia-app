@@ -9,6 +9,7 @@ export {
 export { AdaptadorMemoria } from './memory-storage-adapter';
 export {
   CHAVE_PLANEJAMENTO,
+  CHAVE_PLANEJAMENTO_V2,
   CHAVE_PLANEJAMENTO_LEGADO,
   criarArmazenamentoPlanejamento,
   ErroArmazenamentoPlanejamento,
@@ -26,18 +27,23 @@ export {
 export {
   desserializarPlanejamento,
   desserializarPlanejamentoV1,
+  desserializarPlanejamentoV2,
   ErroSerializacaoPlanejamento,
   serializarPlanejamento,
   validarEstadoPersistido,
   validarEstadoPersistidoV1,
+  validarEstadoPersistidoV2,
   VERSAO_PLANEJAMENTO_PERSISTIDO,
   VERSAO_PLANEJAMENTO_LEGADO,
   type EstadoPersistidoV1,
   type EstadoPersistidoV2,
+  type EstadoPersistidoV3,
 } from './serialization';
 export {
   criarIdDeterministicoGastoLegado,
+  criarIdDeterministicoCicloMigrado,
   migrarConfiguracaoV1ParaV2,
+  migrarConfiguracaoV2ParaV3,
 } from './migration';
 
 export const armazenamentoPlanejamento = criarArmazenamentoPlanejamento(

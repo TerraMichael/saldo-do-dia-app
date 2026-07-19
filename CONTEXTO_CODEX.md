@@ -122,7 +122,7 @@ Requisitos documentados: Node.js 20.19 ou superior e npm 10 ou superior.
 - A splash é preservada durante a hidratação. Após a tela inicial correta
   realizar seu primeiro layout, a camada React permite no máximo duas tentativas
   de `hideAsync` e um fallback `hide`, sem nova chamada depois do sucesso.
-- Primeiro acesso abre a apresentação; planejamento v2 válido abre diretamente
+- Primeiro acesso abre a apresentação; planejamento válido abre diretamente
   a Home; estados expirado e de erro abrem a recuperação sem flash de outra rota.
 - `BrandMark` e `LaunchLoadingScreen` concentram o uso institucional do símbolo.
 - Os ícones internos usam somente `MaterialCommunityIcons` e complementam os
@@ -209,9 +209,9 @@ Requisitos documentados: Node.js 20.19 ou superior e npm 10 ou superior.
 - Cada item usa seu ID persistido como chave e oferece ações acessíveis de
   edição e exclusão. A exclusão exige confirmação nativa.
 
-### Ciclo atual e novo recebimento
+### Ciclo atual, novo recebimento e histórico permanente
 
-- Planejamento, totais e histórico representam exclusivamente o ciclo vigente.
+- Gastos editáveis e totais da Home representam exclusivamente o ciclo vigente.
 - **Novo recebimento** pode ser acionado pela Home antes do vencimento.
 - No estado expirado, **Já recebi — iniciar novo ciclo** abre um fluxo separado;
   **Ainda não recebi — ajustar planejamento** mantém o onboarding de edição.
@@ -221,7 +221,10 @@ Requisitos documentados: Node.js 20.19 ou superior e npm 10 ou superior.
   causadas por gastos não registrados.
 - A revisão mostra quantidade e total dos gastos que deixarão de aparecer.
 - Cancelar, voltar ou falhar ao persistir mantém integralmente o ciclo anterior.
-- Não há histórico permanente, relatório, backup ou comparação entre ciclos.
+- A confirmação arquiva a configuração final do ciclo atual e cria o próximo
+  ciclo numa única gravação v3. Ciclos encerrados são somente leitura.
+- A lista e o detalhe de ciclos anteriores derivam totais e agrupamentos sem
+  persistir resultados. Comparação, exclusão, restauração e backup não existem.
 
 ### Domínios previstos
 
@@ -288,27 +291,27 @@ datas inválidas e prevenção de `NaN`/`Infinity`.
 
 O planejamento é persistido localmente com
 `@react-native-async-storage/async-storage`. A chave centralizada é
-`@saldo-do-dia/planejamento:v2`, e o documento possui o formato:
+`@saldo-do-dia/planejamento:v3`, e o documento possui o formato:
 
 ```ts
 {
-  versao: 2;
-  configuracao: EntradaCalculoDiario;
+  versao: 3;
+  dados: { cicloAtual: CicloAtual; ciclosEncerrados: CicloEncerrado[] };
 }
 ```
 
 Cada gasto contém `id`, `valor` e `data`. O ID é obrigatório, não vazio e único
 dentro do planejamento.
 
-A chave legada `@saldo-do-dia/planejamento:v1` continua suportada para migração.
-Na ausência de v2, o documento v1 é validado separadamente e cada gasto recebe um
-ID determinístico baseado em índice original, data e valor. O documento v2 é
-salvo antes de qualquer tentativa de remoção da chave antiga. Falha na gravação
-preserva v1; se ambas as chaves existirem, v2 é priorizada.
+A chave v2 e a chave legada v1 continuam suportadas para migração.
+V2 vira um ciclo atual com ID determinístico, início desconhecido e histórico
+encerrado vazio. V1 preserva a migração determinística dos gastos antes de chegar
+a v3. A prioridade é v3, v2, v1, e nenhuma origem é removida antes da confirmação
+da gravação v3.
 
-Na ação explícita de remover o planejamento, a chave v1 é removida antes da v2.
-Essa ordem impede que uma falha parcial apague os dados atuais e deixe uma cópia
-legada capaz de restaurar silenciosamente um planejamento antigo.
+Na ação explícita de remover o planejamento, as chaves são removidas na ordem
+v1, v2 e v3, impedindo que uma falha parcial faça uma versão antiga substituir
+silenciosamente a fonte mais recente.
 
 Somente a configuração, que é a fonte de verdade, é armazenada.
 `ResultadoCalculoDiario` nunca é persistido: ele é recalculado por
@@ -339,9 +342,9 @@ Uma falha de gravação mantém saldo, configuração, resultado e histórico
 anteriores e permite tentar novamente.
 
 O novo ciclo segue a mesma garantia: valida e calcula uma configuração isolada,
-salva o documento v2 e somente após sucesso publica configuração e resultado no
-Context. A persistência permanece em `versao: 2`; iniciar um ciclo não cria nova
-chave nem guarda os gastos encerrados em outro local.
+arquiva o ciclo atual e cria o próximo dentro do mesmo documento v3. Somente
+após a gravação única ter sucesso o Context publica configuração, resultado e
+ciclos encerrados.
 
 AsyncStorage é assíncrono, persistente e não criptografado. Não armazene senha,
 token, credencial, segredo ou dado de autenticação nessa camada.
@@ -401,12 +404,12 @@ antes de consolidar uma decisão.
 Esta seção é um **roadmap sugerido**, não um conjunto de requisitos já aprovado:
 
 1. detalhes recolhíveis da Home — etapa atual implementada;
-2. histórico permanente de ciclos anteriores — próxima etapa planejada;
+2. histórico permanente de ciclos anteriores — implementado;
 3. descrição opcional nos gastos;
 4. categorias;
 5. edição da data;
 6. comparação entre ciclos;
-7. exportação ou backup;
+7. exportação ou backup local;
 8. modo escuro;
 9. animações avançadas.
 

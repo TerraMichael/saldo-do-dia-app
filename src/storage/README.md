@@ -4,20 +4,20 @@ Esta pasta contém o contrato de persistência do planejamento, a validação do
 formato versionado, o adaptador AsyncStorage e um adaptador em memória para
 testes.
 
-- chave atual: `@saldo-do-dia/planejamento:v2`;
-- chave legada: `@saldo-do-dia/planejamento:v1`;
-- versão atual do documento: `2`;
-- fonte persistida: somente `EntradaCalculoDiario`;
+- chave atual: `@saldo-do-dia/planejamento:v3`;
+- chaves legadas: `@saldo-do-dia/planejamento:v2` e `:v1`;
+- versão atual do documento: `3`;
+- fonte persistida: ciclo atual e ciclos encerrados no mesmo documento;
 - `ResultadoCalculoDiario` é sempre recalculado;
 - dados inválidos não são removidos silenciosamente.
 
-Na primeira leitura sem v2, um documento v1 válido é migrado com IDs
-determinísticos por índice, data e valor. A gravação v2 precisa terminar antes de
-a remoção da chave v1 ser tentada. Quando ambas existem, v2 é a fonte preferida.
+Na leitura, a prioridade é v3, v2 e v1. V2 é convertido em ciclo atual com ID
+determinístico, `inicio: null` e nenhum ciclo encerrado. V1 primeiro recebe os IDs
+determinísticos de gastos e então segue a mesma migração. V3 sempre é confirmada
+antes de qualquer tentativa de remoção da origem.
 
-Na remoção explícita do planejamento, a chave legada é removida antes da atual.
-Assim, uma falha parcial não apaga v2 enquanto v1 ainda poderia restaurar dados
-antigos na próxima inicialização.
+Na remoção explícita, as chaves são removidas na ordem v1, v2 e v3.
+Assim, uma falha parcial preserva a versão mais recente disponível.
 
 AsyncStorage não é criptografado. Não armazene senhas, tokens, credenciais ou
 segredos. Os módulos de produto dependem de `ArmazenamentoPlanejamento`, e não

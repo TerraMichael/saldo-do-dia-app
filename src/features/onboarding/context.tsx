@@ -17,6 +17,8 @@ import type {
   EntradaCalculoDiario,
   ResultadoCalculoDiario,
 } from '../daily-limit';
+import type { CicloEncerrado, DadosPlanejamento } from '../cycle-history/model';
+import { gerarUuidCiclo } from '../cycle-history/cycle-id';
 import {
   type EdicaoGastoConcluida,
   type ExclusaoGastoConcluida,
@@ -60,6 +62,7 @@ interface EstadoOnboarding {
   resultado: ResultadoCalculoDiario | null;
   falhaHidratacao: FalhaHidratacao | null;
   rascunhoNovoCiclo: DadosFormularioNovoCiclo | null;
+  ciclosEncerrados: readonly CicloEncerrado[];
   definirConfiguracao: (configuracao: EntradaCalculoDiario) => void;
   confirmarConfiguracao: () => Promise<ResultadoCalculoDiario>;
   registrarGasto: (
@@ -90,6 +93,7 @@ interface PlanejamentoEmMemoria {
   status: StatusPlanejamento;
   configuracao: EntradaCalculoDiario | null;
   resultado: ResultadoCalculoDiario | null;
+  dados: DadosPlanejamento | null;
   falhaHidratacao: FalhaHidratacao | null;
   rascunhoNovoCiclo: DadosFormularioNovoCiclo | null;
 }
@@ -102,8 +106,9 @@ type AcaoPlanejamento =
       tipo: 'PRONTO';
       configuracao: EntradaCalculoDiario;
       resultado: ResultadoCalculoDiario;
+      dados: DadosPlanejamento;
     }
-  | { tipo: 'EXPIRADO'; configuracao: EntradaCalculoDiario }
+  | { tipo: 'EXPIRADO'; configuracao: EntradaCalculoDiario; dados: DadosPlanejamento }
   | { tipo: 'PREPARAR_NOVO_CICLO'; dados: DadosFormularioNovoCiclo }
   | { tipo: 'CANCELAR_NOVO_CICLO' }
   | {
@@ -116,6 +121,7 @@ const ESTADO_INICIAL: PlanejamentoEmMemoria = {
   status: 'carregando',
   configuracao: null,
   resultado: null,
+  dados: null,
   falhaHidratacao: null,
   rascunhoNovoCiclo: null,
 };
@@ -134,6 +140,7 @@ function reduzirPlanejamento(
         status: 'editando',
         configuracao: acao.configuracao,
         resultado: null,
+        dados: estado.dados,
         falhaHidratacao: null,
         rascunhoNovoCiclo: null,
       };
@@ -142,6 +149,7 @@ function reduzirPlanejamento(
         status: 'pronto',
         configuracao: acao.configuracao,
         resultado: acao.resultado,
+        dados: acao.dados,
         falhaHidratacao: null,
         rascunhoNovoCiclo: null,
       };
@@ -150,6 +158,7 @@ function reduzirPlanejamento(
         status: 'expirado',
         configuracao: acao.configuracao,
         resultado: null,
+        dados: acao.dados,
         falhaHidratacao: null,
         rascunhoNovoCiclo: estado.rascunhoNovoCiclo,
       };
@@ -162,6 +171,7 @@ function reduzirPlanejamento(
         status: 'erro',
         configuracao: acao.preservarPlanejamento ? estado.configuracao : null,
         resultado: acao.preservarPlanejamento ? estado.resultado : null,
+        dados: acao.preservarPlanejamento ? estado.dados : null,
         falhaHidratacao: acao.falha,
         rascunhoNovoCiclo: estado.rascunhoNovoCiclo,
       };
@@ -179,9 +189,10 @@ function criarAcaoRestauracao(
         tipo: 'PRONTO',
         configuracao: estado.configuracao,
         resultado: estado.resultado,
+        dados: estado.dados,
       };
     case 'expirado':
-      return { tipo: 'EXPIRADO', configuracao: estado.configuracao };
+      return { tipo: 'EXPIRADO', configuracao: estado.configuracao, dados: estado.dados };
     case 'erro':
       return {
         tipo: 'ERRO',
@@ -240,7 +251,7 @@ export function OnboardingProvider({
       try {
         const restauracao = await atualizarPlanejamentoParaData(
           armazenamento,
-          atual.configuracao,
+          atual.dados!,
           hoje,
         );
         if (restauracao.tipo === 'erro') {
@@ -271,6 +282,7 @@ export function OnboardingProvider({
       status: estado.status,
       configuracao: estado.configuracao,
       resultado: estado.resultado,
+      ciclosEncerrados: estado.dados?.ciclosEncerrados ?? [],
       falhaHidratacao: estado.falhaHidratacao,
       rascunhoNovoCiclo: estado.rascunhoNovoCiclo,
       definirConfiguracao: (novaConfiguracao) => {
@@ -284,22 +296,25 @@ export function OnboardingProvider({
         const planejamento = await confirmarPlanejamentoPersistido(
           armazenamento,
           estado.configuracao,
+          estado.dados,
+          gerarUuidCiclo,
         );
         dispatch({
           tipo: 'PRONTO',
           configuracao: planejamento.configuracao,
           resultado: planejamento.resultado,
+          dados: planejamento.dados,
         });
         return planejamento.resultado;
       },
       registrarGasto: async (valorGasto, dataAtual = obterDataCivilHoje()) => {
-        if (!estado.configuracao || !estado.resultado || estado.status !== 'pronto') {
+        if (!estado.dados || !estado.resultado || estado.status !== 'pronto') {
           throw new Error('O planejamento precisa estar disponível para registrar um gasto.');
         }
 
         const planejamento = await registrarGastoPersistido(
           armazenamento,
-          estado.configuracao,
+          estado.dados,
           valorGasto,
           dataAtual,
           gerarUuidGasto,
@@ -308,6 +323,7 @@ export function OnboardingProvider({
           tipo: 'PRONTO',
           configuracao: planejamento.configuracao,
           resultado: planejamento.resultado,
+          dados: planejamento.dados,
         });
         return planejamento;
       },
@@ -316,13 +332,13 @@ export function OnboardingProvider({
         novoValor,
         dataAtual = obterDataCivilHoje(),
       ) => {
-        if (!estado.configuracao || !estado.resultado || estado.status !== 'pronto') {
+        if (!estado.dados || !estado.resultado || estado.status !== 'pronto') {
           throw new Error('O planejamento precisa estar disponível para editar um gasto.');
         }
 
         const planejamento = await editarGastoPersistido(
           armazenamento,
-          estado.configuracao,
+          estado.dados,
           id,
           novoValor,
           dataAtual,
@@ -332,18 +348,19 @@ export function OnboardingProvider({
             tipo: 'PRONTO',
             configuracao: planejamento.configuracao,
             resultado: planejamento.resultado,
+            dados: planejamento.dados,
           });
         }
         return planejamento;
       },
       excluirGasto: async (id, dataAtual = obterDataCivilHoje()) => {
-        if (!estado.configuracao || !estado.resultado || estado.status !== 'pronto') {
+        if (!estado.dados || !estado.resultado || estado.status !== 'pronto') {
           throw new Error('O planejamento precisa estar disponível para excluir um gasto.');
         }
 
         const planejamento = await excluirGastoPersistido(
           armazenamento,
-          estado.configuracao,
+          estado.dados,
           id,
           dataAtual,
         );
@@ -351,6 +368,7 @@ export function OnboardingProvider({
           tipo: 'PRONTO',
           configuracao: planejamento.configuracao,
           resultado: planejamento.resultado,
+          dados: planejamento.dados,
         });
         return planejamento;
       },
@@ -361,19 +379,22 @@ export function OnboardingProvider({
         dispatch({ tipo: 'CANCELAR_NOVO_CICLO' });
       },
       iniciarNovoCiclo: async (dataAtual = obterDataCivilHoje()) => {
-        if (!estado.configuracao || !estado.rascunhoNovoCiclo) {
+        if (!estado.dados || !estado.rascunhoNovoCiclo) {
           throw new Error('Preencha e revise os dados do novo ciclo primeiro.');
         }
 
         const planejamento = await iniciarNovoCicloPersistido(
           armazenamento,
+          estado.dados,
           estado.rascunhoNovoCiclo,
           dataAtual,
+          gerarUuidCiclo,
         );
         dispatch({
           tipo: 'PRONTO',
           configuracao: planejamento.configuracao,
           resultado: planejamento.resultado,
+          dados: planejamento.dados,
         });
         return planejamento;
       },
