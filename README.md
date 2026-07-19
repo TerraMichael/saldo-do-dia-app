@@ -39,6 +39,9 @@ npm run typecheck
 npm test
 ```
 
+O comando `npm test` executa todos os testes JavaScript e TypeScript existentes
+com o test runner nativo do Node.js por meio do `tsx`.
+
 ## Estrutura principal
 
 ```text

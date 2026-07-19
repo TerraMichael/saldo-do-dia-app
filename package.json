@@ -8,7 +8,7 @@
     "android": "expo start --android",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
-    "test": "node --test tests/*.test.js"
+    "test": "tsx --test tests/foundation.test.js tests/daily-limit.test.ts"
   },
   "dependencies": {
     "expo": "~57.0.7",
@@ -28,6 +28,7 @@
     "@types/react": "~19.2.2",
     "eslint": "^9.0.0",
     "eslint-config-expo": "~57.0.0",
+    "tsx": "^4.23.1",
     "typescript": "~6.0.3"
   }
 }

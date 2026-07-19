@@ -64,7 +64,8 @@ pelo produto.
 - Expo Localization configurado para `pt-BR` no Android;
 - nova arquitetura do React Native habilitada;
 - ESLint com a configuração flat do Expo;
-- testes baseados no test runner nativo do Node;
+- testes baseados no test runner nativo do Node, com `tsx` para executar arquivos
+  JavaScript e TypeScript;
 - identificador Android: `com.terramichael.saldododia`;
 - scheme: `saldododia`;
 - tema atual fixado como claro.
@@ -174,13 +175,10 @@ npm run typecheck
 npm test
 ```
 
-Existe uma atenção importante no estado atual: `npm test` executa
-`node --test tests/*.test.js`, portanto alcança `tests/foundation.test.js`, mas não
-executa diretamente `tests/daily-limit.test.ts`. O TypeScript desse teste é
-verificado por `npm run typecheck`, porém os casos do domínio precisam ter seu
-runner de execução integrado em uma etapa futura. Ao corrigir isso, escolha a
-solução mínima compatível com Node/TypeScript e não esconda testes por meio de
-conversões manuais frágeis.
+`npm test` executa explicitamente `tests/foundation.test.js` e
+`tests/daily-limit.test.ts` com o test runner nativo do Node.js por meio do `tsx`.
+Os caminhos explícitos mantêm o comando compatível com Windows PowerShell sem
+depender da expansão de globs feita pelo shell.
 
 O `README.md` ainda descreve o repositório como contendo somente a fundação e diz
 que os fluxos financeiros não foram implementados. Interprete isso como “nenhum
@@ -199,7 +197,6 @@ existe, embora ainda não esteja ligada a uma tela ou persistência.
 - componentes compartilhados ou design system formal;
 - tratamento de acessibilidade além dos papéis básicos já presentes;
 - testes de interface ou navegação;
-- execução dos testes TypeScript pelo script `npm test`.
 
 Não descreva esses itens como prontos e não invente requisitos de interação para
 eles. Quando houver alternativas de produto relevantes, apresente-as ao usuário
@@ -209,15 +206,14 @@ antes de consolidar uma decisão.
 
 Esta seção é um **roadmap sugerido**, não um conjunto de requisitos já aprovado:
 
-1. integrar corretamente os testes do `daily-limit` ao comando oficial de testes;
-2. definir o menor onboarding possível para coletar saldo atual, reserva, contas
+1. definir o menor onboarding possível para coletar saldo atual, reserva, contas
    pendentes e próximo recebimento;
-3. modelar os dados e contratos de armazenamento local necessários a esse fluxo;
-4. conectar o botão inicial ao onboarding via Expo Router;
-5. criar uma tela principal que apresente o limite diário e explique de forma
+2. modelar os dados e contratos de armazenamento local necessários a esse fluxo;
+3. conectar o botão inicial ao onboarding via Expo Router;
+4. criar uma tela principal que apresente o limite diário e explique de forma
    humana como ele foi obtido;
-6. adicionar registro de gastos e atualização coerente do saldo;
-7. evoluir histórico e edição somente depois do ciclo principal funcionar.
+5. adicionar registro de gastos e atualização coerente do saldo;
+6. evoluir histórico e edição somente depois do ciclo principal funcionar.
 
 Em cada etapa, mantenha estados de erro, valores negativos, datas-limite,
 arredondamento e acessibilidade visíveis no desenho da solução.
