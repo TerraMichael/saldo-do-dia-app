@@ -148,9 +148,10 @@ Requisitos documentados: Node.js 20.19 ou superior e npm 10 ou superior.
 
 - `src/features/home/presenter.ts` transforma configuração e resultado financeiro
   em dados de apresentação, sem duplicar o cálculo do domínio.
-- A Home destaca quanto ainda pode ser gasto hoje e mostra gasto de hoje, limite
-  planejado do dia, eventual excedente, previsão a partir de amanhã, saldo atual,
-  valor disponível, contas, reserva, dias restantes e data do recebimento.
+- A Home destaca quanto ainda pode ser gasto hoje. Déficit, excedente e alertas
+  críticos permanecem no card principal; gasto hoje, limite planejado, previsão
+  futura, saldo, contas, reserva, dias e data ficam em **Detalhes do
+  planejamento**, uma seção local recolhida por padrão.
 - Em valor disponível zero, informa que não há dinheiro livre.
 - Em déficit, preserva o resultado negativo do domínio, mas mostra limite visual
   de `R$ 0,00` e destaca separadamente o valor que falta.
@@ -399,8 +400,15 @@ antes de consolidar uma decisão.
 
 Esta seção é um **roadmap sugerido**, não um conjunto de requisitos já aprovado:
 
-1. evoluir edição e exclusão somente depois do ciclo principal funcionar;
-2. definir migrações somente quando uma versão futura do formato exigir.
+1. detalhes recolhíveis da Home — etapa atual implementada;
+2. histórico permanente de ciclos anteriores — próxima etapa planejada;
+3. descrição opcional nos gastos;
+4. categorias;
+5. edição da data;
+6. comparação entre ciclos;
+7. exportação ou backup;
+8. modo escuro;
+9. animações avançadas.
 
 Em cada etapa, mantenha estados de erro, valores negativos, datas-limite,
 arredondamento e acessibilidade visíveis no desenho da solução.

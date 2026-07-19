@@ -4,6 +4,7 @@ export { AppHeader } from './components/AppHeader';
 export { AppScreen } from './components/AppScreen';
 export { AppStateView } from './components/AppStateView';
 export { BrandMark } from './components/BrandMark';
+export { CollapsibleSection } from './components/CollapsibleSection';
 export { InfoRow } from './components/InfoRow';
 export { InlineFeedback } from './components/InlineFeedback';
 export { MoneyInput } from './components/MoneyInput';

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import {
@@ -164,4 +165,88 @@ test('apresenta restante, excedente e limite futuro após gasto acima do limite 
   assert.equal(apresentacao.excedenteHoje, 'R$ 6,88');
   assert.equal(apresentacao.limiteDiasFuturos, 'R$ 22,14');
   assert.equal(apresentacao.quantidadeDeDiasFuturos, 7);
+});
+
+test('CollapsibleSection é exportado e começa recolhido por padrão', async () => {
+  const [component, exports] = await Promise.all([
+    readFile(
+      new URL('../src/ui/components/CollapsibleSection.tsx', import.meta.url),
+      'utf8',
+    ),
+    readFile(new URL('../src/ui/index.ts', import.meta.url), 'utf8'),
+  ]);
+
+  assert.match(exports, /export \{ CollapsibleSection \}/);
+  assert.match(component, /initiallyExpanded = false/);
+  assert.match(component, /useState\(initiallyExpanded\)/);
+  assert.match(component, /initiallyExpanded\?: boolean/);
+});
+
+test('cabeçalho recolhível comunica estado e ação à acessibilidade', async () => {
+  const component = await readFile(
+    new URL('../src/ui/components/CollapsibleSection.tsx', import.meta.url),
+    'utf8',
+  );
+
+  assert.match(component, /accessibilityRole="button"/);
+  assert.match(component, /accessibilityState=\{\{ expanded \}\}/);
+  assert.match(component, /expanded \? 'Recolher' : 'Expandir'/);
+  assert.match(component, /accessibilityHint=/);
+});
+
+test('chevron do controle recolhível é decorativo e acompanha o estado', async () => {
+  const component = await readFile(
+    new URL('../src/ui/components/CollapsibleSection.tsx', import.meta.url),
+    'utf8',
+  );
+
+  assert.match(component, /name=\{expanded \? 'chevron-up' : 'chevron-down'\}/);
+  assert.match(component, /accessible=\{false\}/);
+  assert.match(component, /accessibilityElementsHidden/);
+  assert.match(component, /importantForAccessibility="no-hide-descendants"/);
+});
+
+test('Home mantém ações prioritárias fora dos detalhes e opções dentro', async () => {
+  const home = await readFile(
+    new URL('../src/features/home/components/HomeScreen.tsx', import.meta.url),
+    'utf8',
+  );
+  const detailsStart = home.indexOf('<CollapsibleSection');
+  const detailsEnd = home.indexOf('</CollapsibleSection>');
+
+  assert.ok(home.indexOf('label="Registrar gasto"') < detailsStart);
+  assert.ok(home.indexOf('label="Ver histórico"') < detailsStart);
+  assert.ok(home.indexOf('label="Editar planejamento"') > detailsStart);
+  assert.ok(home.indexOf('label="Editar planejamento"') < detailsEnd);
+  assert.ok(home.indexOf('label="Novo recebimento"') > detailsStart);
+  assert.ok(home.indexOf('label="Novo recebimento"') < detailsEnd);
+});
+
+test('déficit e excedente permanecem visíveis fora dos detalhes', async () => {
+  const home = await readFile(
+    new URL('../src/features/home/components/HomeScreen.tsx', import.meta.url),
+    'utf8',
+  );
+  const detailsStart = home.indexOf('<CollapsibleSection');
+
+  assert.ok(home.indexOf('message={`Déficit: ${apresentacao.deficit}`}') < detailsStart);
+  assert.ok(
+    home.indexOf(
+      'message={`Excedente de hoje: ${apresentacao.excedenteHoje}`}',
+    ) < detailsStart,
+  );
+});
+
+test('Home reutiliza o presenter e preserva os destinos sem acesso à persistência', async () => {
+  const home = await readFile(
+    new URL('../src/features/home/components/HomeScreen.tsx', import.meta.url),
+    'utf8',
+  );
+
+  assert.match(home, /criarApresentacaoHome\(configuracao, resultado\)/);
+  assert.doesNotMatch(home, /calcularPlanoDiario|AsyncStorage|saldoAtual\s*-/);
+  assert.match(home, /router\.push\('\/registrar-gasto'\)/);
+  assert.match(home, /router\.push\('\/historico'\)/);
+  assert.match(home, /router\.push\('\/onboarding'\)/);
+  assert.match(home, /router\.push\('\/novo-ciclo'\)/);
 });

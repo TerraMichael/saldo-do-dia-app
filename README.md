@@ -157,11 +157,14 @@ reutilizados de tela, cabeçalho, botão, card, campo monetário, linha informat
 feedback e estados do sistema. Esses componentes são somente visuais e não
 conhecem cálculo financeiro, Context ou persistência.
 
-A Home separa o resumo de hoje do planejamento até o próximo recebimento e mantém
-**Registrar gasto** como ação principal. Formulários, revisões, histórico e
-estados de carregamento ou erro compartilham hierarquia, áreas de toque e feedback
-consistentes. A implementação usa apenas React Native, `StyleSheet` e componentes
-nativos; nenhuma biblioteca externa de UI ou estilos foi adicionada.
+A Home mantém o valor disponível hoje como foco e deixa **Registrar gasto** e
+**Ver histórico** sempre acessíveis. Resumo do dia, planejamento e opções ficam
+na seção local **Detalhes do planejamento**, recolhida por padrão. Déficit,
+excedente e alertas críticos permanecem visíveis no card principal.
+Formulários, revisões, histórico e estados de carregamento ou erro compartilham
+hierarquia, áreas de toque e feedback consistentes. A implementação usa apenas
+React Native, `StyleSheet` e componentes nativos; nenhuma biblioteca externa de
+UI ou estilos foi adicionada.
 
 Os assets definitivos de marca ficam em `assets/brand/` e são usados sem
 transformações no ícone principal, adaptive icon, ícone monocromático do Android

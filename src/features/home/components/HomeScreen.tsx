@@ -7,6 +7,7 @@ import {
   AppHeader,
   AppScreen,
   AppStateView,
+  CollapsibleSection,
   colors,
   InfoRow,
   InlineFeedback,
@@ -94,61 +95,7 @@ export function HomeScreen() {
         />
       </View>
 
-      <View style={styles.section}>
-        <SectionTitle>Resumo de hoje</SectionTitle>
-        <AppCard>
-          <InfoRow label="Gasto hoje" value={apresentacao.gastoHoje} />
-          <InfoRow
-            label="Limite planejado"
-            value={apresentacao.limitePlanejadoHoje}
-          />
-          {apresentacao.excedenteHoje ? (
-            <InfoRow label="Excedente" value={apresentacao.excedenteHoje} />
-          ) : null}
-          {apresentacao.limiteDiasFuturos ? (
-            <InfoRow
-              label="A partir de amanhã"
-              value={`${apresentacao.limiteDiasFuturos} por dia`}
-              last
-            />
-          ) : (
-            <InfoRow
-              label="A partir de amanhã"
-              value="Sem dias futuros neste ciclo"
-              last
-            />
-          )}
-        </AppCard>
-      </View>
-
-      <View style={styles.section}>
-        <SectionTitle>Planejamento</SectionTitle>
-        <AppCard>
-          <InfoRow label="Saldo atual" value={apresentacao.saldoAtual} />
-          <InfoRow
-            emphasis
-            label="Disponível para gastos"
-            value={apresentacao.valorDisponivel}
-          />
-          <InfoRow label="Contas pendentes" value={apresentacao.contasPendentes} />
-          <InfoRow label="Reserva protegida" value={apresentacao.reserva} />
-          <InfoRow
-            label="Total de gastos registrados"
-            value={apresentacao.totalGastosRegistrados}
-          />
-          <InfoRow
-            label="Até o próximo recebimento"
-            value={apresentacao.quantidadeDeDiasTexto}
-          />
-          <InfoRow
-            label="Próximo recebimento"
-            last
-            value={apresentacao.dataProximoRecebimento}
-          />
-        </AppCard>
-      </View>
-
-      <View style={styles.secondaryActions}>
+      <View style={styles.historyAction}>
         <AppButton
           accessibilityHint="Abre os gastos registrados no ciclo atual."
           icon="history"
@@ -156,21 +103,88 @@ export function HomeScreen() {
           onPress={() => router.push('/historico')}
           variant="secondary"
         />
-        <AppCard style={styles.options} variant="muted">
-          <Text style={styles.optionsTitle}>Opções do planejamento</Text>
-          <AppButton
-            icon="pencil-outline"
-            label="Editar planejamento"
-            onPress={() => router.push('/onboarding')}
-            variant="tertiary"
-          />
-          <AppButton
-            icon="calendar-refresh"
-            label="Novo recebimento"
-            onPress={() => router.push('/novo-ciclo')}
-            variant="tertiary"
-          />
-        </AppCard>
+      </View>
+
+      <View style={styles.details}>
+        <CollapsibleSection
+          description="Saldo, gastos, contas, reserva e próximos dias"
+          title="Detalhes do planejamento"
+        >
+          <View>
+            <SectionTitle>Resumo de hoje</SectionTitle>
+            <AppCard>
+              <InfoRow label="Gasto hoje" value={apresentacao.gastoHoje} />
+              <InfoRow
+                label="Limite planejado"
+                value={apresentacao.limitePlanejadoHoje}
+              />
+              {apresentacao.excedenteHoje ? (
+                <InfoRow label="Excedente" value={apresentacao.excedenteHoje} />
+              ) : null}
+              {apresentacao.limiteDiasFuturos ? (
+                <InfoRow
+                  label="A partir de amanhã"
+                  value={`${apresentacao.limiteDiasFuturos} por dia`}
+                  last
+                />
+              ) : (
+                <InfoRow
+                  label="A partir de amanhã"
+                  value="Sem dias futuros neste ciclo"
+                  last
+                />
+              )}
+            </AppCard>
+          </View>
+
+          <View>
+            <SectionTitle>Planejamento</SectionTitle>
+            <AppCard>
+              <InfoRow label="Saldo atual" value={apresentacao.saldoAtual} />
+              <InfoRow
+                emphasis
+                label="Disponível para gastos"
+                value={apresentacao.valorDisponivel}
+              />
+              <InfoRow
+                label="Contas pendentes"
+                value={apresentacao.contasPendentes}
+              />
+              <InfoRow label="Reserva protegida" value={apresentacao.reserva} />
+              <InfoRow
+                label="Total de gastos registrados"
+                value={apresentacao.totalGastosRegistrados}
+              />
+              <InfoRow
+                label="Até o próximo recebimento"
+                value={apresentacao.quantidadeDeDiasTexto}
+              />
+              <InfoRow
+                label="Próximo recebimento"
+                last
+                value={apresentacao.dataProximoRecebimento}
+              />
+            </AppCard>
+          </View>
+
+          <View>
+            <SectionTitle>Opções do planejamento</SectionTitle>
+            <AppCard style={styles.options} variant="muted">
+              <AppButton
+                icon="pencil-outline"
+                label="Editar planejamento"
+                onPress={() => router.push('/onboarding')}
+                variant="tertiary"
+              />
+              <AppButton
+                icon="calendar-refresh"
+                label="Novo recebimento"
+                onPress={() => router.push('/novo-ciclo')}
+                variant="tertiary"
+              />
+            </AppCard>
+          </View>
+        </CollapsibleSection>
       </View>
     </AppScreen>
   );
@@ -204,13 +218,7 @@ const styles = StyleSheet.create({
   },
   feedback: { alignSelf: 'stretch', marginTop: spacing.sm },
   primaryAction: { marginTop: spacing.md },
-  section: { marginTop: spacing.xl },
-  secondaryActions: { gap: spacing.sm, marginTop: spacing.xl },
+  historyAction: { marginTop: spacing.sm },
+  details: { marginTop: spacing.md },
   options: { gap: spacing.xxs },
-  optionsTitle: {
-    color: colors.textMuted,
-    marginBottom: spacing.xxs,
-    textAlign: 'center',
-    ...typography.bodySmall,
-  },
 });
