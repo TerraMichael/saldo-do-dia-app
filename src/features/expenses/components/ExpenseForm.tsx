@@ -100,6 +100,7 @@ export function ExpenseForm() {
       </View>
       <View style={styles.actions}>
         <AppButton
+          icon="cash-minus"
           label={enviando ? 'Registrando…' : 'Registrar gasto'}
           onPress={() => void confirmar()}
           processing={enviando}

@@ -163,9 +163,22 @@ estados de carregamento ou erro compartilham hierarquia, áreas de toque e feedb
 consistentes. A implementação usa apenas React Native, `StyleSheet` e componentes
 nativos; nenhuma biblioteca externa de UI ou estilos foi adicionada.
 
-Ainda não existem modo escuro, animações elaboradas nem assets próprios de marca.
-A validação visual em diferentes fabricantes e configurações de fonte continua
-dependendo de testes em dispositivos reais.
+Os assets definitivos de marca ficam em `assets/brand/` e são usados sem
+transformações no ícone principal, adaptive icon, ícone monocromático do Android
+13+, splash nativa e pontos institucionais da interface. A splash e a raiz React
+compartilham o fundo `#F4F8F5`.
+
+O `expo-splash-screen` mantém a splash visível durante a hidratação local. A
+ocultação só começa depois que a configuração foi resolvida e a tela inicial
+correta realizou seu primeiro layout. Há no máximo duas tentativas assíncronas e
+um fallback nativo final, sem repetição após sucesso. Assim, primeiro acesso,
+Home restaurada e estados de recuperação não exibem uma rota intermediária.
+
+Os ícones da interface usam exclusivamente `MaterialCommunityIcons` e sempre
+complementam textos de ação. Ainda não existem modo escuro nem animações
+elaboradas. A validação nativa definitiva de splash, adaptive icon e ícone
+temático exige um APK próprio, pois o Expo Go não reproduz integralmente essas
+configurações.
 
 ## Continuidade no Codex CLI
 

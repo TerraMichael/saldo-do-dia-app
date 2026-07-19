@@ -120,6 +120,7 @@ export function EditExpenseScreen({ id }: EditExpenseScreenProps) {
       </View>
       <View style={styles.actions}>
         <AppButton
+          icon="content-save-outline"
           label={enviando ? 'Salvando…' : 'Salvar alteração'}
           onPress={() => void salvar()}
           processing={enviando}

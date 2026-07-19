@@ -88,6 +88,7 @@ export function HomeScreen() {
       <View style={styles.primaryAction}>
         <AppButton
           accessibilityHint="Abre o formulário para registrar um gasto e recalcular o planejamento."
+          icon="cash-minus"
           label="Registrar gasto"
           onPress={() => router.push('/registrar-gasto')}
         />
@@ -150,6 +151,7 @@ export function HomeScreen() {
       <View style={styles.secondaryActions}>
         <AppButton
           accessibilityHint="Abre os gastos registrados no ciclo atual."
+          icon="history"
           label="Ver histórico"
           onPress={() => router.push('/historico')}
           variant="secondary"
@@ -157,11 +159,13 @@ export function HomeScreen() {
         <AppCard style={styles.options} variant="muted">
           <Text style={styles.optionsTitle}>Opções do planejamento</Text>
           <AppButton
+            icon="pencil-outline"
             label="Editar planejamento"
             onPress={() => router.push('/onboarding')}
             variant="tertiary"
           />
           <AppButton
+            icon="calendar-refresh"
             label="Novo recebimento"
             onPress={() => router.push('/novo-ciclo')}
             variant="tertiary"

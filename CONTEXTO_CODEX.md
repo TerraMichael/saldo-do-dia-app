@@ -110,8 +110,25 @@ Requisitos documentados: Node.js 20.19 ou superior e npm 10 ou superior.
   logo após o valor principal.
 - Formulários preservam parsing e formatação das features; `MoneyInput` apenas
   apresenta valor, foco, ajuda, erro e estado desabilitado.
-- Não foram adicionadas bibliotecas de UI, estilos, ícones ou testes de interface.
-- Modo escuro, animações complexas e assets de marca continuam fora do escopo.
+- Não foram adicionadas bibliotecas de UI, estilos ou testes de interface.
+- Modo escuro e animações complexas continuam fora do escopo.
+
+### Marca, splash e loading
+
+- Os assets finais ficam em `assets/brand/` e não devem ser recortados,
+  recoloridos ou regenerados.
+- `app.json` configura o ícone principal, adaptive icon, ícone monocromático do
+  Android 13+ e o plugin `expo-splash-screen`, todos sobre `#F4F8F5`.
+- A splash é preservada durante a hidratação. Após a tela inicial correta
+  realizar seu primeiro layout, a camada React permite no máximo duas tentativas
+  de `hideAsync` e um fallback `hide`, sem nova chamada depois do sucesso.
+- Primeiro acesso abre a apresentação; planejamento v2 válido abre diretamente
+  a Home; estados expirado e de erro abrem a recuperação sem flash de outra rota.
+- `BrandMark` e `LaunchLoadingScreen` concentram o uso institucional do símbolo.
+- Os ícones internos usam somente `MaterialCommunityIcons` e complementam os
+  textos existentes.
+- Expo Go não valida fielmente os assets nativos; splash, máscaras adaptativas e
+  ícone monocromático ainda precisam de verificação em preview APK.
 
 ### Onboarding inicial
 

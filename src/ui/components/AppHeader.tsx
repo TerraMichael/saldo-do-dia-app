@@ -1,3 +1,4 @@
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors, sizes, spacing, typography } from '../theme';
@@ -31,7 +32,15 @@ export function AppHeader({
             pressed && styles.pressed,
           ]}
         >
-          <Text style={styles.backText}>‹ {backLabel}</Text>
+          <MaterialCommunityIcons
+            accessibilityElementsHidden
+            accessible={false}
+            color={colors.primary}
+            importantForAccessibility="no-hide-descendants"
+            name="arrow-left"
+            size={22}
+          />
+          <Text style={styles.backText}>{backLabel}</Text>
         </Pressable>
       ) : null}
       {eyebrow ? <Text style={styles.eyebrow}>{eyebrow}</Text> : null}
@@ -45,7 +54,10 @@ export function AppHeader({
 
 const styles = StyleSheet.create({
   backButton: {
+    alignItems: 'center',
     alignSelf: 'flex-start',
+    flexDirection: 'row',
+    gap: spacing.xs,
     justifyContent: 'center',
     marginBottom: spacing.md,
     minHeight: sizes.touchTarget,
