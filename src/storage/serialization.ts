@@ -1,8 +1,27 @@
-import type { EntradaCalculoDiario, GastoRegistrado } from '../features/daily-limit';
+import type {
+  EntradaCalculoDiario,
+  GastoRegistrado,
+} from '../features/daily-limit';
 
-export const VERSAO_PLANEJAMENTO_PERSISTIDO = 1 as const;
+export const VERSAO_PLANEJAMENTO_PERSISTIDO = 2 as const;
+export const VERSAO_PLANEJAMENTO_LEGADO = 1 as const;
+
+export interface GastoRegistradoV1 {
+  valor: number;
+  data: string;
+}
+
+export interface ConfiguracaoPlanejamentoV1
+  extends Omit<EntradaCalculoDiario, 'gastosRegistrados'> {
+  gastosRegistrados: readonly GastoRegistradoV1[];
+}
 
 export interface EstadoPersistidoV1 {
+  versao: typeof VERSAO_PLANEJAMENTO_LEGADO;
+  configuracao: ConfiguracaoPlanejamentoV1;
+}
+
+export interface EstadoPersistidoV2 {
   versao: typeof VERSAO_PLANEJAMENTO_PERSISTIDO;
   configuracao: EntradaCalculoDiario;
 }
@@ -85,14 +104,10 @@ function validarDataCivil(valor: unknown, campo: string): string {
   return valor;
 }
 
-function validarGasto(valor: unknown, indice: number): GastoRegistrado {
-  if (!ehObjeto(valor)) {
-    throw new ErroSerializacaoPlanejamento(
-      'DADOS_INVALIDOS',
-      `gastosRegistrados[${indice}] deve ser um objeto.`,
-    );
-  }
-
+function validarValorGasto(
+  valor: Record<string, unknown>,
+  indice: number,
+): { valor: number; data: string } {
   const valorEmCentavos = validarInteiroSeguro(
     valor.valor,
     `gastosRegistrados[${indice}].valor`,
@@ -111,30 +126,46 @@ function validarGasto(valor: unknown, indice: number): GastoRegistrado {
   };
 }
 
-export function validarEstadoPersistido(valor: unknown): EstadoPersistidoV1 {
+function validarGastoV1(valor: unknown, indice: number): GastoRegistradoV1 {
   if (!ehObjeto(valor)) {
     throw new ErroSerializacaoPlanejamento(
       'DADOS_INVALIDOS',
-      'O estado persistido deve ser um objeto.',
+      `gastosRegistrados[${indice}] deve ser um objeto.`,
     );
   }
+  return validarValorGasto(valor, indice);
+}
 
-  if (valor.versao !== VERSAO_PLANEJAMENTO_PERSISTIDO) {
+function validarGastoV2(valor: unknown, indice: number): GastoRegistrado {
+  if (!ehObjeto(valor)) {
     throw new ErroSerializacaoPlanejamento(
-      'VERSAO_DESCONHECIDA',
-      'A versão dos dados persistidos não é suportada.',
+      'DADOS_INVALIDOS',
+      `gastosRegistrados[${indice}] deve ser um objeto.`,
+    );
+  }
+  if (typeof valor.id !== 'string' || !valor.id.trim()) {
+    throw new ErroSerializacaoPlanejamento(
+      'DADOS_INVALIDOS',
+      `gastosRegistrados[${indice}].id deve ser uma string não vazia.`,
     );
   }
 
-  if (!ehObjeto(valor.configuracao)) {
+  return { id: valor.id, ...validarValorGasto(valor, indice) };
+}
+
+function validarConfiguracao<TGasto>(
+  valor: unknown,
+  validarGasto: (gasto: unknown, indice: number) => TGasto,
+): Omit<EntradaCalculoDiario, 'gastosRegistrados'> & {
+  gastosRegistrados: readonly TGasto[];
+} {
+  if (!ehObjeto(valor)) {
     throw new ErroSerializacaoPlanejamento(
       'DADOS_INVALIDOS',
       'A configuração persistida está ausente ou é inválida.',
     );
   }
-
-  const configuracao = valor.configuracao;
-  if (!Array.isArray(configuracao.gastosRegistrados)) {
+  if (!Array.isArray(valor.gastosRegistrados)) {
     throw new ErroSerializacaoPlanejamento(
       'DADOS_INVALIDOS',
       'gastosRegistrados deve ser um array.',
@@ -142,44 +173,103 @@ export function validarEstadoPersistido(valor: unknown): EstadoPersistidoV1 {
   }
 
   return {
-    versao: VERSAO_PLANEJAMENTO_PERSISTIDO,
-    configuracao: {
-      saldoAtual: validarInteiroSeguro(configuracao.saldoAtual, 'saldoAtual', true),
-      reserva: validarInteiroSeguro(configuracao.reserva, 'reserva', false),
-      contasPendentes: validarInteiroSeguro(
-        configuracao.contasPendentes,
-        'contasPendentes',
-        false,
-      ),
-      dataAtual: validarDataCivil(configuracao.dataAtual, 'dataAtual'),
-      dataProximoRecebimento: validarDataCivil(
-        configuracao.dataProximoRecebimento,
-        'dataProximoRecebimento',
-      ),
-      gastosRegistrados: configuracao.gastosRegistrados.map(validarGasto),
-    },
+    saldoAtual: validarInteiroSeguro(valor.saldoAtual, 'saldoAtual', true),
+    reserva: validarInteiroSeguro(valor.reserva, 'reserva', false),
+    contasPendentes: validarInteiroSeguro(
+      valor.contasPendentes,
+      'contasPendentes',
+      false,
+    ),
+    dataAtual: validarDataCivil(valor.dataAtual, 'dataAtual'),
+    dataProximoRecebimento: validarDataCivil(
+      valor.dataProximoRecebimento,
+      'dataProximoRecebimento',
+    ),
+    gastosRegistrados: valor.gastosRegistrados.map(validarGasto),
   };
 }
 
-export function serializarPlanejamento(configuracao: EntradaCalculoDiario): string {
-  const estado = validarEstadoPersistido({
-    versao: VERSAO_PLANEJAMENTO_PERSISTIDO,
-    configuracao,
-  });
-  return JSON.stringify(estado);
+export function validarEstadoPersistidoV1(valor: unknown): EstadoPersistidoV1 {
+  if (!ehObjeto(valor)) {
+    throw new ErroSerializacaoPlanejamento(
+      'DADOS_INVALIDOS',
+      'O estado persistido deve ser um objeto.',
+    );
+  }
+  if (valor.versao !== VERSAO_PLANEJAMENTO_LEGADO) {
+    throw new ErroSerializacaoPlanejamento(
+      'VERSAO_DESCONHECIDA',
+      'A versão legada dos dados persistidos não é suportada.',
+    );
+  }
+
+  return {
+    versao: VERSAO_PLANEJAMENTO_LEGADO,
+    configuracao: validarConfiguracao(valor.configuracao, validarGastoV1),
+  };
 }
 
-export function desserializarPlanejamento(texto: string): EntradaCalculoDiario {
-  let valor: unknown;
+export function validarEstadoPersistido(valor: unknown): EstadoPersistidoV2 {
+  if (!ehObjeto(valor)) {
+    throw new ErroSerializacaoPlanejamento(
+      'DADOS_INVALIDOS',
+      'O estado persistido deve ser um objeto.',
+    );
+  }
+  if (valor.versao !== VERSAO_PLANEJAMENTO_PERSISTIDO) {
+    throw new ErroSerializacaoPlanejamento(
+      'VERSAO_DESCONHECIDA',
+      'A versão dos dados persistidos não é suportada.',
+    );
+  }
 
+  const configuracao = validarConfiguracao(
+    valor.configuracao,
+    validarGastoV2,
+  );
+  const ids = new Set<string>();
+  configuracao.gastosRegistrados.forEach((gasto, indice) => {
+    if (ids.has(gasto.id)) {
+      throw new ErroSerializacaoPlanejamento(
+        'DADOS_INVALIDOS',
+        `gastosRegistrados[${indice}].id está duplicado.`,
+      );
+    }
+    ids.add(gasto.id);
+  });
+
+  return {
+    versao: VERSAO_PLANEJAMENTO_PERSISTIDO,
+    configuracao,
+  };
+}
+
+function interpretarJson(texto: string): unknown {
   try {
-    valor = JSON.parse(texto) as unknown;
+    return JSON.parse(texto) as unknown;
   } catch {
     throw new ErroSerializacaoPlanejamento(
       'JSON_INVALIDO',
       'Os dados persistidos não contêm um JSON válido.',
     );
   }
+}
 
-  return validarEstadoPersistido(valor).configuracao;
+export function serializarPlanejamento(configuracao: EntradaCalculoDiario): string {
+  return JSON.stringify(
+    validarEstadoPersistido({
+      versao: VERSAO_PLANEJAMENTO_PERSISTIDO,
+      configuracao,
+    }),
+  );
+}
+
+export function desserializarPlanejamento(texto: string): EntradaCalculoDiario {
+  return validarEstadoPersistido(interpretarJson(texto)).configuracao;
+}
+
+export function desserializarPlanejamentoV1(
+  texto: string,
+): ConfiguracaoPlanejamentoV1 {
+  return validarEstadoPersistidoV1(interpretarJson(texto)).configuracao;
 }

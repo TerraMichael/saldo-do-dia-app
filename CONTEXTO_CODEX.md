@@ -62,6 +62,7 @@ pelo produto.
 - TypeScript 5.9 em modo `strict`;
 - Expo Router com rotas tipadas;
 - AsyncStorage para persistência local do planejamento;
+- Expo Crypto para UUID v4 dos novos gastos;
 - Expo Localization configurado para `pt-BR` no Android;
 - nova arquitetura do React Native habilitada;
 - ESLint com a configuração flat do Expo;
@@ -128,7 +129,7 @@ Requisitos documentados: Node.js 20.19 ou superior e npm 10 ou superior.
 
 - `src/features/expenses/register-expense.ts` contém o caso de uso puro.
 - Ao registrar `X`, o saldo corrente é reduzido por `X`, o gasto datado
-  `{ valor: X, data: dataAtual }` é anexado a `gastosRegistrados`, `dataAtual`
+  `{ id, valor: X, data: dataAtual }` é anexado a `gastosRegistrados`, `dataAtual`
   recebe a data civil local e o plano é
   recalculado por `calcularPlanoDiario`.
 - Gastos registrados não são descontados novamente do valor disponível; o saldo
@@ -142,7 +143,13 @@ Requisitos documentados: Node.js 20.19 ou superior e npm 10 ou superior.
 - Gastos maiores que o saldo são permitidos e podem levar a Home ao estado de
   déficit.
 - A Home mostra o total do ciclo e os agregados do dia; a lista individual fica
-  disponível no histórico, enquanto edição e exclusão continuam fora desta etapa.
+  disponível no histórico.
+- Novos gastos recebem UUID v4 por `Crypto.randomUUID()`. O gerador é injetado no
+  caso de uso puro para permitir testes determinísticos.
+- A edição preserva ID e data, corrige o saldo por
+  `saldoAtual + valorAntigo - novoValor` e recalcula o plano.
+- A exclusão localiza exclusivamente pelo ID, devolve o valor ao saldo e
+  recalcula o plano. Gastos antigos seguem a mesma regra.
 - Configuração e resultado são mantidos juntos em uma única atualização do
   Context, somente depois que a configuração foi persistida.
 - Parsing e formatação monetária genéricos ficam em `src/shared/money.ts`, com os
@@ -161,6 +168,8 @@ Requisitos documentados: Node.js 20.19 ou superior e npm 10 ou superior.
 - O estado vazio oferece a ação **Registrar gasto** e não é tratado como erro.
 - O histórico não possui chave ou cópia persistida própria: a configuração
   versionada existente continua sendo a única fonte de verdade.
+- Cada item usa seu ID persistido como chave e oferece ações acessíveis de
+  edição e exclusão. A exclusão exige confirmação nativa.
 
 ### Domínios previstos
 
@@ -226,14 +235,27 @@ datas inválidas e prevenção de `NaN`/`Infinity`.
 
 O planejamento é persistido localmente com
 `@react-native-async-storage/async-storage`. A chave centralizada é
-`@saldo-do-dia/planejamento:v1`, e o documento possui o formato:
+`@saldo-do-dia/planejamento:v2`, e o documento possui o formato:
 
 ```ts
 {
-  versao: 1;
+  versao: 2;
   configuracao: EntradaCalculoDiario;
 }
 ```
+
+Cada gasto contém `id`, `valor` e `data`. O ID é obrigatório, não vazio e único
+dentro do planejamento.
+
+A chave legada `@saldo-do-dia/planejamento:v1` continua suportada para migração.
+Na ausência de v2, o documento v1 é validado separadamente e cada gasto recebe um
+ID determinístico baseado em índice original, data e valor. O documento v2 é
+salvo antes de qualquer tentativa de remoção da chave antiga. Falha na gravação
+preserva v1; se ambas as chaves existirem, v2 é priorizada.
+
+Na ação explícita de remover o planejamento, a chave v1 é removida antes da v2.
+Essa ordem impede que uma falha parcial apague os dados atuais e deixe uma cópia
+legada capaz de restaurar silenciosamente um planejamento antigo.
 
 Somente a configuração, que é a fonte de verdade, é armazenada.
 `ResultadoCalculoDiario` nunca é persistido: ele é recalculado por
@@ -258,9 +280,10 @@ Se o recebimento passou, saldo, reserva, contas e gastos são preservados e a
 interface solicita a edição do planejamento. Nenhum ciclo é criado
 automaticamente.
 
-Confirmação do onboarding e registro de gasto seguem a ordem calcular, persistir
-configuração e então publicar configuração/resultado juntos. Uma falha de
-gravação mantém o estado anterior consistente e permite tentar novamente.
+Confirmação do onboarding, registro, edição e exclusão de gasto seguem a ordem
+calcular, persistir configuração e então publicar configuração/resultado juntos.
+Uma falha de gravação mantém saldo, configuração, resultado e histórico
+anteriores e permite tentar novamente.
 
 AsyncStorage é assíncrono, persistente e não criptografado. Não armazene senha,
 token, credencial, segredo ou dado de autenticação nessa camada.
@@ -291,7 +314,8 @@ npm test
 
 `npm test` executa explicitamente `tests/foundation.test.js`,
 `tests/daily-limit.test.ts`, `tests/onboarding.test.ts`, `tests/home.test.ts` e
-`tests/expenses.test.ts`, `tests/storage.test.ts` e `tests/history.test.ts` com o
+`tests/expenses.test.ts`, `tests/expense-management.test.ts`,
+`tests/storage.test.ts` e `tests/history.test.ts` com o
 test runner nativo do Node.js por meio do `tsx`.
 Os caminhos explícitos mantêm o comando compatível com Windows PowerShell sem
 depender da expansão de globs feita pelo shell.
@@ -303,7 +327,7 @@ existe, embora ainda não esteja ligada a uma tela ou persistência.
 
 ## 8. O que ainda não existe
 
-- edição e exclusão de gastos;
+- edição da data de gastos;
 - categorias, descrições e horários individuais de gastos;
 - componentes compartilhados ou design system formal;
 - tratamento de acessibilidade além dos papéis básicos já presentes;

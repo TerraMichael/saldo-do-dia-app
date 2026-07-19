@@ -17,10 +17,10 @@ import { criarArmazenamentoPlanejamento } from '../src/storage/planning-storage'
 
 const hoje = '2026-07-19';
 const gastos: readonly GastoRegistrado[] = [
-  { valor: 10_00, data: '2026-07-17' },
-  { valor: 5_50, data: '2026-07-19' },
-  { valor: 20_25, data: '2026-07-18' },
-  { valor: 4_50, data: '2026-07-19' },
+  { id: 'gasto-1', valor: 10_00, data: '2026-07-17' },
+  { id: 'gasto-2', valor: 5_50, data: '2026-07-19' },
+  { id: 'gasto-3', valor: 20_25, data: '2026-07-18' },
+  { id: 'gasto-4', valor: 4_50, data: '2026-07-19' },
 ];
 
 const configuracaoBase: EntradaCalculoDiario = {
@@ -44,7 +44,7 @@ test('histórico vazio produz resumo zerado e nenhum grupo', () => {
 
 test('um gasto cria um grupo e um item', () => {
   const apresentacao = criarApresentacaoHistorico(
-    [{ valor: 12_34, data: hoje }],
+    [{ id: 'gasto-1', valor: 12_34, data: hoje }],
     hoje,
   );
 
@@ -55,9 +55,9 @@ test('um gasto cria um grupo e um item', () => {
 
 test('múltiplos gastos do mesmo dia ficam no mesmo grupo e preservam o mais recente primeiro', () => {
   const grupos = agruparGastosPorData([
-    { valor: 10_00, data: hoje },
-    { valor: 20_00, data: hoje },
-    { valor: 30_00, data: hoje },
+    { id: 'gasto-1', valor: 10_00, data: hoje },
+    { id: 'gasto-2', valor: 20_00, data: hoje },
+    { id: 'gasto-3', valor: 30_00, data: hoje },
   ]);
 
   assert.equal(grupos.length, 1);
@@ -105,7 +105,7 @@ test('calcula a quantidade total de registros', () => {
 
 test('formata valores do histórico em moeda brasileira', () => {
   const apresentacao = criarApresentacaoHistorico(
-    [{ valor: 123_456, data: hoje }],
+    [{ id: 'gasto-1', valor: 123_456, data: hoje }],
     hoje,
   );
   assert.equal(apresentacao.totalCiclo, 'R$ 1.234,56');
@@ -114,7 +114,7 @@ test('formata valores do histórico em moeda brasileira', () => {
 
 test('formata a data civil no padrão brasileiro', () => {
   const apresentacao = criarApresentacaoHistorico(
-    [{ valor: 10_00, data: '2026-12-31' }],
+    [{ id: 'gasto-1', valor: 10_00, data: '2026-12-31' }],
     hoje,
   );
   assert.equal(apresentacao.grupos[0].data, '31/12/2026');
@@ -123,8 +123,8 @@ test('formata a data civil no padrão brasileiro', () => {
 test('preserva valores com centavos em itens e totais', () => {
   const apresentacao = criarApresentacaoHistorico(
     [
-      { valor: 10_01, data: hoje },
-      { valor: 20_02, data: hoje },
+      { id: 'gasto-1', valor: 10_01, data: hoje },
+      { id: 'gasto-2', valor: 20_02, data: hoje },
     ],
     hoje,
   );
@@ -186,9 +186,9 @@ test('presenter não modifica o array original nem seus objetos', () => {
 test('datas inválidas não causam erro e aparecem depois das datas válidas', () => {
   const apresentacao = criarApresentacaoHistorico(
     [
-      { valor: 10_00, data: 'data-inválida' },
-      { valor: 20_00, data: hoje },
-      { valor: 5_00, data: '2026-02-30' },
+      { id: 'gasto-1', valor: 10_00, data: 'data-inválida' },
+      { id: 'gasto-2', valor: 20_00, data: hoje },
+      { id: 'gasto-3', valor: 5_00, data: '2026-02-30' },
     ],
     hoje,
   );

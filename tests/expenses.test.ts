@@ -18,53 +18,66 @@ const configuracaoBase: EntradaCalculoDiario = {
   gastosRegistrados: [],
 };
 
+function registrar(
+  configuracao: EntradaCalculoDiario,
+  valor: string,
+  data: string,
+) {
+  return registrarGasto(
+    configuracao,
+    valor,
+    data,
+    () => `gasto-${configuracao.gastosRegistrados.length + 1}`,
+  );
+}
+
 test('gasto válido reduz o saldo atual', () => {
-  const registro = registrarGasto(configuracaoBase, 'R$ 125,50', '2026-07-19');
+  const registro = registrar(configuracaoBase, 'R$ 125,50', '2026-07-19');
   assert.equal(registro.configuracao.saldoAtual, 87_450);
 });
 
 test('gasto válido é adicionado ao final de gastosRegistrados', () => {
   const configuracao = {
     ...configuracaoBase,
-    gastosRegistrados: [{ valor: 5_00, data: '2026-07-18' }],
+    gastosRegistrados: [{ id: 'gasto-1', valor: 5_00, data: '2026-07-18' }],
   };
-  const registro = registrarGasto(configuracao, '10,00', '2026-07-19');
+  const registro = registrar(configuracao, '10,00', '2026-07-19');
   assert.deepEqual(registro.configuracao.gastosRegistrados, [
-    { valor: 5_00, data: '2026-07-18' },
-    { valor: 10_00, data: '2026-07-19' },
+    { id: 'gasto-1', valor: 5_00, data: '2026-07-18' },
+    { id: 'gasto-2', valor: 10_00, data: '2026-07-19' },
   ]);
 });
 
 test('resultado financeiro é recalculado', () => {
-  const registro = registrarGasto(configuracaoBase, 'R$ 70,00', '2026-07-19');
+  const registro = registrar(configuracaoBase, 'R$ 70,00', '2026-07-19');
   assert.equal(registro.resultado.valorDisponivel, 63_000);
   assert.equal(registro.resultado.restanteHoje, 4_666);
 });
 
 test('múltiplos gastos são acumulados corretamente', () => {
-  const primeiro = registrarGasto(configuracaoBase, '10,00', '2026-07-19');
-  const segundo = registrarGasto(primeiro.configuracao, '20,00', '2026-07-19');
+  const primeiro = registrar(configuracaoBase, '10,00', '2026-07-19');
+  const segundo = registrar(primeiro.configuracao, '20,00', '2026-07-19');
 
   assert.equal(segundo.configuracao.saldoAtual, 97_000);
   assert.deepEqual(segundo.configuracao.gastosRegistrados, [
-    { valor: 10_00, data: '2026-07-19' },
-    { valor: 20_00, data: '2026-07-19' },
+    { id: 'gasto-1', valor: 10_00, data: '2026-07-19' },
+    { id: 'gasto-2', valor: 20_00, data: '2026-07-19' },
   ]);
 });
 
 test('totalGastosRegistrados é atualizado', () => {
-  const primeiro = registrarGasto(configuracaoBase, '10,00', '2026-07-19');
-  const segundo = registrarGasto(primeiro.configuracao, '20,00', '2026-07-19');
+  const primeiro = registrar(configuracaoBase, '10,00', '2026-07-19');
+  const segundo = registrar(primeiro.configuracao, '20,00', '2026-07-19');
   assert.equal(segundo.resultado.totalGastosRegistrados, 30_00);
 });
 
 test('gasto maior que o saldo atual é permitido', () => {
-  const registro = registrarGasto(configuracaoBase, 'R$ 1.200,00', '2026-07-19');
+  const registro = registrar(configuracaoBase, 'R$ 1.200,00', '2026-07-19');
   assert.equal(registro.configuracao.saldoAtual, -20_000);
 });
 
 test('gasto maior que o saldo pode gerar déficit', () => {
-  const registro = registrarGasto(configuracaoBase, 'R$ 1.200,00', '2026-07-19');
+  const registro = registrar(configuracaoBase, 'R$ 1.200,00', '2026-07-19');
   assert.equal(registro.resultado.valorDisponivel, -50_000);
   assert.equal(registro.resultado.restanteHoje, 0);
   assert.ok(registro.resultado.excedenteHoje > 0);
@@ -73,7 +86,7 @@ test('gasto maior que o saldo pode gerar déficit', () => {
 
 test('gasto vazio é rejeitado', () => {
   assert.throws(
-    () => registrarGasto(configuracaoBase, ' ', '2026-07-19'),
+    () => registrar(configuracaoBase, ' ', '2026-07-19'),
     (erro) =>
       erro instanceof ErroRegistroGasto && erro.codigo === 'VALOR_OBRIGATORIO',
   );
@@ -81,7 +94,7 @@ test('gasto vazio é rejeitado', () => {
 
 test('gasto zero é rejeitado', () => {
   assert.throws(
-    () => registrarGasto(configuracaoBase, '0,00', '2026-07-19'),
+    () => registrar(configuracaoBase, '0,00', '2026-07-19'),
     (erro) =>
       erro instanceof ErroRegistroGasto && erro.codigo === 'VALOR_NAO_POSITIVO',
   );
@@ -89,7 +102,7 @@ test('gasto zero é rejeitado', () => {
 
 test('gasto negativo é rejeitado', () => {
   assert.throws(
-    () => registrarGasto(configuracaoBase, '-10,00', '2026-07-19'),
+    () => registrar(configuracaoBase, '-10,00', '2026-07-19'),
     (erro) =>
       erro instanceof ErroRegistroGasto && erro.codigo === 'VALOR_NAO_POSITIVO',
   );
@@ -97,7 +110,7 @@ test('gasto negativo é rejeitado', () => {
 
 test('valor inválido é rejeitado', () => {
   assert.throws(
-    () => registrarGasto(configuracaoBase, '12,3x', '2026-07-19'),
+    () => registrar(configuracaoBase, '12,3x', '2026-07-19'),
     (erro) => erro instanceof ErroRegistroGasto && erro.codigo === 'VALOR_INVALIDO',
   );
 });
@@ -111,7 +124,7 @@ test('números fora do intervalo seguro são rejeitados', () => {
 });
 
 test('dataAtual é atualizada no registro', () => {
-  const registro = registrarGasto(configuracaoBase, '10,00', '2026-07-20');
+  const registro = registrar(configuracaoBase, '10,00', '2026-07-20');
   assert.equal(registro.configuracao.dataAtual, '2026-07-20');
 });
 
@@ -122,7 +135,7 @@ test('gastos não são descontados duas vezes', () => {
     reserva: 0,
     contasPendentes: 0,
   };
-  const registro = registrarGasto(configuracao, '10,00', '2026-07-19');
+  const registro = registrar(configuracao, '10,00', '2026-07-19');
 
   assert.equal(registro.configuracao.saldoAtual, 9_000);
   assert.equal(registro.resultado.valorDisponivel, 9_000);
@@ -131,7 +144,7 @@ test('gastos não são descontados duas vezes', () => {
 
 test('planejamento vencido orienta o usuário a editar', () => {
   assert.throws(
-    () => registrarGasto(configuracaoBase, '10,00', '2026-07-26'),
+    () => registrar(configuracaoBase, '10,00', '2026-07-26'),
     (erro) =>
       erro instanceof ErroRegistroGasto &&
       erro.codigo === 'PLANEJAMENTO_VENCIDO' &&
@@ -140,7 +153,7 @@ test('planejamento vencido orienta o usuário a editar', () => {
 });
 
 test('presenter da Home mostra o total gasto', () => {
-  const registro = registrarGasto(configuracaoBase, 'R$ 125,50', '2026-07-19');
+  const registro = registrar(configuracaoBase, 'R$ 125,50', '2026-07-19');
   const apresentacao = criarApresentacaoHome(
     registro.configuracao,
     registro.resultado,
@@ -149,7 +162,7 @@ test('presenter da Home mostra o total gasto', () => {
 });
 
 test('configuração e resultado retornam sincronizados', () => {
-  const registro = registrarGasto(configuracaoBase, 'R$ 70,00', '2026-07-19');
+  const registro = registrar(configuracaoBase, 'R$ 70,00', '2026-07-19');
 
   assert.equal(
     registro.resultado.valorDisponivel,

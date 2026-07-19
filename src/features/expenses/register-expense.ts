@@ -31,6 +31,8 @@ export interface RegistroGastoConcluido {
   resultado: ResultadoCalculoDiario;
 }
 
+export type GeradorIdGasto = () => string;
+
 export function converterValorGastoParaCentavos(valor: string): number {
   if (!valor.trim()) {
     throw new ErroRegistroGasto('VALOR_OBRIGATORIO', 'Informe o valor do gasto.');
@@ -63,8 +65,18 @@ export function registrarGasto(
   configuracaoAtual: EntradaCalculoDiario,
   valor: string,
   dataAtual: string,
+  gerarId: GeradorIdGasto,
 ): RegistroGastoConcluido {
   const gasto = converterValorGastoParaCentavos(valor);
+  const id = gerarId();
+
+  if (!id.trim()) {
+    throw new ErroRegistroGasto('VALOR_INVALIDO', 'Não foi possível identificar o gasto.');
+  }
+  if (configuracaoAtual.gastosRegistrados.some((registro) => registro.id === id)) {
+    throw new ErroRegistroGasto('VALOR_INVALIDO', 'O identificador gerado para o gasto já existe.');
+  }
+
   const novoSaldoAtual = configuracaoAtual.saldoAtual - gasto;
 
   if (!Number.isSafeInteger(novoSaldoAtual)) {
@@ -76,7 +88,7 @@ export function registrarGasto(
 
   const novosGastosRegistrados = [
     ...configuracaoAtual.gastosRegistrados,
-    { valor: gasto, data: dataAtual },
+    { id, valor: gasto, data: dataAtual },
   ];
   const configuracao: EntradaCalculoDiario = {
     ...configuracaoAtual,
