@@ -119,10 +119,12 @@ Requisitos documentados: Node.js 20.19 ou superior e npm 10 ou superior.
 - **Editar planejamento** retorna ao onboarding com os dados atuais preenchidos.
 - **Registrar gasto** abre um formulário de valor único; após confirmar, saldo,
   total gasto e orçamento restante de hoje são atualizados em memória.
+- **Ver histórico** abre os gastos individuais do ciclo atual, agrupados por data
+  e ordenados do dia mais recente para o mais antigo.
 - O provider do planejamento fica no layout raiz, hidrata a configuração local e
   compartilha configuração e resultado entre onboarding e Home.
 
-### Registro de gastos em memória
+### Registro de gastos local
 
 - `src/features/expenses/register-expense.ts` contém o caso de uso puro.
 - Ao registrar `X`, o saldo corrente é reduzido por `X`, o gasto datado
@@ -139,12 +141,26 @@ Requisitos documentados: Node.js 20.19 ou superior e npm 10 ou superior.
   corrente e a nova quantidade de dias.
 - Gastos maiores que o saldo são permitidos e podem levar a Home ao estado de
   déficit.
-- A Home mostra o total do ciclo e os agregados do dia; lista, edição e exclusão
-  ficam fora desta etapa.
+- A Home mostra o total do ciclo e os agregados do dia; a lista individual fica
+  disponível no histórico, enquanto edição e exclusão continuam fora desta etapa.
 - Configuração e resultado são mantidos juntos em uma única atualização do
   Context, somente depois que a configuração foi persistida.
 - Parsing e formatação monetária genéricos ficam em `src/shared/money.ts`, com os
   exports anteriores do onboarding preservados.
+
+### Histórico local de gastos
+
+- `src/features/history/presenter.ts` cria uma projeção pura de
+  `configuracao.gastosRegistrados`, sem alterar saldo, resultado ou persistência.
+- Gastos são agrupados pela data civil `AAAA-MM-DD`; grupos válidos são ordenados
+  de forma decrescente e datas inválidas ficam ao final com apresentação segura.
+- Dentro do mesmo dia, a ordem de inserção é invertida localmente, pois novos
+  gastos são anexados ao final do array e ainda não existem horários.
+- A tela mostra total do ciclo, total de hoje, quantidade de registros, total de
+  cada data e cada valor individual.
+- O estado vazio oferece a ação **Registrar gasto** e não é tratado como erro.
+- O histórico não possui chave ou cópia persistida própria: a configuração
+  versionada existente continua sendo a única fonte de verdade.
 
 ### Domínios previstos
 
@@ -275,8 +291,8 @@ npm test
 
 `npm test` executa explicitamente `tests/foundation.test.js`,
 `tests/daily-limit.test.ts`, `tests/onboarding.test.ts`, `tests/home.test.ts` e
-`tests/expenses.test.ts` e `tests/storage.test.ts` com o test runner nativo do
-Node.js por meio do `tsx`.
+`tests/expenses.test.ts`, `tests/storage.test.ts` e `tests/history.test.ts` com o
+test runner nativo do Node.js por meio do `tsx`.
 Os caminhos explícitos mantêm o comando compatível com Windows PowerShell sem
 depender da expansão de globs feita pelo shell.
 
@@ -287,8 +303,8 @@ existe, embora ainda não esteja ligada a uma tela ou persistência.
 
 ## 8. O que ainda não existe
 
-- histórico detalhado, edição e exclusão de gastos;
-- histórico;
+- edição e exclusão de gastos;
+- categorias, descrições e horários individuais de gastos;
 - componentes compartilhados ou design system formal;
 - tratamento de acessibilidade além dos papéis básicos já presentes;
 - testes de interface ou navegação;
@@ -301,7 +317,7 @@ antes de consolidar uma decisão.
 
 Esta seção é um **roadmap sugerido**, não um conjunto de requisitos já aprovado:
 
-1. evoluir histórico e edição somente depois do ciclo principal funcionar;
+1. evoluir edição e exclusão somente depois do ciclo principal funcionar;
 2. definir migrações somente quando uma versão futura do formato exigir.
 
 Em cada etapa, mantenha estados de erro, valores negativos, datas-limite,

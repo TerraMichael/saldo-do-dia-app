@@ -64,8 +64,18 @@ e os estados positivo, sem valor livre ou déficit. É possível editar o
 planejamento e registrar gastos, que reduzem o saldo atual e recalculam
 imediatamente o restante do dia. Gastos são datados em memória para que o valor
 consumido hoje não seja redistribuído novamente pelo mesmo dia. A Home mostra
-somente o total gasto no ciclo, sem
-histórico individual.
+o total gasto no ciclo e oferece acesso ao histórico individual.
+
+## Histórico de gastos
+
+A tela **Histórico de gastos** usa `configuracao.gastosRegistrados` como única
+fonte de dados. Os registros do ciclo atual são agrupados pela data civil,
+ordenados do dia mais recente para o mais antigo e apresentados em reais. Dentro
+do mesmo dia, o gasto anexado mais recentemente aparece primeiro.
+
+O resumo informa total do ciclo, total gasto hoje e quantidade de registros. O
+histórico vazio oferece acesso direto ao registro do primeiro gasto. Nesta etapa,
+não há edição, exclusão, descrição ou categoria de gastos.
 
 ## Persistência local
 
