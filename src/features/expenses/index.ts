@@ -4,6 +4,7 @@ export {
   registrarGasto,
   type CodigoErroRegistroGasto,
   type GeradorIdGasto,
+  type DadosFormularioGasto,
   type RegistroGastoConcluido,
 } from './register-expense';
 export {
@@ -18,3 +19,8 @@ export {
   type CodigoErroExclusaoGasto,
   type ExclusaoGastoConcluida,
 } from './delete-expense';
+export {
+  ErroDescricaoGasto,
+  LIMITE_DESCRICAO_GASTO,
+  normalizarDescricaoGasto,
+} from './description';

@@ -72,9 +72,9 @@ test('registro, edição e exclusão preservam ciclos encerrados', async () => {
   const encerrado = { ...dados.cicloAtual, id: 'antigo', dataEncerramento: '2026-07-18', configuracaoFinal: configuracao };
   let estado: DadosPlanejamento = { ...dados, ciclosEncerrados: [encerrado] };
   const armazenamento = criarArmazenamentoPlanejamento(new AdaptadorMemoria());
-  const registrado = await registrarGastoPersistido(armazenamento, estado, '5,00', '2026-07-19', () => 'gasto-3');
+  const registrado = await registrarGastoPersistido(armazenamento, estado, { valor: '5,00' }, '2026-07-19', () => 'gasto-3');
   estado = registrado.dados;
-  const editado = await editarGastoPersistido(armazenamento, estado, 'gasto-3', '6,00', '2026-07-19');
+  const editado = await editarGastoPersistido(armazenamento, estado, 'gasto-3', { valor: '6,00' }, '2026-07-19');
   const excluido = await excluirGastoPersistido(armazenamento, editado.dados, 'gasto-3', '2026-07-19');
   assert.equal(registrado.dados.ciclosEncerrados[0], encerrado);
   assert.equal(editado.dados.ciclosEncerrados[0], encerrado);

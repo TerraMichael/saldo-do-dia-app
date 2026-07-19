@@ -10,6 +10,7 @@ export interface GastoRegistrado {
   id: string;
   valor: Centavos;
   data: string;
+  descricao?: string;
 }
 
 export interface EntradaCalculoDiario {

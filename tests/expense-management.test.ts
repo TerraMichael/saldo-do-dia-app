@@ -43,7 +43,7 @@ test('novo gasto recebe o ID fornecido pelo gerador injetável', () => {
   let chamadas = 0;
   const registro = registrarGasto(
     { ...configuracaoBase, gastosRegistrados: [] },
-    '10,00',
+    { valor: '10,00' },
     hoje,
     () => {
       chamadas += 1;
@@ -59,8 +59,8 @@ test('dois gastos iguais recebem IDs diferentes', () => {
   let sequencia = 0;
   const gerarId = () => `uuid-${++sequencia}`;
   const vazio = { ...configuracaoBase, gastosRegistrados: [] };
-  const primeiro = registrarGasto(vazio, '10,00', hoje, gerarId);
-  const segundo = registrarGasto(primeiro.configuracao, '10,00', hoje, gerarId);
+  const primeiro = registrarGasto(vazio, { valor: '10,00' }, hoje, gerarId);
+  const segundo = registrarGasto(primeiro.configuracao, { valor: '10,00' }, hoje, gerarId);
 
   assert.deepEqual(
     segundo.configuracao.gastosRegistrados.map((gasto) => gasto.id),
@@ -105,7 +105,7 @@ test('exclusão de gasto antigo não remove outro registro', () => {
 });
 
 test('edição preserva ID e data e valor menor aumenta o saldo', () => {
-  const edicao = editarGasto(configuracaoBase, 'gasto-b', '15,00', hoje);
+  const edicao = editarGasto(configuracaoBase, 'gasto-b', { valor: '15,00' }, hoje);
   const gasto = edicao.configuracao.gastosRegistrados[1];
 
   assert.deepEqual(gasto, { id: 'gasto-b', valor: 15_00, data: hoje });
@@ -114,7 +114,7 @@ test('edição preserva ID e data e valor menor aumenta o saldo', () => {
 });
 
 test('edição para valor maior reduz o saldo e recalcula limites', () => {
-  const edicao = editarGasto(configuracaoBase, 'gasto-a', '40,00', hoje);
+  const edicao = editarGasto(configuracaoBase, 'gasto-a', { valor: '40,00' }, hoje);
 
   assert.equal(edicao.configuracao.saldoAtual, 240_00);
   assert.equal(edicao.resultado.totalGastosHoje, 60_00);
@@ -133,7 +133,7 @@ test('editar gasto de R$ 10,00 para R$ 20,00 desconta somente a diferença do li
   };
   const registrado = registrarGasto(
     configuracao,
-    '10,00',
+    { valor: '10,00' },
     hoje,
     () => 'regressao-edicao',
   );
@@ -144,7 +144,7 @@ test('editar gasto de R$ 10,00 para R$ 20,00 desconta somente a diferença do li
   const editado = editarGasto(
     registrado.configuracao,
     'regressao-edicao',
-    '20,00',
+    { valor: '20,00' },
     hoje,
   );
 
@@ -157,7 +157,7 @@ test('editar gasto de R$ 10,00 para R$ 20,00 desconta somente a diferença do li
 });
 
 test('valor idêntico é tratado como operação sem mudança', () => {
-  const edicao = editarGasto(configuracaoBase, 'gasto-a', '10,00', hoje);
+  const edicao = editarGasto(configuracaoBase, 'gasto-a', { valor: '10,00' }, hoje);
   assert.equal(edicao.alterado, false);
   assert.equal(edicao.configuracao, configuracaoBase);
 });
@@ -165,7 +165,7 @@ test('valor idêntico é tratado como operação sem mudança', () => {
 test('gasto inexistente é rejeitado sem modificar a configuração', () => {
   const antes = JSON.stringify(configuracaoBase);
   assert.throws(
-    () => editarGasto(configuracaoBase, 'inexistente', '10,00', hoje),
+    () => editarGasto(configuracaoBase, 'inexistente', { valor: '10,00' }, hoje),
     (erro) =>
       erro instanceof ErroEdicaoGasto &&
       erro.codigo === 'GASTO_NAO_ENCONTRADO',
@@ -182,7 +182,7 @@ test('gasto inexistente é rejeitado sem modificar a configuração', () => {
 test('edição rejeita valor vazio, zero, negativo e inválido', () => {
   for (const valor of ['', '0,00', '-1,00', 'texto']) {
     assert.throws(
-      () => editarGasto(configuracaoBase, 'gasto-a', valor, hoje),
+      () => editarGasto(configuracaoBase, 'gasto-a', { valor }, hoje),
       (erro) => erro instanceof ErroRegistroGasto,
     );
   }
@@ -199,7 +199,7 @@ test('falha de persistência mantém configuração anterior na edição e exclu
       armazenamento,
       dadosBase,
       'gasto-a',
-      '50,00',
+      { valor: '50,00' },
       hoje,
     ),
   );
@@ -211,7 +211,7 @@ test('falha de persistência mantém configuração anterior na edição e exclu
 });
 
 test('histórico atualiza os totais após edição e exclusão', () => {
-  const editado = editarGasto(configuracaoBase, 'gasto-a', '15,00', hoje);
+  const editado = editarGasto(configuracaoBase, 'gasto-a', { valor: '15,00' }, hoje);
   const aposEdicao = criarApresentacaoHistorico(
     editado.configuracao.gastosRegistrados,
     hoje,
@@ -235,7 +235,7 @@ test('dois gastos iguais podem ser editados e excluídos separadamente', () => {
       { id: 'igual-2', valor: 10_00, data: hoje },
     ],
   };
-  const editado = editarGasto(iguais, 'igual-1', '20,00', hoje);
+  const editado = editarGasto(iguais, 'igual-1', { valor: '20,00' }, hoje);
   assert.deepEqual(
     editado.configuracao.gastosRegistrados.map((gasto) => gasto.valor),
     [20_00, 10_00],

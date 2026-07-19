@@ -50,6 +50,7 @@ export function criarApresentacaoDetalheCiclo(
       gastos: grupo.gastos.map((gasto) => ({
         id: gasto.id,
         valor: formatarCentavosComoMoedaBrasileira(gasto.valor),
+        descricao: gasto.descricao ?? 'Gasto registrado',
       })),
     }),
   );

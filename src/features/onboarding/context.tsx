@@ -23,6 +23,7 @@ import {
   type EdicaoGastoConcluida,
   type ExclusaoGastoConcluida,
   type RegistroGastoConcluido,
+  type DadosFormularioGasto,
 } from '../expenses';
 import { gerarUuidGasto } from '../expenses/expense-id';
 import type {
@@ -66,12 +67,12 @@ interface EstadoOnboarding {
   definirConfiguracao: (configuracao: EntradaCalculoDiario) => void;
   confirmarConfiguracao: () => Promise<ResultadoCalculoDiario>;
   registrarGasto: (
-    valor: string,
+    dados: DadosFormularioGasto,
     dataAtual?: string,
   ) => Promise<RegistroGastoConcluido>;
   editarGasto: (
     id: string,
-    novoValor: string,
+    dados: DadosFormularioGasto,
     dataAtual?: string,
   ) => Promise<EdicaoGastoConcluida>;
   excluirGasto: (
@@ -307,7 +308,7 @@ export function OnboardingProvider({
         });
         return planejamento.resultado;
       },
-      registrarGasto: async (valorGasto, dataAtual = obterDataCivilHoje()) => {
+      registrarGasto: async (dadosGasto, dataAtual = obterDataCivilHoje()) => {
         if (!estado.dados || !estado.resultado || estado.status !== 'pronto') {
           throw new Error('O planejamento precisa estar disponível para registrar um gasto.');
         }
@@ -315,7 +316,7 @@ export function OnboardingProvider({
         const planejamento = await registrarGastoPersistido(
           armazenamento,
           estado.dados,
-          valorGasto,
+          dadosGasto,
           dataAtual,
           gerarUuidGasto,
         );
@@ -329,7 +330,7 @@ export function OnboardingProvider({
       },
       editarGasto: async (
         id,
-        novoValor,
+        dadosGasto,
         dataAtual = obterDataCivilHoje(),
       ) => {
         if (!estado.dados || !estado.resultado || estado.status !== 'pronto') {
@@ -340,7 +341,7 @@ export function OnboardingProvider({
           armazenamento,
           estado.dados,
           id,
-          novoValor,
+          dadosGasto,
           dataAtual,
         );
         if (planejamento.alterado) {

@@ -8,6 +8,12 @@ import {
   converterMoedaBrasileiraParaCentavos,
   ErroMoeda,
 } from '../../shared/money';
+import { normalizarDescricaoGasto } from './description';
+
+export interface DadosFormularioGasto {
+  valor: string;
+  descricao?: string;
+}
 
 export type CodigoErroRegistroGasto =
   | 'VALOR_OBRIGATORIO'
@@ -63,11 +69,12 @@ export function converterValorGastoParaCentavos(valor: string): number {
 
 export function registrarGasto(
   configuracaoAtual: EntradaCalculoDiario,
-  valor: string,
+  dados: DadosFormularioGasto,
   dataAtual: string,
   gerarId: GeradorIdGasto,
 ): RegistroGastoConcluido {
-  const gasto = converterValorGastoParaCentavos(valor);
+  const gasto = converterValorGastoParaCentavos(dados.valor);
+  const descricao = normalizarDescricaoGasto(dados.descricao);
   const id = gerarId();
 
   if (!id.trim()) {
@@ -88,7 +95,7 @@ export function registrarGasto(
 
   const novosGastosRegistrados = [
     ...configuracaoAtual.gastosRegistrados,
-    { id, valor: gasto, data: dataAtual },
+    { id, valor: gasto, data: dataAtual, ...(descricao ? { descricao } : {}) },
   ];
   const configuracao: EntradaCalculoDiario = {
     ...configuracaoAtual,

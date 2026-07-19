@@ -151,8 +151,13 @@ export function HistoryScreen() {
               {grupo.itens.map((item) => (
                 <View key={item.chave} style={styles.expenseRow}>
                   <View style={styles.expenseMain}>
-                    <Text style={styles.expenseLabel}>Gasto registrado</Text>
-                    <Text style={styles.expenseValue}>{item.valor}</Text>
+                    <Text style={styles.expenseLabel}>{item.descricao}</Text>
+                    <Text
+                      accessibilityLabel={`${item.descricao}, ${item.valor}`}
+                      style={styles.expenseValue}
+                    >
+                      {item.valor}
+                    </Text>
                   </View>
                   <View style={styles.expenseActions}>
                     <View style={styles.itemAction}>
@@ -237,7 +242,13 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     justifyContent: 'space-between',
   },
-  expenseLabel: { color: colors.textMuted, flexShrink: 1, ...typography.bodySmall },
+  expenseLabel: {
+    color: colors.text,
+    flexGrow: 1,
+    flexShrink: 1,
+    minWidth: 150,
+    ...typography.body,
+  },
   expenseValue: { color: colors.text, fontSize: 16, fontWeight: '700' },
   expenseActions: {
     flexDirection: 'row',

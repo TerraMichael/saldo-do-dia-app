@@ -1,6 +1,6 @@
 import { calcularPlanoDiario, type EntradaCalculoDiario, type ResultadoCalculoDiario } from '../features/daily-limit';
 import { criarDadosPrimeiroCiclo, criarResumoInicialCiclo, type DadosPlanejamento, type GeradorIdCiclo } from '../features/cycle-history/model';
-import { editarGasto, excluirGasto, registrarGasto, type EdicaoGastoConcluida, type ExclusaoGastoConcluida, type GeradorIdGasto, type RegistroGastoConcluido } from '../features/expenses';
+import { editarGasto, excluirGasto, registrarGasto, type DadosFormularioGasto, type EdicaoGastoConcluida, type ExclusaoGastoConcluida, type GeradorIdGasto, type RegistroGastoConcluido } from '../features/expenses';
 import { iniciarNovoCiclo, type DadosFormularioNovoCiclo, type NovoCicloCriado } from '../features/cycle';
 import type { ArmazenamentoPlanejamento } from './planning-storage';
 
@@ -34,11 +34,11 @@ export async function confirmarPlanejamentoPersistido(
 export async function registrarGastoPersistido(
   armazenamento: ArmazenamentoPlanejamento,
   dados: DadosPlanejamento,
-  valor: string,
+  dadosGasto: DadosFormularioGasto,
   dataAtual: string,
   gerarId: GeradorIdGasto,
 ): Promise<RegistroGastoConcluido & { dados: DadosPlanejamento }> {
-  const planejamento = registrarGasto(dados.cicloAtual.configuracao, valor, dataAtual, gerarId);
+  const planejamento = registrarGasto(dados.cicloAtual.configuracao, dadosGasto, dataAtual, gerarId);
   const novosDados = comConfiguracaoAtual(dados, planejamento.configuracao);
   await armazenamento.salvar(novosDados);
   return { ...planejamento, dados: novosDados };
@@ -48,10 +48,10 @@ export async function editarGastoPersistido(
   armazenamento: ArmazenamentoPlanejamento,
   dados: DadosPlanejamento,
   id: string,
-  novoValor: string,
+  dadosGasto: DadosFormularioGasto,
   dataAtual: string,
 ): Promise<EdicaoGastoConcluida & { dados: DadosPlanejamento }> {
-  const planejamento = editarGasto(dados.cicloAtual.configuracao, id, novoValor, dataAtual);
+  const planejamento = editarGasto(dados.cicloAtual.configuracao, id, dadosGasto, dataAtual);
   const novosDados = planejamento.alterado ? comConfiguracaoAtual(dados, planejamento.configuracao) : dados;
   if (planejamento.alterado) await armazenamento.salvar(novosDados);
   return { ...planejamento, dados: novosDados };

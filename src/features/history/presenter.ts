@@ -7,6 +7,7 @@ export interface GastoAgrupado {
   chave: string;
   valor: Centavos;
   indiceOriginal: number;
+  descricao?: string;
 }
 
 export interface GrupoGastos {
@@ -20,6 +21,7 @@ export interface ItemHistorico {
   id: string;
   chave: string;
   valor: string;
+  descricao: string;
 }
 
 export interface GrupoHistorico {
@@ -78,6 +80,7 @@ export function agruparGastosPorData(
       chave: gasto.id,
       valor: gasto.valor,
       indiceOriginal,
+      ...(gasto.descricao ? { descricao: gasto.descricao } : {}),
     };
 
     if (existente) {
@@ -154,6 +157,7 @@ export function criarApresentacaoHistorico(
         id: gasto.id,
         chave: gasto.chave,
         valor: formatarCentavosComoMoedaBrasileira(gasto.valor),
+        descricao: gasto.descricao ?? 'Gasto registrado',
       })),
     })),
   };

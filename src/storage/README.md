@@ -11,6 +11,10 @@ testes.
 - `ResultadoCalculoDiario` é sempre recalculado;
 - dados inválidos não são removidos silenciosamente.
 
+A descrição de gasto é opcional e aditiva. Por isso o documento continua em v3:
+dados anteriores sem `descricao` permanecem válidos, enquanto textos presentes
+são normalizados e validados sem truncamento.
+
 Na leitura, a prioridade é v3, v2 e v1. V2 é convertido em ciclo atual com ID
 determinístico, `inicio: null` e nenhum ciclo encerrado. V1 primeiro recebe os IDs
 determinísticos de gastos e então segue a mesma migração. V3 sempre é confirmada

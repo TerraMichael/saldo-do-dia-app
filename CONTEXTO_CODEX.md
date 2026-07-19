@@ -184,6 +184,8 @@ Requisitos documentados: Node.js 20.19 ou superior e npm 10 ou superior.
   disponível no histórico.
 - Novos gastos recebem UUID v4 por `Crypto.randomUUID()`. O gerador é injetado no
   caso de uso puro para permitir testes determinísticos.
+- Gastos aceitam descrição opcional de até 80 caracteres. Espaços externos são
+  removidos, conteúdo vazio é omitido e a descrição não participa dos cálculos.
 - A edição preserva ID e data, corrige o saldo por
   `saldoAtual + valorAntigo - novoValor` e recalcula o plano.
 - A exclusão localiza exclusivamente pelo ID, devolve o valor ao saldo e
@@ -300,7 +302,7 @@ O planejamento é persistido localmente com
 }
 ```
 
-Cada gasto contém `id`, `valor` e `data`. O ID é obrigatório, não vazio e único
+Cada gasto contém `id`, `valor`, `data` e pode conter `descricao`. O ID é obrigatório, não vazio e único
 dentro do planejamento.
 
 A chave v2 e a chave legada v1 continuam suportadas para migração.
@@ -316,6 +318,10 @@ silenciosamente a fonte mais recente.
 Somente a configuração, que é a fonte de verdade, é armazenada.
 `ResultadoCalculoDiario` nunca é persistido: ele é recalculado por
 `calcularPlanoDiario` após cada leitura ou operação.
+
+A persistência continua em v3 porque `descricao` é um campo opcional e aditivo.
+Documentos v3 anteriores sem a propriedade permanecem válidos; descrições vazias
+são omitidas e textos acima de 80 caracteres são rejeitados.
 
 A desserialização parte de `unknown` e valida objeto raiz, versão, inteiros
 seguros, restrições de sinal, datas civis e cada gasto datado. JSON inválido,
@@ -389,7 +395,7 @@ existe, embora ainda não esteja ligada a uma tela ou persistência.
 ## 8. O que ainda não existe
 
 - edição da data de gastos;
-- categorias, descrições e horários individuais de gastos;
+- categorias e horários individuais de gastos;
 - validação visual automatizada e testes de interface;
 - auditoria com leitores de tela em diferentes fabricantes Android;
 - testes de interface ou navegação;
@@ -403,15 +409,12 @@ antes de consolidar uma decisão.
 
 Esta seção é um **roadmap sugerido**, não um conjunto de requisitos já aprovado:
 
-1. detalhes recolhíveis da Home — etapa atual implementada;
-2. histórico permanente de ciclos anteriores — implementado;
-3. descrição opcional nos gastos;
-4. categorias;
-5. edição da data;
-6. comparação entre ciclos;
-7. exportação ou backup local;
-8. modo escuro;
-9. animações avançadas.
+1. categorias;
+2. edição da data do gasto;
+3. comparação simples entre ciclos;
+4. exportação ou backup local;
+5. modo escuro;
+6. animações avançadas.
 
 Em cada etapa, mantenha estados de erro, valores negativos, datas-limite,
 arredondamento e acessibilidade visíveis no desenho da solução.

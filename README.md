@@ -97,10 +97,12 @@ do mesmo dia, o gasto anexado mais recentemente aparece primeiro.
 
 O resumo informa total do ciclo, total gasto hoje e quantidade de registros. O
 histórico vazio oferece acesso direto ao registro do primeiro gasto. Cada registro
-possui ações para editar seu valor ou excluí-lo. A edição preserva ID e data e
+possui ações para editar seu valor ou excluí-lo. Uma descrição curta e opcional
+pode ser informada no registro e alterada depois; quando ausente, o histórico
+mostra **Gasto registrado**. A edição preserva ID e data e
 ajusta o saldo pela diferença; a exclusão devolve o valor ao saldo. Em ambos os
 casos, o planejamento é recalculado e persistido antes da atualização visual.
-Ainda não há edição de data, descrição ou categoria de gastos.
+Ainda não há edição de data ou categoria de gastos.
 
 ## Persistência local
 
@@ -109,7 +111,9 @@ contém o ciclo atual, sua fotografia inicial imutável e a coleção de ciclos
 encerrados. O resultado financeiro e os totais de apresentação nunca são
 persistidos; o ciclo atual é recalculado por `calcularPlanoDiario`.
 
-Cada gasto persistido possui `id`, `valor` em centavos e `data` civil. Instalações
+Cada gasto persistido possui `id`, `valor` em centavos, `data` civil e pode ter
+`descricao`. A descrição é opcional e aditiva, portanto a persistência permanece
+na versão 3 e documentos anteriores sem esse campo continuam válidos. Instalações
 com dados v1 ou v2 são validadas e migradas automaticamente. Os IDs
 determinísticos dos gastos legados são preservados, e a origem só é removida
 depois que o documento v3 completo foi gravado.
