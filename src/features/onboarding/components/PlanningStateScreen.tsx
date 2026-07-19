@@ -76,17 +76,32 @@ export function PlanningStateScreen() {
         ) : null}
 
         {expirado ? (
-          <Pressable
-            accessibilityRole="button"
-            disabled={processando}
-            onPress={() => router.replace('/onboarding')}
-            style={({ pressed }) => [
-              styles.primaryButton,
-              pressed && styles.pressed,
-            ]}
-          >
-            <Text style={styles.primaryButtonText}>Editar planejamento</Text>
-          </Pressable>
+          <>
+            <Pressable
+              accessibilityRole="button"
+              disabled={processando}
+              onPress={() => router.push('/novo-ciclo')}
+              style={({ pressed }) => [
+                styles.primaryButton,
+                pressed && styles.pressed,
+              ]}
+            >
+              <Text style={styles.primaryButtonText}>Já recebi — iniciar novo ciclo</Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              disabled={processando}
+              onPress={() => router.replace('/onboarding')}
+              style={({ pressed }) => [
+                styles.secondaryButton,
+                pressed && styles.pressed,
+              ]}
+            >
+              <Text style={styles.secondaryButtonText}>
+                Ainda não recebi — ajustar planejamento
+              </Text>
+            </Pressable>
+          </>
         ) : null}
 
         {status === 'erro' && !dadosCorrompidos ? (
@@ -148,6 +163,8 @@ const styles = StyleSheet.create({
     paddingVertical: 17,
   },
   primaryButtonText: { color: '#FFFFFF', fontSize: 17, fontWeight: '800' },
+  secondaryButton: { alignItems: 'center', marginTop: 10, paddingVertical: 14 },
+  secondaryButtonText: { color: '#28734F', fontSize: 16, fontWeight: '800', textAlign: 'center' },
   disabled: { opacity: 0.55 },
   pressed: { opacity: 0.8 },
 });

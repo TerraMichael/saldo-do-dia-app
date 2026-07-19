@@ -148,6 +148,14 @@ export function HomeScreen() {
         >
           <Text style={styles.secondaryButtonText}>Editar planejamento</Text>
         </Pressable>
+
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => router.push('/novo-ciclo')}
+          style={({ pressed }) => [styles.tertiaryButton, pressed && styles.pressed]}
+        >
+          <Text style={styles.tertiaryButtonText}>Novo recebimento</Text>
+        </Pressable>
       </ScrollView>
     </SafeAreaView>
   );
@@ -224,5 +232,7 @@ const styles = StyleSheet.create({
   primaryButtonText: { color: '#FFFFFF', fontSize: 17, fontWeight: '800' },
   secondaryButton: { alignItems: 'center', marginTop: 10, paddingVertical: 14 },
   secondaryButtonText: { color: '#28734F', fontSize: 16, fontWeight: '800' },
+  tertiaryButton: { alignItems: 'center', marginTop: 4, paddingVertical: 12 },
+  tertiaryButtonText: { color: '#68766E', fontSize: 15, fontWeight: '700' },
   pressed: { opacity: 0.72 },
 });

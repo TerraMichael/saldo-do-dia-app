@@ -12,6 +12,11 @@ import {
   type GeradorIdGasto,
   type RegistroGastoConcluido,
 } from '../features/expenses';
+import {
+  iniciarNovoCiclo,
+  type DadosFormularioNovoCiclo,
+  type NovoCicloCriado,
+} from '../features/cycle';
 import type { ArmazenamentoPlanejamento } from './planning-storage';
 
 export interface PlanejamentoConfirmado {
@@ -61,6 +66,16 @@ export async function excluirGastoPersistido(
   dataAtual: string,
 ): Promise<ExclusaoGastoConcluida> {
   const planejamento = excluirGasto(configuracao, id, dataAtual);
+  await armazenamento.salvar(planejamento.configuracao);
+  return planejamento;
+}
+
+export async function iniciarNovoCicloPersistido(
+  armazenamento: ArmazenamentoPlanejamento,
+  dados: DadosFormularioNovoCiclo,
+  dataAtual: string,
+): Promise<NovoCicloCriado> {
+  const planejamento = iniciarNovoCiclo(dados, dataAtual);
   await armazenamento.salvar(planejamento.configuracao);
   return planejamento;
 }

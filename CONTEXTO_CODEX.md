@@ -171,6 +171,20 @@ Requisitos documentados: Node.js 20.19 ou superior e npm 10 ou superior.
 - Cada item usa seu ID persistido como chave e oferece ações acessíveis de
   edição e exclusão. A exclusão exige confirmação nativa.
 
+### Ciclo atual e novo recebimento
+
+- Planejamento, totais e histórico representam exclusivamente o ciclo vigente.
+- **Novo recebimento** pode ser acionado pela Home antes do vencimento.
+- No estado expirado, **Já recebi — iniciar novo ciclo** abre um fluxo separado;
+  **Ainda não recebi — ajustar planejamento** mantém o onboarding de edição.
+- Ajustar o planejamento preserva os gastos. Iniciar outro ciclo usa o saldo
+  real informado depois de receber e cria `gastosRegistrados: []`.
+- O saldo anterior não é somado ao novo saldo, evitando perpetuar divergências
+  causadas por gastos não registrados.
+- A revisão mostra quantidade e total dos gastos que deixarão de aparecer.
+- Cancelar, voltar ou falhar ao persistir mantém integralmente o ciclo anterior.
+- Não há histórico permanente, relatório, backup ou comparação entre ciclos.
+
 ### Domínios previstos
 
 O catálogo atual em `src/features/index.ts` prevê:
@@ -182,6 +196,7 @@ O catálogo atual em `src/features/index.ts` prevê:
 5. `expenses` — registro de gastos;
 6. `daily-limit` — cálculo do limite diário;
 7. `history` — histórico local.
+8. `cycle` — encerramento do ciclo vigente e início após novo recebimento.
 
 Somente `daily-limit` possui regra de domínio implementada. Os demais nomes
 representam a direção de organização, não funcionalidades prontas.
@@ -285,6 +300,11 @@ calcular, persistir configuração e então publicar configuração/resultado ju
 Uma falha de gravação mantém saldo, configuração, resultado e histórico
 anteriores e permite tentar novamente.
 
+O novo ciclo segue a mesma garantia: valida e calcula uma configuração isolada,
+salva o documento v2 e somente após sucesso publica configuração e resultado no
+Context. A persistência permanece em `versao: 2`; iniciar um ciclo não cria nova
+chave nem guarda os gastos encerrados em outro local.
+
 AsyncStorage é assíncrono, persistente e não criptografado. Não armazene senha,
 token, credencial, segredo ou dado de autenticação nessa camada.
 
@@ -315,7 +335,7 @@ npm test
 `npm test` executa explicitamente `tests/foundation.test.js`,
 `tests/daily-limit.test.ts`, `tests/onboarding.test.ts`, `tests/home.test.ts` e
 `tests/expenses.test.ts`, `tests/expense-management.test.ts`,
-`tests/storage.test.ts` e `tests/history.test.ts` com o
+`tests/storage.test.ts`, `tests/history.test.ts` e `tests/new-cycle.test.ts` com o
 test runner nativo do Node.js por meio do `tsx`.
 Os caminhos explícitos mantêm o comando compatível com Windows PowerShell sem
 depender da expansão de globs feita pelo shell.
@@ -332,6 +352,7 @@ existe, embora ainda não esteja ligada a uma tela ou persistência.
 - componentes compartilhados ou design system formal;
 - tratamento de acessibilidade além dos papéis básicos já presentes;
 - testes de interface ou navegação;
+- histórico permanente de ciclos encerrados;
 
 Não descreva esses itens como prontos e não invente requisitos de interação para
 eles. Quando houver alternativas de produto relevantes, apresente-as ao usuário

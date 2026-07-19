@@ -23,6 +23,10 @@ import {
   type RegistroGastoConcluido,
 } from '../expenses';
 import { gerarUuidGasto } from '../expenses/expense-id';
+import type {
+  DadosFormularioNovoCiclo,
+  NovoCicloCriado,
+} from '../cycle';
 import {
   armazenamentoPlanejamento,
   atualizarPlanejamentoParaData,
@@ -30,6 +34,7 @@ import {
   editarGastoPersistido,
   excluirGastoPersistido,
   hidratarPlanejamento,
+  iniciarNovoCicloPersistido,
   registrarGastoPersistido,
   type ArmazenamentoPlanejamento,
   type EstadoRestauracaoPlanejamento,
@@ -54,6 +59,7 @@ interface EstadoOnboarding {
   configuracao: EntradaCalculoDiario | null;
   resultado: ResultadoCalculoDiario | null;
   falhaHidratacao: FalhaHidratacao | null;
+  rascunhoNovoCiclo: DadosFormularioNovoCiclo | null;
   definirConfiguracao: (configuracao: EntradaCalculoDiario) => void;
   confirmarConfiguracao: () => Promise<ResultadoCalculoDiario>;
   registrarGasto: (
@@ -69,6 +75,11 @@ interface EstadoOnboarding {
     id: string,
     dataAtual?: string,
   ) => Promise<ExclusaoGastoConcluida>;
+  prepararNovoCiclo: (dados: DadosFormularioNovoCiclo) => void;
+  cancelarNovoCiclo: () => void;
+  iniciarNovoCiclo: (
+    dataAtual?: string,
+  ) => Promise<NovoCicloCriado>;
   tentarHidratar: () => Promise<void>;
   recomecarPlanejamento: () => Promise<void>;
 }
@@ -80,6 +91,7 @@ interface PlanejamentoEmMemoria {
   configuracao: EntradaCalculoDiario | null;
   resultado: ResultadoCalculoDiario | null;
   falhaHidratacao: FalhaHidratacao | null;
+  rascunhoNovoCiclo: DadosFormularioNovoCiclo | null;
 }
 
 type AcaoPlanejamento =
@@ -92,6 +104,8 @@ type AcaoPlanejamento =
       resultado: ResultadoCalculoDiario;
     }
   | { tipo: 'EXPIRADO'; configuracao: EntradaCalculoDiario }
+  | { tipo: 'PREPARAR_NOVO_CICLO'; dados: DadosFormularioNovoCiclo }
+  | { tipo: 'CANCELAR_NOVO_CICLO' }
   | {
       tipo: 'ERRO';
       falha: FalhaHidratacao;
@@ -103,6 +117,7 @@ const ESTADO_INICIAL: PlanejamentoEmMemoria = {
   configuracao: null,
   resultado: null,
   falhaHidratacao: null,
+  rascunhoNovoCiclo: null,
 };
 
 function reduzirPlanejamento(
@@ -120,6 +135,7 @@ function reduzirPlanejamento(
         configuracao: acao.configuracao,
         resultado: null,
         falhaHidratacao: null,
+        rascunhoNovoCiclo: null,
       };
     case 'PRONTO':
       return {
@@ -127,6 +143,7 @@ function reduzirPlanejamento(
         configuracao: acao.configuracao,
         resultado: acao.resultado,
         falhaHidratacao: null,
+        rascunhoNovoCiclo: null,
       };
     case 'EXPIRADO':
       return {
@@ -134,13 +151,19 @@ function reduzirPlanejamento(
         configuracao: acao.configuracao,
         resultado: null,
         falhaHidratacao: null,
+        rascunhoNovoCiclo: estado.rascunhoNovoCiclo,
       };
+    case 'PREPARAR_NOVO_CICLO':
+      return { ...estado, rascunhoNovoCiclo: acao.dados };
+    case 'CANCELAR_NOVO_CICLO':
+      return { ...estado, rascunhoNovoCiclo: null };
     case 'ERRO':
       return {
         status: 'erro',
         configuracao: acao.preservarPlanejamento ? estado.configuracao : null,
         resultado: acao.preservarPlanejamento ? estado.resultado : null,
         falhaHidratacao: acao.falha,
+        rascunhoNovoCiclo: estado.rascunhoNovoCiclo,
       };
   }
 }
@@ -249,6 +272,7 @@ export function OnboardingProvider({
       configuracao: estado.configuracao,
       resultado: estado.resultado,
       falhaHidratacao: estado.falhaHidratacao,
+      rascunhoNovoCiclo: estado.rascunhoNovoCiclo,
       definirConfiguracao: (novaConfiguracao) => {
         dispatch({ tipo: 'CONFIGURAR', configuracao: novaConfiguracao });
       },
@@ -321,6 +345,29 @@ export function OnboardingProvider({
           armazenamento,
           estado.configuracao,
           id,
+          dataAtual,
+        );
+        dispatch({
+          tipo: 'PRONTO',
+          configuracao: planejamento.configuracao,
+          resultado: planejamento.resultado,
+        });
+        return planejamento;
+      },
+      prepararNovoCiclo: (dados) => {
+        dispatch({ tipo: 'PREPARAR_NOVO_CICLO', dados });
+      },
+      cancelarNovoCiclo: () => {
+        dispatch({ tipo: 'CANCELAR_NOVO_CICLO' });
+      },
+      iniciarNovoCiclo: async (dataAtual = obterDataCivilHoje()) => {
+        if (!estado.configuracao || !estado.rascunhoNovoCiclo) {
+          throw new Error('Preencha e revise os dados do novo ciclo primeiro.');
+        }
+
+        const planejamento = await iniciarNovoCicloPersistido(
+          armazenamento,
+          estado.rascunhoNovoCiclo,
           dataAtual,
         );
         dispatch({
