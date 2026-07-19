@@ -12,6 +12,7 @@ dispositivo.
 - TypeScript em modo estrito
 - Expo Router para navegação baseada em arquivos
 - Persistência local com AsyncStorage
+- UUID v4 com `expo-crypto` para identificar gastos
 - npm
 
 > **Compatibilidade temporária:** o projeto está no Expo SDK 54 para abrir no
@@ -74,16 +75,26 @@ ordenados do dia mais recente para o mais antigo e apresentados em reais. Dentro
 do mesmo dia, o gasto anexado mais recentemente aparece primeiro.
 
 O resumo informa total do ciclo, total gasto hoje e quantidade de registros. O
-histórico vazio oferece acesso direto ao registro do primeiro gasto. Nesta etapa,
-não há edição, exclusão, descrição ou categoria de gastos.
+histórico vazio oferece acesso direto ao registro do primeiro gasto. Cada registro
+possui ações para editar seu valor ou excluí-lo. A edição preserva ID e data e
+ajusta o saldo pela diferença; a exclusão devolve o valor ao saldo. Em ambos os
+casos, o planejamento é recalculado e persistido antes da atualização visual.
+Ainda não há edição de data, descrição ou categoria de gastos.
 
 ## Persistência local
 
 Somente a configuração que serve como fonte de verdade é armazenada no
 AsyncStorage, usando a chave versionada
-`@saldo-do-dia/planejamento:v1`. O formato atual contém `versao: 1` e
+`@saldo-do-dia/planejamento:v2`. O formato atual contém `versao: 2` e
 `configuracao`; o resultado financeiro nunca é persistido e sempre é recalculado
 por `calcularPlanoDiario`.
+
+Cada gasto persistido possui `id`, `valor` em centavos e `data` civil. Instalações
+com dados na chave antiga `@saldo-do-dia/planejamento:v1` são migradas
+automaticamente: o aplicativo valida o documento legado, atribui IDs
+determinísticos, confirma a gravação v2 e somente então tenta remover a chave v1.
+Se a gravação v2 falhar, os dados v1 não são removidos. Se as duas chaves
+existirem, v2 tem prioridade.
 
 Ao abrir o aplicativo, os dados são lidos, validados campo a campo e atualizados
 para a data civil local. Quando o aplicativo volta ao primeiro plano em um novo

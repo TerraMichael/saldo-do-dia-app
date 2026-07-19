@@ -1,0 +1,235 @@
+import { useRouter } from 'expo-router';
+import { useRef, useState } from 'react';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { formatarCentavosComoMoedaBrasileira } from '../../../shared/money';
+import { useOnboarding } from '../../onboarding';
+import { ErroEdicaoGasto } from '../edit-expense';
+import {
+  converterValorGastoParaCentavos,
+  ErroRegistroGasto,
+} from '../register-expense';
+
+interface EditExpenseScreenProps {
+  id: string;
+}
+
+export function EditExpenseScreen({ id }: EditExpenseScreenProps) {
+  const router = useRouter();
+  const { configuracao, editarGasto } = useOnboarding();
+  const gasto = configuracao?.gastosRegistrados.find((item) => item.id === id);
+  const valorOriginal = gasto
+    ? formatarCentavosComoMoedaBrasileira(gasto.valor)
+    : '';
+  const [valor, setValor] = useState(() =>
+    valorOriginal,
+  );
+  const [erro, setErro] = useState<string | null>(null);
+  const [enviando, setEnviando] = useState(false);
+  const envioEmAndamento = useRef(false);
+  const entradaAlterada = useRef(false);
+
+  if (!gasto) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.emptyContainer}>
+          <Text accessibilityRole="header" style={styles.title}>
+            Gasto não encontrado
+          </Text>
+          <Text style={styles.description}>
+            Este gasto não está mais disponível no planejamento.
+          </Text>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => router.replace('/historico')}
+            style={styles.primaryButton}
+          >
+            <Text style={styles.primaryButtonText}>Voltar ao histórico</Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  async function salvar() {
+    if (envioEmAndamento.current) {
+      return;
+    }
+    envioEmAndamento.current = true;
+    setEnviando(true);
+    setErro(null);
+
+    try {
+      await editarGasto(id, valor);
+      router.replace('/historico');
+    } catch (falha) {
+      if (falha instanceof ErroRegistroGasto || falha instanceof ErroEdicaoGasto) {
+        setErro(falha.message);
+      } else {
+        setErro(
+          falha instanceof Error
+            ? falha.message
+            : 'Não foi possível salvar a alteração. Tente novamente.',
+        );
+      }
+    } finally {
+      envioEmAndamento.current = false;
+      setEnviando(false);
+    }
+  }
+
+  function prepararEdicao() {
+    if (!entradaAlterada.current && valor === valorOriginal) {
+      setValor('');
+    }
+  }
+
+  function formatarEntrada() {
+    if (!valor.trim()) {
+      if (!entradaAlterada.current) {
+        setValor(valorOriginal);
+      }
+      return;
+    }
+
+    try {
+      setValor(
+        formatarCentavosComoMoedaBrasileira(
+          converterValorGastoParaCentavos(valor),
+        ),
+      );
+    } catch {
+      // A entrada inválida permanece visível para correção e validação no envio.
+    }
+  }
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.flex}
+      >
+        <ScrollView
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View>
+            <Text style={styles.eyebrow}>CORRIGIR REGISTRO</Text>
+            <Text accessibilityRole="header" style={styles.title}>
+              Editar gasto
+            </Text>
+            <Text style={styles.description}>
+              O saldo e o planejamento serão recalculados.
+            </Text>
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Valor do gasto</Text>
+            <TextInput
+              accessibilityLabel="Valor do gasto"
+              editable={!enviando}
+              keyboardType="decimal-pad"
+              onBlur={formatarEntrada}
+              onChangeText={(texto) => {
+                entradaAlterada.current = true;
+                setValor(texto);
+                setErro(null);
+              }}
+              onFocus={prepararEdicao}
+              placeholder="R$ 0,00"
+              placeholderTextColor="#849088"
+              style={[styles.input, erro && styles.inputError]}
+              value={valor}
+            />
+            {erro ? (
+              <Text accessibilityRole="alert" style={styles.error}>
+                {erro}
+              </Text>
+            ) : null}
+          </View>
+
+          <View style={styles.actions}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityState={{ disabled: enviando }}
+              disabled={enviando}
+              onPress={() => void salvar()}
+              style={({ pressed }) => [
+                styles.primaryButton,
+                enviando && styles.disabled,
+                pressed && styles.pressed,
+              ]}
+            >
+              <Text style={styles.primaryButtonText}>
+                {enviando ? 'Salvando…' : 'Salvar alteração'}
+              </Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              disabled={enviando}
+              onPress={() => router.back()}
+              style={({ pressed }) => [
+                styles.secondaryButton,
+                pressed && styles.pressed,
+              ]}
+            >
+              <Text style={styles.secondaryButtonText}>Cancelar</Text>
+            </Pressable>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: '#F4F8F5' },
+  flex: { flex: 1 },
+  container: {
+    flexGrow: 1,
+    justifyContent: 'space-between',
+    paddingBottom: 32,
+    paddingHorizontal: 24,
+    paddingTop: 28,
+  },
+  emptyContainer: { flex: 1, justifyContent: 'center', padding: 24 },
+  eyebrow: { color: '#28734F', fontSize: 12, fontWeight: '800', letterSpacing: 1.1 },
+  title: { color: '#17251E', fontSize: 32, fontWeight: '800', lineHeight: 40, marginTop: 7 },
+  description: { color: '#526159', fontSize: 16, lineHeight: 24, marginTop: 8 },
+  field: { gap: 8, marginTop: 36 },
+  label: { color: '#263B30', fontSize: 15, fontWeight: '700' },
+  input: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#CAD8CF',
+    borderRadius: 14,
+    borderWidth: 1,
+    color: '#17251E',
+    fontSize: 19,
+    minHeight: 58,
+    paddingHorizontal: 16,
+  },
+  inputError: { borderColor: '#B53A3A' },
+  error: { color: '#A52D2D', fontSize: 13, lineHeight: 19 },
+  actions: { marginTop: 32 },
+  primaryButton: {
+    alignItems: 'center',
+    backgroundColor: '#28734F',
+    borderRadius: 16,
+    paddingVertical: 17,
+  },
+  primaryButtonText: { color: '#FFFFFF', fontSize: 17, fontWeight: '800' },
+  secondaryButton: { alignItems: 'center', marginTop: 10, paddingVertical: 14 },
+  secondaryButtonText: { color: '#28734F', fontSize: 16, fontWeight: '800' },
+  disabled: { opacity: 0.65 },
+  pressed: { opacity: 0.78 },
+});

@@ -7,6 +7,7 @@ const MILISSEGUNDOS_POR_DIA = 24 * 60 * 60 * 1000;
 export type Centavos = number;
 
 export interface GastoRegistrado {
+  id: string;
   valor: Centavos;
   data: string;
 }

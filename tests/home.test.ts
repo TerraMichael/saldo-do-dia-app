@@ -151,7 +151,7 @@ test('apresenta restante, excedente e limite futuro após gasto acima do limite 
     contasPendentes: 115_00,
     dataAtual: '2026-07-01',
     dataProximoRecebimento: '2026-07-09',
-    gastosRegistrados: [{ valor: 30_00, data: '2026-07-01' }],
+    gastosRegistrados: [{ id: 'gasto-1', valor: 30_00, data: '2026-07-01' }],
   };
   const apresentacao = criarApresentacaoHome(
     configuracao,

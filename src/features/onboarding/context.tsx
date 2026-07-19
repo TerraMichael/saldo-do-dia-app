@@ -17,11 +17,18 @@ import type {
   EntradaCalculoDiario,
   ResultadoCalculoDiario,
 } from '../daily-limit';
-import type { RegistroGastoConcluido } from '../expenses';
+import {
+  type EdicaoGastoConcluida,
+  type ExclusaoGastoConcluida,
+  type RegistroGastoConcluido,
+} from '../expenses';
+import { gerarUuidGasto } from '../expenses/expense-id';
 import {
   armazenamentoPlanejamento,
   atualizarPlanejamentoParaData,
   confirmarPlanejamentoPersistido,
+  editarGastoPersistido,
+  excluirGastoPersistido,
   hidratarPlanejamento,
   registrarGastoPersistido,
   type ArmazenamentoPlanejamento,
@@ -53,6 +60,15 @@ interface EstadoOnboarding {
     valor: string,
     dataAtual?: string,
   ) => Promise<RegistroGastoConcluido>;
+  editarGasto: (
+    id: string,
+    novoValor: string,
+    dataAtual?: string,
+  ) => Promise<EdicaoGastoConcluida>;
+  excluirGasto: (
+    id: string,
+    dataAtual?: string,
+  ) => Promise<ExclusaoGastoConcluida>;
   tentarHidratar: () => Promise<void>;
   recomecarPlanejamento: () => Promise<void>;
 }
@@ -261,6 +277,50 @@ export function OnboardingProvider({
           armazenamento,
           estado.configuracao,
           valorGasto,
+          dataAtual,
+          gerarUuidGasto,
+        );
+        dispatch({
+          tipo: 'PRONTO',
+          configuracao: planejamento.configuracao,
+          resultado: planejamento.resultado,
+        });
+        return planejamento;
+      },
+      editarGasto: async (
+        id,
+        novoValor,
+        dataAtual = obterDataCivilHoje(),
+      ) => {
+        if (!estado.configuracao || !estado.resultado || estado.status !== 'pronto') {
+          throw new Error('O planejamento precisa estar disponível para editar um gasto.');
+        }
+
+        const planejamento = await editarGastoPersistido(
+          armazenamento,
+          estado.configuracao,
+          id,
+          novoValor,
+          dataAtual,
+        );
+        if (planejamento.alterado) {
+          dispatch({
+            tipo: 'PRONTO',
+            configuracao: planejamento.configuracao,
+            resultado: planejamento.resultado,
+          });
+        }
+        return planejamento;
+      },
+      excluirGasto: async (id, dataAtual = obterDataCivilHoje()) => {
+        if (!estado.configuracao || !estado.resultado || estado.status !== 'pronto') {
+          throw new Error('O planejamento precisa estar disponível para excluir um gasto.');
+        }
+
+        const planejamento = await excluirGastoPersistido(
+          armazenamento,
+          estado.configuracao,
+          id,
           dataAtual,
         );
         dispatch({

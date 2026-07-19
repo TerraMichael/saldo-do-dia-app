@@ -16,8 +16,8 @@ const entradaBase: EntradaCalculoDiario = {
   dataAtual: '2026-07-01',
   dataProximoRecebimento: '2026-07-05',
   gastosRegistrados: [
-    { valor: 10_00, data: '2026-06-30' },
-    { valor: 5_50, data: '2026-06-30' },
+    { id: 'gasto-1', valor: 10_00, data: '2026-06-30' },
+    { id: 'gasto-2', valor: 5_50, data: '2026-06-30' },
   ],
 };
 
@@ -124,7 +124,7 @@ test('gasto de R$ 10,00 reduz somente o restante de hoje', () => {
   const resultado = calcularPlanoDiario({
     ...cenarioSaldoDoDia,
     saldoAtual: 290_00,
-    gastosRegistrados: [{ valor: 10_00, data: '2026-07-01' }],
+    gastosRegistrados: [{ id: 'gasto-1', valor: 10_00, data: '2026-07-01' }],
   });
 
   assert.equal(resultado.restanteHoje, 13_12);
@@ -135,7 +135,7 @@ test('gasto igual ao limite encerra o orçamento de hoje sem excedente', () => {
   const resultado = calcularPlanoDiario({
     ...cenarioSaldoDoDia,
     saldoAtual: 276_88,
-    gastosRegistrados: [{ valor: 23_12, data: '2026-07-01' }],
+    gastosRegistrados: [{ id: 'gasto-1', valor: 23_12, data: '2026-07-01' }],
   });
 
   assert.equal(resultado.restanteHoje, 0);
@@ -146,7 +146,7 @@ test('gasto acima do limite gera excedente e redistribui somente os dias futuros
   const resultado = calcularPlanoDiario({
     ...cenarioSaldoDoDia,
     saldoAtual: 270_00,
-    gastosRegistrados: [{ valor: 30_00, data: '2026-07-01' }],
+    gastosRegistrados: [{ id: 'gasto-1', valor: 30_00, data: '2026-07-01' }],
   });
 
   assert.equal(resultado.restanteHoje, 0);
@@ -160,8 +160,8 @@ test('múltiplos gastos na mesma data são somados como gasto de hoje', () => {
     ...cenarioSaldoDoDia,
     saldoAtual: 270_00,
     gastosRegistrados: [
-      { valor: 10_00, data: '2026-07-01' },
-      { valor: 20_00, data: '2026-07-01' },
+      { id: 'gasto-1', valor: 10_00, data: '2026-07-01' },
+      { id: 'gasto-2', valor: 20_00, data: '2026-07-01' },
     ],
   });
 
@@ -171,7 +171,7 @@ test('múltiplos gastos na mesma data são somados como gasto de hoje', () => {
 test('gastos anteriores permanecem no ciclo, mas não entram no gasto de hoje', () => {
   const resultado = calcularPlanoDiario({
     ...cenarioSaldoDoDia,
-    gastosRegistrados: [{ valor: 30_00, data: '2026-06-30' }],
+    gastosRegistrados: [{ id: 'gasto-1', valor: 30_00, data: '2026-06-30' }],
   });
 
   assert.equal(resultado.totalGastosHoje, 0);
@@ -183,7 +183,7 @@ test('mudança de dia recalcula o orçamento com saldo e quantidade de dias atua
     ...cenarioSaldoDoDia,
     saldoAtual: 270_00,
     dataAtual: '2026-07-02',
-    gastosRegistrados: [{ valor: 30_00, data: '2026-07-01' }],
+    gastosRegistrados: [{ id: 'gasto-1', valor: 30_00, data: '2026-07-01' }],
   });
 
   assert.equal(resultado.totalGastosHoje, 0);
@@ -224,7 +224,7 @@ test('déficit considera todo gasto de hoje como excedente', () => {
     contasPendentes: 115_00,
     dataAtual: '2026-07-01',
     dataProximoRecebimento: '2026-07-09',
-    gastosRegistrados: [{ valor: 30_00, data: '2026-07-01' }],
+    gastosRegistrados: [{ id: 'gasto-1', valor: 30_00, data: '2026-07-01' }],
   });
 
   assert.ok(resultado.limitePlanejadoHoje < 0);

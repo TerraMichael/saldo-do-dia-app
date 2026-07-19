@@ -1,5 +1,13 @@
 import { useRouter } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useRef, useState } from 'react';
+import {
+  Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useOnboarding } from '../../onboarding';
@@ -22,7 +30,10 @@ function Resumo({ label, valor }: ResumoProps) {
 
 export function HistoryScreen() {
   const router = useRouter();
-  const { status, configuracao } = useOnboarding();
+  const { status, configuracao, excluirGasto } = useOnboarding();
+  const [idProcessando, setIdProcessando] = useState<string | null>(null);
+  const [erro, setErro] = useState<string | null>(null);
+  const exclusaoEmAndamento = useRef(false);
 
   if (status === 'carregando' || status === 'expirado' || status === 'erro') {
     return <PlanningStateScreen />;
@@ -55,6 +66,44 @@ export function HistoryScreen() {
     configuracao.dataAtual,
   );
 
+  function solicitarExclusao(id: string) {
+    if (exclusaoEmAndamento.current) {
+      return;
+    }
+
+    Alert.alert(
+      'Excluir gasto?',
+      'O saldo e o planejamento serão recalculados após a exclusão.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Excluir',
+          style: 'destructive',
+          onPress: () => {
+            if (exclusaoEmAndamento.current) {
+              return;
+            }
+            exclusaoEmAndamento.current = true;
+            setIdProcessando(id);
+            setErro(null);
+            void excluirGasto(id)
+              .catch((falha: unknown) => {
+                setErro(
+                  falha instanceof Error
+                    ? falha.message
+                    : 'Não foi possível excluir o gasto. Tente novamente.',
+                );
+              })
+              .finally(() => {
+                exclusaoEmAndamento.current = false;
+                setIdProcessando(null);
+              });
+          },
+        },
+      ],
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
@@ -83,6 +132,11 @@ export function HistoryScreen() {
             valor={apresentacao.quantidadeRegistrosTexto}
           />
         </View>
+        {erro ? (
+          <Text accessibilityRole="alert" style={styles.error}>
+            {erro}
+          </Text>
+        ) : null}
 
         {apresentacao.vazio ? (
           <View style={styles.emptyCard}>
@@ -125,8 +179,43 @@ export function HistoryScreen() {
 
                 {grupo.itens.map((item) => (
                   <View key={item.chave} style={styles.expenseRow}>
-                    <Text style={styles.expenseLabel}>Gasto registrado</Text>
-                    <Text style={styles.expenseValue}>{item.valor}</Text>
+                    <View style={styles.expenseMain}>
+                      <Text style={styles.expenseLabel}>Gasto registrado</Text>
+                      <Text style={styles.expenseValue}>{item.valor}</Text>
+                    </View>
+                    <View style={styles.expenseActions}>
+                      <Pressable
+                        accessibilityLabel={`Editar gasto de ${item.valor}`}
+                        accessibilityRole="button"
+                        disabled={idProcessando !== null}
+                        onPress={() =>
+                          router.push({
+                            pathname: '/editar-gasto',
+                            params: { id: item.id },
+                          })
+                        }
+                        style={({ pressed }) => [
+                          styles.itemButton,
+                          pressed && styles.pressed,
+                        ]}
+                      >
+                        <Text style={styles.itemButtonText}>Editar</Text>
+                      </Pressable>
+                      <Pressable
+                        accessibilityLabel={`Excluir gasto de ${item.valor}`}
+                        accessibilityRole="button"
+                        disabled={idProcessando !== null}
+                        onPress={() => solicitarExclusao(item.id)}
+                        style={({ pressed }) => [
+                          styles.itemButton,
+                          pressed && styles.pressed,
+                        ]}
+                      >
+                        <Text style={styles.deleteButtonText}>
+                          {idProcessando === item.id ? 'Excluindo…' : 'Excluir'}
+                        </Text>
+                      </Pressable>
+                    </View>
                   </View>
                 ))}
               </View>
@@ -196,17 +285,34 @@ const styles = StyleSheet.create({
   groupCount: { color: '#68766E', fontSize: 12, marginTop: 3 },
   groupTotal: { color: '#1E6847', fontSize: 17, fontWeight: '800' },
   expenseRow: {
-    alignItems: 'center',
     borderTopColor: '#E8EEE9',
     borderTopWidth: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     minHeight: 54,
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
+  expenseMain: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  expenseActions: {
+    flexDirection: 'row',
+    gap: 18,
+    justifyContent: 'flex-end',
+    marginTop: 10,
+  },
   expenseLabel: { color: '#68766E', fontSize: 14 },
   expenseValue: { color: '#17251E', fontSize: 16, fontWeight: '700' },
+  itemButton: { paddingVertical: 6 },
+  itemButtonText: { color: '#28734F', fontSize: 14, fontWeight: '800' },
+  deleteButtonText: { color: '#A13B2A', fontSize: 14, fontWeight: '800' },
+  error: {
+    color: '#A52D2D',
+    fontSize: 14,
+    lineHeight: 20,
+    marginTop: 14,
+  },
   primaryButton: {
     alignItems: 'center',
     alignSelf: 'stretch',

@@ -3,6 +3,7 @@ import { formatarDataCivilParaExibicao } from '../onboarding/model';
 import { formatarCentavosComoMoedaBrasileira } from '../../shared/money';
 
 export interface GastoAgrupado {
+  id: string;
   chave: string;
   valor: Centavos;
   indiceOriginal: number;
@@ -16,6 +17,7 @@ export interface GrupoGastos {
 }
 
 export interface ItemHistorico {
+  id: string;
   chave: string;
   valor: string;
 }
@@ -72,7 +74,8 @@ export function agruparGastosPorData(
   gastos.forEach((gasto, indiceOriginal) => {
     const existente = grupos.get(gasto.data);
     const item: GastoAgrupado = {
-      chave: `${gasto.data}:${indiceOriginal}`,
+      id: gasto.id,
+      chave: gasto.id,
       valor: gasto.valor,
       indiceOriginal,
     };
@@ -148,6 +151,7 @@ export function criarApresentacaoHistorico(
       total: formatarCentavosComoMoedaBrasileira(grupo.total),
       quantidade: grupo.gastos.length,
       itens: grupo.gastos.map((gasto) => ({
+        id: gasto.id,
         chave: gasto.chave,
         valor: formatarCentavosComoMoedaBrasileira(gasto.valor),
       })),
