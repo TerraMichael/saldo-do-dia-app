@@ -12,6 +12,7 @@
     "newArchEnabled": true,
     "android": {
       "package": "com.terramichael.saldododia",
+      "versionCode": 1,
       "backgroundColor": "#F4F8F5",
       "adaptiveIcon": {
         "foregroundImage": "./assets/brand/adaptive-icon-foreground.png",
