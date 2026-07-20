@@ -30,3 +30,9 @@ importam AsyncStorage diretamente.
 A preferência visual usa a chave independente
 `@saldo-do-dia/aparencia:v1`. Falhas nessa chave usam o tema do sistema como
 fallback e não bloqueiam, removem ou modificam o planejamento financeiro v3.
+
+O progresso educativo usa outra chave independente,
+`@saldo-do-dia/tutorial:v1`. Ela armazena somente a conclusão da apresentação,
+do tour da Home e os IDs das dicas contextuais vistas. Falha ou corrupção desse
+documento usa um estado educativo seguro e nunca remove ou modifica dados
+financeiros ou a preferência de aparência.

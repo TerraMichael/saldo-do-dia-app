@@ -11,6 +11,10 @@ import {
   useOnboarding,
 } from '../src/features/onboarding';
 import {
+  TutorialProvider,
+  useTutorial,
+} from '../src/features/tutorial';
+import {
   AppThemeProvider,
   AppFeedbackHost,
   AppFeedbackProvider,
@@ -23,10 +27,11 @@ void SplashScreen.preventAutoHideAsync();
 
 function RootNavigator() {
   const { status } = useOnboarding();
+  const { ready: tutorialReady } = useTutorial();
   const { colors, statusBarStyle, themeReady } = useAppTheme();
   const styles = useMemo(() => criarEstilos(colors), [colors]);
   const planningReady = status !== 'carregando';
-  const hydrationReady = planningReady && themeReady;
+  const hydrationReady = planningReady && themeReady && tutorialReady;
 
   useEffect(() => {
     void SystemUI.setBackgroundColorAsync(colors.background).catch(() => {
@@ -53,9 +58,11 @@ export default function RootLayout() {
     <AppThemeProvider>
       <ReducedMotionConfig mode={ReduceMotion.System} />
       <AppFeedbackProvider>
-        <OnboardingProvider>
-          <RootNavigator />
-        </OnboardingProvider>
+        <TutorialProvider>
+          <OnboardingProvider>
+            <RootNavigator />
+          </OnboardingProvider>
+        </TutorialProvider>
       </AppFeedbackProvider>
     </AppThemeProvider>
   );

@@ -1,4 +1,9 @@
-import { type PropsWithChildren, useMemo } from 'react';
+import {
+  type PropsWithChildren,
+  type ReactNode,
+  type RefObject,
+  useMemo,
+} from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -7,6 +12,8 @@ import {
   View,
   type StyleProp,
   type LayoutChangeEvent,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
   type ViewStyle,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -19,6 +26,14 @@ interface AppScreenProps extends PropsWithChildren {
   keyboard?: boolean;
   scroll?: boolean;
   contentStyle?: StyleProp<ViewStyle>;
+  contentAccessibilityHidden?: boolean;
+  overlay?: ReactNode;
+  scrollRef?: RefObject<ScrollView | null>;
+  onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+  onMomentumScrollEnd?: (
+    event: NativeSyntheticEvent<NativeScrollEvent>,
+  ) => void;
+  onContentSizeChange?: (width: number, height: number) => void;
 }
 
 export function AppScreen({
@@ -26,6 +41,12 @@ export function AppScreen({
   keyboard = false,
   scroll = false,
   contentStyle,
+  contentAccessibilityHidden = false,
+  overlay,
+  scrollRef,
+  onScroll,
+  onMomentumScrollEnd,
+  onContentSizeChange,
   children,
 }: AppScreenProps) {
   const { colors } = useAppTheme();
@@ -37,6 +58,15 @@ export function AppScreen({
 
   const content = scroll ? (
     <ScrollView
+      accessibilityElementsHidden={contentAccessibilityHidden}
+      importantForAccessibility={
+        contentAccessibilityHidden ? 'no-hide-descendants' : 'auto'
+      }
+      ref={scrollRef}
+      onContentSizeChange={onContentSizeChange}
+      onMomentumScrollEnd={onMomentumScrollEnd}
+      onScroll={onScroll}
+      scrollEventThrottle={16}
       style={styles.scroll}
       contentContainerStyle={[
         styles.content,
@@ -49,6 +79,10 @@ export function AppScreen({
     </ScrollView>
   ) : (
     <View
+      accessibilityElementsHidden={contentAccessibilityHidden}
+      importantForAccessibility={
+        contentAccessibilityHidden ? 'no-hide-descendants' : 'auto'
+      }
       style={[
         styles.content,
         styles.staticContent,
@@ -72,6 +106,7 @@ export function AppScreen({
       ) : (
         content
       )}
+      {overlay}
     </SafeAreaView>
   );
 }

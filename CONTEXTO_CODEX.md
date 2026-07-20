@@ -400,7 +400,8 @@ npm test
 `npm test` executa explicitamente `tests/foundation.test.js`,
 `tests/daily-limit.test.ts`, `tests/onboarding.test.ts`, `tests/home.test.ts` e
 `tests/expenses.test.ts`, `tests/expense-management.test.ts`,
-`tests/storage.test.ts`, `tests/history.test.ts` e `tests/new-cycle.test.ts` com o
+`tests/storage.test.ts`, `tests/history.test.ts`, `tests/new-cycle.test.ts` e
+`tests/tutorial.test.ts` com o
 test runner nativo do Node.js por meio do `tsx`.
 Os caminhos explícitos mantêm o comando compatível com Windows PowerShell sem
 depender da expansão de globs feita pelo shell.
@@ -433,6 +434,10 @@ Backlog adiado:
 2. edição da data do gasto;
 3. comparação simples entre ciclos;
 4. exportação ou backup local.
+5. autenticação e cadastro;
+6. armazenamento e sincronização em nuvem;
+7. notificações;
+8. gamificação.
 
 Próximos itens ativos:
 
@@ -441,6 +446,20 @@ Próximos itens ativos:
 O sistema centralizado de movimento, as microinterações funcionais, o feedback
 temporário e a redução de movimento foram concluídos. Animações decorativas ou
 avançadas não fazem parte do roadmap ativo.
+
+A apresentação educativa de três telas, as explicações dos campos, o tour
+contextual de quatro passos da Home, a ajuda reabrível e a dica inicial de novo
+recebimento estão concluídos. O estado educativo é independente, fica em
+`@saldo-do-dia/tutorial:v1` e participa da hidratação da splash sem alterar
+`@saldo-do-dia/planejamento:v3` ou `@saldo-do-dia/aparencia:v1`. Usuários com
+planejamento existente continuam entrando diretamente na Home; a ausência ou
+falha da chave educativa não invalida seus dados.
+
+O painel do tour não possui posição fixa: alvo e painel são medidos na janela,
+uma função pura escolhe o lado sem colisão com gap de 16 pontos e a Home refaz a
+medição depois de qualquer rolagem necessária. Painéis altos usam rolagem
+interna; Safe Area, largura, orientação, escala de fonte e retorno ao primeiro
+plano disparam novo cálculo.
 
 Em cada etapa, mantenha estados de erro, valores negativos, datas-limite,
 arredondamento e acessibilidade visíveis no desenho da solução.
