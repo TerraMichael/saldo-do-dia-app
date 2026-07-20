@@ -1,10 +1,16 @@
+import { useMemo } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
 import { AppButton, type AppButtonProps } from './AppButton';
 import { BrandMark } from './BrandMark';
 import { AppCard } from './AppCard';
 import { AppScreen } from './AppScreen';
-import { colors, spacing, typography } from '../theme';
+import {
+  type AppColors,
+  spacing,
+  typography,
+  useAppTheme,
+} from '../theme';
 
 interface StateAction {
   label: string;
@@ -31,6 +37,9 @@ export function AppStateView({
   primaryAction,
   secondaryAction,
 }: AppStateViewProps) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => criarEstilos(colors), [colors]);
+
   return (
     <AppScreen centered>
       <AppCard style={styles.card}>
@@ -66,7 +75,8 @@ export function AppStateView({
   );
 }
 
-const styles = StyleSheet.create({
+function criarEstilos(colors: AppColors) {
+  return StyleSheet.create({
   card: { padding: spacing.xl },
   brand: { marginBottom: spacing.xs },
   title: { color: colors.text, marginTop: spacing.md, ...typography.title },
@@ -82,4 +92,5 @@ const styles = StyleSheet.create({
   },
   firstAction: { marginTop: spacing.xl },
   action: { marginTop: spacing.xs },
-});
+  });
+}

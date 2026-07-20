@@ -26,3 +26,7 @@ Assim, uma falha parcial preserva a versão mais recente disponível.
 AsyncStorage não é criptografado. Não armazene senhas, tokens, credenciais ou
 segredos. Os módulos de produto dependem de `ArmazenamentoPlanejamento`, e não
 importam AsyncStorage diretamente.
+
+A preferência visual usa a chave independente
+`@saldo-do-dia/aparencia:v1`. Falhas nessa chave usam o tema do sistema como
+fallback e não bloqueiam, removem ou modificam o planejamento financeiro v3.

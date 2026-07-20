@@ -15,4 +15,21 @@ export {
   LaunchSplashController,
   useMarkInitialScreenReady,
 } from './components/LaunchSplashController';
-export { colors, elevation, radii, sizes, spacing, typography } from './theme';
+export {
+  AppThemeProvider,
+  criarAppTheme,
+  darkColors,
+  ehPreferenciaAparencia,
+  lightColors,
+  PREFERENCIA_APARENCIA_PADRAO,
+  radii,
+  resolverEsquemaAparencia,
+  sizes,
+  spacing,
+  typography,
+  useAppTheme,
+  type AppColors,
+  type AppColorScheme,
+  type AppTheme,
+  type PreferenciaAparencia,
+} from './theme';

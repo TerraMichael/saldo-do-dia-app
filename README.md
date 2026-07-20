@@ -153,12 +153,18 @@ As funcionalidades serão separadas por domínio dentro de `src/features`, evita
 
 ## Interface e experiência
 
-O aplicativo mantém um tema claro, acolhedor e Android-first: superfícies brancas
-sobre fundo verde muito claro, verde nas ações principais, âmbar em alertas e
-vermelho reservado para erro, déficit e exclusão.
+O aplicativo oferece aparência **Sistema**, **Claro** e **Escuro**. Sistema é o
+padrão, acompanha o Android em runtime e usa o tema claro como fallback seguro.
+Claro e Escuro podem ser forçados pela tela de configurações. Ambos mantêm a
+identidade verde, com âmbar em alertas e vermelho reservado para erro, déficit e
+exclusão.
 
 Os tokens de cor, espaçamento, tipografia, raio, borda, elevação e dimensões
-mínimas ficam em `src/ui/theme.ts`. A camada `src/ui` também reúne componentes
+mínimas ficam em `src/ui/theme/`. `AppThemeProvider` observa `useColorScheme`,
+hidrata a preferência visual e fornece `useAppTheme`, permitindo troca imediata.
+A preferência usa a chave isolada `@saldo-do-dia/aparencia:v1`; ela não faz
+parte da persistência financeira v3.
+A camada `src/ui` também reúne componentes
 reutilizados de tela, cabeçalho, botão, card, campo monetário, linha informativa,
 feedback e estados do sistema. Esses componentes são somente visuais e não
 conhecem cálculo financeiro, Context ou persistência.
@@ -175,7 +181,7 @@ UI ou estilos foi adicionada.
 Os assets definitivos de marca ficam em `assets/brand/` e são usados sem
 transformações no ícone principal, adaptive icon, ícone monocromático do Android
 13+, splash nativa e pontos institucionais da interface. A splash e a raiz React
-compartilham o fundo `#F4F8F5`.
+usam `#F4F8F5` no tema claro e `#0D1511` no tema escuro.
 
 O `expo-splash-screen` mantém a splash visível durante a hidratação local. A
 ocultação só começa depois que a configuração foi resolvida e a tela inicial
@@ -184,10 +190,11 @@ um fallback nativo final, sem repetição após sucesso. Assim, primeiro acesso,
 Home restaurada e estados de recuperação não exibem uma rota intermediária.
 
 Os ícones da interface usam exclusivamente `MaterialCommunityIcons` e sempre
-complementam textos de ação. Ainda não existem modo escuro nem animações
-elaboradas. A validação nativa definitiva de splash, adaptive icon e ícone
-temático exige um APK próprio, pois o Expo Go não reproduz integralmente essas
-configurações.
+complementam textos de ação. Não existem animações elaboradas. A validação nativa
+definitiva da splash clara/escura, adaptive icon, partida fria e fundo anterior
+ao JavaScript exige um APK próprio, pois o Expo Go não reproduz integralmente
+essas configurações. A indicação `Bundling (%)` pertence ao ambiente de
+desenvolvimento do Expo e não é controlada pelo `LaunchLoadingScreen`.
 
 ## Continuidade no Codex CLI
 

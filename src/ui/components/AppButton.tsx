@@ -1,8 +1,15 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import type { ComponentProps } from 'react';
+import { type ComponentProps, useMemo } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
 
-import { colors, radii, sizes, spacing, typography } from '../theme';
+import {
+  type AppColors,
+  radii,
+  sizes,
+  spacing,
+  typography,
+  useAppTheme,
+} from '../theme';
 
 type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | 'destructive';
 
@@ -27,6 +34,8 @@ export function AppButton({
   accessibilityHint,
   icon,
 }: AppButtonProps) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => criarEstilos(colors), [colors]);
   const indisponivel = disabled || processing;
   const indicadorClaro = variant === 'primary' || variant === 'destructive';
 
@@ -66,7 +75,8 @@ export function AppButton({
   );
 }
 
-const styles = StyleSheet.create({
+function criarEstilos(colors: AppColors) {
+  return StyleSheet.create({
   base: {
     alignItems: 'center',
     borderRadius: radii.md,
@@ -92,4 +102,5 @@ const styles = StyleSheet.create({
   destructiveLabel: { color: colors.white },
   disabled: { opacity: 0.55 },
   pressed: { opacity: 0.76 },
-});
+  });
+}

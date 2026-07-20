@@ -1,33 +1,4 @@
-export const colors = {
-  background: '#F4F8F5',
-  surface: '#FFFFFF',
-  surfaceMuted: '#F0F6F2',
-  primary: '#28734F',
-  primaryDark: '#1E6847',
-  primarySoft: '#E3F2E8',
-  primaryBorder: '#C4DECE',
-  positiveBadge: '#D2E9DA',
-  text: '#17251E',
-  textSecondary: '#526159',
-  textMuted: '#68766E',
-  placeholder: '#849088',
-  border: '#D9E4DC',
-  borderStrong: '#CAD8CF',
-  divider: '#E8EEE9',
-  success: '#1E6847',
-  successSoft: '#E3F2E8',
-  warning: '#8A4E18',
-  warningText: '#714B28',
-  warningSoft: '#FFF4E8',
-  warningBorder: '#EDCFAE',
-  warningBadge: '#F7DFC2',
-  error: '#A52D2D',
-  errorStrong: '#8F2929',
-  errorSoft: '#FDECEC',
-  errorBorder: '#E8B8B8',
-  disabled: '#AAB4AE',
-  white: '#FFFFFF',
-} as const;
+import type { AppColorScheme } from './colors';
 
 export const spacing = {
   xxs: 4,
@@ -65,12 +36,14 @@ export const sizes = {
   contentMaxWidth: 680,
 } as const;
 
-export const elevation = {
-  card: {
-    elevation: 1,
-    shadowColor: '#17251E',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-  },
-} as const;
+export function criarElevation(colorScheme: AppColorScheme) {
+  return {
+    card: {
+      elevation: colorScheme === 'dark' ? 0 : 1,
+      shadowColor: colorScheme === 'dark' ? '#000000' : '#17251E',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: colorScheme === 'dark' ? 0 : 0.06,
+      shadowRadius: 4,
+    },
+  } as const;
+}

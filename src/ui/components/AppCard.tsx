@@ -1,7 +1,13 @@
-import type { PropsWithChildren } from 'react';
+import { type PropsWithChildren, useMemo } from 'react';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { colors, elevation, radii, spacing } from '../theme';
+import {
+  type AppColors,
+  type AppTheme,
+  radii,
+  spacing,
+  useAppTheme,
+} from '../theme';
 
 type CardVariant = 'default' | 'highlight' | 'warning' | 'error' | 'muted';
 
@@ -15,10 +21,19 @@ export function AppCard({
   style,
   children,
 }: AppCardProps) {
+  const { colors, elevation } = useAppTheme();
+  const styles = useMemo(
+    () => criarEstilos(colors, elevation),
+    [colors, elevation],
+  );
   return <View style={[styles.base, styles[variant], style]}>{children}</View>;
 }
 
-const styles = StyleSheet.create({
+function criarEstilos(
+  colors: AppColors,
+  elevation: AppTheme['elevation'],
+) {
+  return StyleSheet.create({
   base: {
     borderRadius: radii.lg,
     borderWidth: 1,
@@ -39,4 +54,5 @@ const styles = StyleSheet.create({
     borderColor: colors.errorBorder,
   },
   muted: { backgroundColor: colors.surfaceMuted, borderColor: colors.border },
-});
+  });
+}

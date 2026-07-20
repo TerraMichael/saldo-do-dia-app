@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "scheme": "saldododia",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "icon": "./assets/brand/app-icon.png",
     "backgroundColor": "#F4F8F5",
     "primaryColor": "#28734F",
@@ -38,7 +38,11 @@
           "image": "./assets/brand/splash-icon.png",
           "imageWidth": 160,
           "resizeMode": "contain",
-          "backgroundColor": "#F4F8F5"
+          "backgroundColor": "#F4F8F5",
+          "dark": {
+            "image": "./assets/brand/splash-icon.png",
+            "backgroundColor": "#0D1511"
+          }
         }
       ],
       "expo-font"

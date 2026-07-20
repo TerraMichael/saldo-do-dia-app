@@ -1,4 +1,5 @@
 import { useRouter } from 'expo-router';
+import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import {
@@ -7,13 +8,14 @@ import {
   AppHeader,
   AppScreen,
   AppStateView,
+  type AppColors,
   CollapsibleSection,
-  colors,
   InfoRow,
   InlineFeedback,
   SectionTitle,
   spacing,
   typography,
+  useAppTheme,
 } from '../../../ui';
 import { useOnboarding } from '../../onboarding';
 import { PlanningStateScreen } from '../../onboarding/components/PlanningStateScreen';
@@ -21,6 +23,8 @@ import { criarApresentacaoHome } from '../presenter';
 
 export function HomeScreen() {
   const router = useRouter();
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => criarEstilos(colors), [colors]);
   const { status, configuracao, resultado } = useOnboarding();
 
   if (status === 'carregando' || status === 'expirado' || status === 'erro') {
@@ -48,6 +52,12 @@ export function HomeScreen() {
       <AppHeader
         description="Uma visão simples do seu dinheiro até receber novamente."
         eyebrow="SEU PLANEJAMENTO DE HOJE"
+        rightAction={{
+          accessibilityHint: 'Abre as preferências do aplicativo.',
+          accessibilityLabel: 'Abrir configurações',
+          icon: 'cog-outline',
+          onPress: () => router.push('/configuracoes'),
+        }}
         title="Saldo do Dia"
       />
 
@@ -190,7 +200,8 @@ export function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function criarEstilos(colors: AppColors) {
+  return StyleSheet.create({
   hero: { alignItems: 'center', marginTop: spacing.xl, padding: spacing.xl },
   heroLabel: { color: colors.textSecondary, ...typography.bodySmall, fontWeight: '700' },
   heroAmount: {
@@ -221,4 +232,5 @@ const styles = StyleSheet.create({
   historyAction: { marginTop: spacing.sm },
   details: { marginTop: spacing.md },
   options: { gap: spacing.xxs },
-});
+  });
+}

@@ -1,4 +1,5 @@
 import { Redirect, useRouter } from 'expo-router';
+import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { useOnboarding } from '../src/features/onboarding';
@@ -6,14 +7,17 @@ import { PlanningStateScreen } from '../src/features/onboarding/components/Plann
 import {
   AppButton,
   AppScreen,
+  type AppColors,
   BrandMark,
-  colors,
   spacing,
   typography,
+  useAppTheme,
 } from '../src/ui';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => criarEstilos(colors), [colors]);
   const { status } = useOnboarding();
 
   if (status === 'carregando' || status === 'expirado' || status === 'erro') {
@@ -46,11 +50,13 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function criarEstilos(colors: AppColors) {
+  return StyleSheet.create({
   container: { flex: 1, justifyContent: 'space-between', paddingVertical: spacing.xl },
   content: { flex: 1, justifyContent: 'center' },
   brand: { alignSelf: 'flex-start', marginBottom: spacing.xl },
   eyebrow: { color: colors.primary, letterSpacing: 1.2, marginBottom: spacing.md, ...typography.eyebrow },
   title: { color: colors.text, fontSize: 44, fontWeight: '800', letterSpacing: -1.5, lineHeight: 52 },
   description: { color: colors.textSecondary, fontSize: 20, lineHeight: 30, marginTop: spacing.sm, maxWidth: 320 },
-});
+  });
+}

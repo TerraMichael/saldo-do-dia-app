@@ -1,6 +1,6 @@
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { BackHandler, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
@@ -12,12 +12,13 @@ import {
   AppHeader,
   AppScreen,
   AppStateView,
-  colors,
+  type AppColors,
   MoneyInput,
   radii,
   sizes,
   spacing,
   typography,
+  useAppTheme,
 } from '../../../ui';
 import {
   criarDataLocalDaDataCivil,
@@ -65,6 +66,8 @@ function obterAmanha(dataAtual: string): string {
 
 export function NewCycleForm() {
   const router = useRouter();
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => criarEstilos(colors), [colors]);
   const {
     configuracao,
     rascunhoNovoCiclo,
@@ -236,7 +239,8 @@ export function NewCycleForm() {
   );
 }
 
-const styles = StyleSheet.create({
+function criarEstilos(colors: AppColors) {
+  return StyleSheet.create({
   form: { gap: spacing.lg, marginTop: spacing.xl },
   field: { gap: spacing.xs },
   label: { color: colors.text, ...typography.label },
@@ -255,4 +259,5 @@ const styles = StyleSheet.create({
   error: { color: colors.error, ...typography.bodySmall },
   actions: { gap: spacing.xs, marginTop: spacing.xxl },
   pressed: { opacity: 0.78 },
-});
+  });
+}

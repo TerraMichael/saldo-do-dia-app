@@ -1,10 +1,19 @@
+import { useMemo } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BrandMark } from './BrandMark';
-import { colors, spacing, typography } from '../theme';
+import {
+  type AppColors,
+  spacing,
+  typography,
+  useAppTheme,
+} from '../theme';
 
 export function LaunchLoadingScreen() {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => criarEstilos(colors), [colors]);
+
   return (
     <SafeAreaView style={styles.screen}>
       <View style={styles.content}>
@@ -24,7 +33,8 @@ export function LaunchLoadingScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function criarEstilos(colors: AppColors) {
+  return StyleSheet.create({
   screen: { backgroundColor: colors.background, flex: 1 },
   content: {
     alignItems: 'center',
@@ -45,4 +55,5 @@ const styles = StyleSheet.create({
     ...typography.bodySmall,
   },
   indicator: { marginTop: spacing.lg },
-});
+  });
+}

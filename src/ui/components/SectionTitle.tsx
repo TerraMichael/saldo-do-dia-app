@@ -1,11 +1,25 @@
+import { useMemo } from 'react';
 import { StyleSheet, Text } from 'react-native';
 
-import { colors, spacing, typography } from '../theme';
+import {
+  type AppColors,
+  spacing,
+  typography,
+  useAppTheme,
+} from '../theme';
 
 export function SectionTitle({ children }: { children: string }) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => criarEstilos(colors), [colors]);
   return <Text style={styles.title}>{children}</Text>;
 }
 
-const styles = StyleSheet.create({
-  title: { color: colors.text, marginBottom: spacing.sm, ...typography.section },
-});
+function criarEstilos(colors: AppColors) {
+  return StyleSheet.create({
+    title: {
+      color: colors.text,
+      marginBottom: spacing.sm,
+      ...typography.section,
+    },
+  });
+}

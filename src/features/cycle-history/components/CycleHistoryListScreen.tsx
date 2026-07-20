@@ -1,11 +1,14 @@
 import { useRouter } from 'expo-router';
+import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useOnboarding } from '../../onboarding';
-import { AppButton, AppCard, AppHeader, AppScreen, AppStateView, InfoRow, spacing, typography, colors } from '../../../ui';
+import { AppButton, AppCard, AppHeader, AppScreen, AppStateView, type AppColors, InfoRow, spacing, typography, useAppTheme } from '../../../ui';
 import { criarApresentacaoListaCiclos } from '../presenter';
 
 export function CycleHistoryListScreen() {
   const router = useRouter();
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => criarEstilos(colors), [colors]);
   const { ciclosEncerrados } = useOnboarding();
   const ciclos = criarApresentacaoListaCiclos(ciclosEncerrados);
   if (!ciclos.length) {
@@ -39,7 +42,9 @@ export function CycleHistoryListScreen() {
     </AppScreen>
   );
 }
-const styles = StyleSheet.create({
+function criarEstilos(colors: AppColors) {
+ return StyleSheet.create({
   list: { gap: spacing.md, marginTop: spacing.xl },
   period: { color: colors.text, marginBottom: spacing.xs, ...typography.section },
-});
+ });
+}

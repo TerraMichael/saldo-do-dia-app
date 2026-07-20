@@ -1,7 +1,14 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { colors, radii, spacing, typography } from '../theme';
+import {
+  type AppColors,
+  radii,
+  spacing,
+  typography,
+  useAppTheme,
+} from '../theme';
 
 type FeedbackVariant = 'info' | 'success' | 'warning' | 'error';
 
@@ -16,6 +23,8 @@ export function InlineFeedback({
   title,
   variant = 'info',
 }: InlineFeedbackProps) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => criarEstilos(colors), [colors]);
   const alert = variant === 'error' || variant === 'warning';
   const icon =
     variant === 'error'
@@ -46,7 +55,8 @@ export function InlineFeedback({
   );
 }
 
-const styles = StyleSheet.create({
+function criarEstilos(colors: AppColors) {
+  return StyleSheet.create({
   base: {
     alignItems: 'flex-start',
     borderRadius: radii.md,
@@ -66,4 +76,5 @@ const styles = StyleSheet.create({
   successText: { color: colors.success },
   warningText: { color: colors.warningText },
   errorText: { color: colors.errorStrong },
-});
+  });
+}

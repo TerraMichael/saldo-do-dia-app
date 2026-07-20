@@ -2,6 +2,14 @@ import { adaptadorAsyncStorage } from './async-storage-adapter';
 import { criarArmazenamentoPlanejamento } from './planning-storage';
 
 export {
+  armazenamentoAparencia,
+  carregarAparenciaComFallback,
+  CHAVE_APARENCIA,
+  criarArmazenamentoAparencia,
+  type ArmazenamentoAparencia,
+} from './appearance-storage';
+
+export {
   atualizarPlanejamentoParaData,
   hidratarPlanejamento,
   type EstadoRestauracaoPlanejamento,

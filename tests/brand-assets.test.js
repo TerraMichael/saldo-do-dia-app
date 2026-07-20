@@ -55,6 +55,10 @@ test('splash usa o plugin e o asset de marca sem alterar sua proporção', async
     imageWidth: 160,
     resizeMode: 'contain',
     backgroundColor: BRAND_BACKGROUND,
+    dark: {
+      image: './assets/brand/splash-icon.png',
+      backgroundColor: '#0D1511',
+    },
   });
 });
 

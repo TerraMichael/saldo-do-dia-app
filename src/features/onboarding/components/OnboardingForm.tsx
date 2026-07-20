@@ -1,18 +1,19 @@
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
   AppButton,
   AppHeader,
   AppScreen,
-  colors,
+  type AppColors,
   MoneyInput,
   radii,
   sizes,
   spacing,
   typography,
+  useAppTheme,
 } from '../../../ui';
 import { useOnboarding } from '../context';
 import {
@@ -59,6 +60,8 @@ function alternarSinal(valor: string): string {
 
 export function OnboardingForm() {
   const router = useRouter();
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => criarEstilos(colors), [colors]);
   const { configuracao, definirConfiguracao } = useOnboarding();
   const dadosAtuais = configuracao
     ? criarDadosFormularioDaConfiguracao(configuracao)
@@ -218,7 +221,8 @@ export function OnboardingForm() {
   );
 }
 
-const styles = StyleSheet.create({
+function criarEstilos(colors: AppColors) {
+  return StyleSheet.create({
   form: { gap: spacing.lg, marginTop: spacing.xl },
   field: { gap: spacing.xs },
   label: { color: colors.text, ...typography.label },
@@ -237,4 +241,5 @@ const styles = StyleSheet.create({
   error: { color: colors.error, ...typography.bodySmall },
   action: { marginTop: spacing.xxl },
   pressed: { opacity: 0.78 },
-});
+  });
+}
