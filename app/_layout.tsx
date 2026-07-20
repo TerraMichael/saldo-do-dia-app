@@ -4,6 +4,7 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { ReducedMotionConfig, ReduceMotion } from 'react-native-reanimated';
 
 import {
   OnboardingProvider,
@@ -11,6 +12,8 @@ import {
 } from '../src/features/onboarding';
 import {
   AppThemeProvider,
+  AppFeedbackHost,
+  AppFeedbackProvider,
   type AppColors,
   LaunchSplashController,
   useAppTheme,
@@ -35,6 +38,7 @@ function RootNavigator() {
     <LaunchSplashController hydrationReady={hydrationReady}>
       <View style={styles.root}>
         <Stack screenOptions={{ headerShown: false }} />
+        <AppFeedbackHost />
         <StatusBar
           backgroundColor={colors.background}
           style={statusBarStyle}
@@ -47,9 +51,12 @@ function RootNavigator() {
 export default function RootLayout() {
   return (
     <AppThemeProvider>
-      <OnboardingProvider>
-        <RootNavigator />
-      </OnboardingProvider>
+      <ReducedMotionConfig mode={ReduceMotion.System} />
+      <AppFeedbackProvider>
+        <OnboardingProvider>
+          <RootNavigator />
+        </OnboardingProvider>
+      </AppFeedbackProvider>
     </AppThemeProvider>
   );
 }

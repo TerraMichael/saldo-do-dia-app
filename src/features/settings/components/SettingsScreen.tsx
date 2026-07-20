@@ -2,12 +2,17 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useRouter } from 'expo-router';
 import { useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  FadeIn,
+  ReduceMotion,
+} from 'react-native-reanimated';
 
 import {
   AppHeader,
   AppScreen,
   type AppColors,
   InlineFeedback,
+  motion,
   radii,
   sizes,
   spacing,
@@ -124,14 +129,31 @@ export function SettingsScreen() {
                   </Text>
                 </View>
                 <View style={styles.selection}>
-                  <MaterialCommunityIcons
-                    accessibilityElementsHidden
-                    accessible={false}
-                    color={selected ? colors.primary : colors.textMuted}
-                    importantForAccessibility="no-hide-descendants"
-                    name={selected ? 'check-circle' : 'circle-outline'}
-                    size={22}
-                  />
+                  {selected ? (
+                    <Animated.View
+                      entering={FadeIn.duration(
+                        motion.duration.fast,
+                      ).reduceMotion(ReduceMotion.System)}
+                    >
+                      <MaterialCommunityIcons
+                        accessibilityElementsHidden
+                        accessible={false}
+                        color={colors.primary}
+                        importantForAccessibility="no-hide-descendants"
+                        name="check-circle"
+                        size={22}
+                      />
+                    </Animated.View>
+                  ) : (
+                    <MaterialCommunityIcons
+                      accessibilityElementsHidden
+                      accessible={false}
+                      color={colors.textMuted}
+                      importantForAccessibility="no-hide-descendants"
+                      name="circle-outline"
+                      size={22}
+                    />
+                  )}
                   <Text style={styles.selectionText}>
                     {selected ? 'Selecionado' : 'Selecionar'}
                   </Text>

@@ -11,6 +11,7 @@ import {
   AppTextField,
   MoneyInput,
   spacing,
+  useAppFeedback,
 } from '../../../ui';
 import { useOnboarding } from '../../onboarding';
 import { ErroEdicaoGasto } from '../edit-expense';
@@ -29,6 +30,7 @@ interface EditExpenseScreenProps {
 
 export function EditExpenseScreen({ id }: EditExpenseScreenProps) {
   const router = useRouter();
+  const { showFeedback } = useAppFeedback();
   const { configuracao, editarGasto } = useOnboarding();
   const gasto = configuracao?.gastosRegistrados.find((item) => item.id === id);
   const valorOriginal = gasto
@@ -48,7 +50,7 @@ export function EditExpenseScreen({ id }: EditExpenseScreenProps) {
         description="Este gasto não está mais disponível no planejamento."
         primaryAction={{
           label: 'Voltar ao histórico',
-          onPress: () => router.replace('/historico'),
+          onPress: () => router.dismissTo('/historico'),
         }}
         title="Gasto não encontrado"
       />
@@ -62,8 +64,9 @@ export function EditExpenseScreen({ id }: EditExpenseScreenProps) {
     setErroValor(null);
     setErroDescricao(null);
     try {
-      await editarGasto(id, { valor, descricao });
-      router.replace('/historico');
+      const resultadoEdicao = await editarGasto(id, { valor, descricao });
+      if (resultadoEdicao.alterado) showFeedback('Alteração salva');
+      router.dismissTo('/historico');
     } catch (falha) {
       if (falha instanceof ErroDescricaoGasto) {
         setErroDescricao(falha.message);

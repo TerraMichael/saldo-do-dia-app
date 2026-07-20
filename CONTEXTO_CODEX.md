@@ -115,7 +115,18 @@ Requisitos documentados: Node.js 20.19 ou superior e npm 10 ou superior.
 - Não foram adicionadas bibliotecas de UI, estilos ou testes de interface.
 - A tela **Configurações** permite seguir o sistema ou forçar tema claro/escuro.
   A preferência é salva separadamente em `@saldo-do-dia/aparencia:v1`, sem
-  alterar a persistência financeira. Animações complexas continuam fora do escopo.
+  alterar a persistência financeira.
+- `src/ui/motion` centraliza durações, escalas, distâncias e curvas sem
+  overshoot. Reanimated e Worklets executam as microinterações compatíveis com
+  Expo SDK 54.
+- `ReducedMotionConfig` usa `ReduceMotion.System`; nenhum estado de movimento é
+  persistido e a informação continua disponível quando as animações são
+  reduzidas.
+- `src/ui/feedback` fornece mensagens efêmeras globais. Registro, edição e
+  exclusão só confirmam sucesso depois da gravação.
+- Botões, detalhes recolhíveis, valor principal, loading e seleção de aparência
+  possuem movimento curto. O histórico anima apenas saída e reorganização,
+  nunca a montagem inicial em cascata.
 
 ### Marca, splash e loading
 
@@ -425,8 +436,11 @@ Backlog adiado:
 
 Próximos itens ativos:
 
-1. animações avançadas;
-2. validação do carregamento inicial em preview/release.
+1. validação do carregamento inicial em preview/release.
+
+O sistema centralizado de movimento, as microinterações funcionais, o feedback
+temporário e a redução de movimento foram concluídos. Animações decorativas ou
+avançadas não fazem parte do roadmap ativo.
 
 Em cada etapa, mantenha estados de erro, valores negativos, datas-limite,
 arredondamento e acessibilidade visíveis no desenho da solução.

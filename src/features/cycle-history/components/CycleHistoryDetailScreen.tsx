@@ -16,7 +16,7 @@ export function CycleHistoryDetailScreen({ id }: { id: string }) {
   }
   return (
     <AppScreen scroll>
-      <AppHeader eyebrow="HISTÓRICO" title="Detalhes do ciclo" description={ciclo.periodo} onBack={() => router.back()} />
+      <AppHeader eyebrow="HISTÓRICO" title="Detalhes do ciclo" description={ciclo.periodo} onBack={() => router.dismissTo('/ciclos' as Href)} />
       {!ciclo.inicioDisponivel ? <View style={styles.feedback}><InlineFeedback message="Alguns dados iniciais não estão disponíveis porque este ciclo foi migrado de uma versão anterior." /></View> : null}
       <View style={styles.section}>
         <SectionTitle>Resumo do ciclo</SectionTitle>

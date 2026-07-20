@@ -15,14 +15,14 @@ export function CycleHistoryListScreen() {
     return (
       <AppStateView
         description="Quando você iniciar um novo recebimento, o ciclo atual aparecerá aqui."
-        primaryAction={{ label: 'Voltar', onPress: () => router.back() }}
+        primaryAction={{ label: 'Voltar', onPress: () => router.dismissTo('/historico') }}
         title="Nenhum ciclo encerrado"
       />
     );
   }
   return (
     <AppScreen scroll>
-      <AppHeader eyebrow="HISTÓRICO" title="Ciclos anteriores" description="Consulte como foi seu planejamento em cada recebimento." onBack={() => router.back()} />
+      <AppHeader eyebrow="HISTÓRICO" title="Ciclos anteriores" description="Consulte como foi seu planejamento em cada recebimento." onBack={() => router.dismissTo('/historico')} />
       <View style={styles.list}>
         {ciclos.map((ciclo) => (
           <AppCard key={ciclo.id}>
