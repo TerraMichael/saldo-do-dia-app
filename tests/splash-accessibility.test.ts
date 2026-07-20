@@ -90,13 +90,17 @@ test('hideAsync só é chamado depois do sinal de tela pronta', () => {
   assert.equal(harness.asyncCalls, 1);
 });
 
-test('controller ignora layout enquanto a hidratação não terminou', async () => {
+test('controller preserva o layout ocorrido antes do fim da hidratação', async () => {
   const source = await readFile(
     new URL('../src/ui/components/LaunchSplashController.tsx', import.meta.url),
     'utf8',
   );
 
-  assert.match(source, /if \(!hydrationReady\) return;/);
+  assert.match(source, /initialScreenReady\.current = true/);
+  assert.match(
+    source,
+    /if \(hydrationReady && initialScreenReady\.current\)/,
+  );
   assert.match(source, /coordinator\.current\?\.markReady\(\)/);
 });
 

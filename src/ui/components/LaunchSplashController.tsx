@@ -24,6 +24,7 @@ export function LaunchSplashController({
   children,
 }: LaunchSplashControllerProps) {
   const coordinator = useRef<SplashHideCoordinator | null>(null);
+  const initialScreenReady = useRef(false);
 
   if (!coordinator.current) {
     coordinator.current = createSplashHideCoordinator({
@@ -46,7 +47,14 @@ export function LaunchSplashController({
     return () => currentCoordinator?.dispose();
   }, []);
 
+  useEffect(() => {
+    if (hydrationReady && initialScreenReady.current) {
+      coordinator.current?.markReady();
+    }
+  }, [hydrationReady]);
+
   const markInitialScreenReady = useCallback(() => {
+    initialScreenReady.current = true;
     if (!hydrationReady) return;
     coordinator.current?.markReady();
   }, [hydrationReady]);

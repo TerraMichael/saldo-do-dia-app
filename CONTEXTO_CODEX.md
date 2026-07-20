@@ -70,7 +70,8 @@ pelo produto.
   JavaScript e TypeScript;
 - identificador Android: `com.terramichael.saldododia`;
 - scheme: `saldododia`;
-- tema atual fixado como claro.
+- preferência de aparência Sistema, Claro ou Escuro, com Sistema como padrão e
+  `expo-system-ui`.
 
 O uso do Expo SDK 54 é temporário e foi adotado para compatibilidade com o Expo
 Go distribuído pela Play Store no dispositivo físico usado no desenvolvimento.
@@ -83,27 +84,28 @@ Requisitos documentados: Node.js 20.19 ou superior e npm 10 ou superior.
 
 ### Fundação do aplicativo
 
-- `app/_layout.tsx` cria a pilha raiz sem cabeçalho e usa status bar escura.
+- `app/_layout.tsx` cria a pilha raiz sem cabeçalho e adapta a status bar ao tema.
 - `app/index.tsx` contém uma tela inicial com o nome **Saldo do Dia**, a
   frase **Descubra quanto você pode gastar hoje** e o botão **Começar**.
 - O botão navega para o onboarding; após preenchimento e revisão, a confirmação
   abre a tela principal.
-- O visual atual usa fundo verde muito claro, tipografia escura e ação principal
-  verde. Tokens e componentes reutilizáveis ficam em `src/ui`, sem dependência
+- O visual preserva a identidade verde nos temas claro e escuro. Tokens,
+  provider e componentes reutilizáveis ficam em `src/ui`, sem dependência
   externa de componentes ou estilos.
 - Não há assets binários versionados; eles foram deliberadamente removidos da
   fundação inicial.
 
 ### Fundação visual compartilhada
 
-- `src/ui/theme.ts` centraliza cores, espaçamentos, raios, tipografia, bordas,
-  elevação leve e dimensões mínimas de interação.
+- `src/ui/theme/` separa as paletas clara e escura dos tokens estruturais e
+  fornece `AppThemeProvider`, `useAppTheme`, preferência persistida e seleção
+  pura com fallback claro.
 - `src/ui/components` contém estruturas reutilizadas de tela, cabeçalho, botão,
   card, campo monetário controlado, linha informativa, feedback, seção e estado.
 - A camada visual não importa Context, armazenamento, presenters ou regras
   financeiras.
-- A direção permanece clara e acolhedora, com verde como cor principal, âmbar
-  para atenção e vermelho para erro, déficit e exclusão.
+- A direção permanece acolhedora nos dois temas, com verde como cor principal,
+  âmbar para atenção e vermelho para erro, déficit e exclusão.
 - Home, onboarding, novo ciclo, gastos, histórico, revisões e estados do sistema
   usam a mesma hierarquia visual e alvos de toque mínimos.
 - A Home separa resumo de hoje e planejamento, posicionando **Registrar gasto**
@@ -111,14 +113,16 @@ Requisitos documentados: Node.js 20.19 ou superior e npm 10 ou superior.
 - Formulários preservam parsing e formatação das features; `MoneyInput` apenas
   apresenta valor, foco, ajuda, erro e estado desabilitado.
 - Não foram adicionadas bibliotecas de UI, estilos ou testes de interface.
-- Modo escuro e animações complexas continuam fora do escopo.
+- A tela **Configurações** permite seguir o sistema ou forçar tema claro/escuro.
+  A preferência é salva separadamente em `@saldo-do-dia/aparencia:v1`, sem
+  alterar a persistência financeira. Animações complexas continuam fora do escopo.
 
 ### Marca, splash e loading
 
 - Os assets finais ficam em `assets/brand/` e não devem ser recortados,
   recoloridos ou regenerados.
-- `app.json` configura o ícone principal, adaptive icon, ícone monocromático do
-  Android 13+ e o plugin `expo-splash-screen`, todos sobre `#F4F8F5`.
+- `app.json` usa `userInterfaceStyle: automatic` e configura splash clara em
+  `#F4F8F5` e escura em `#0D1511`, preservando os mesmos assets.
 - A splash é preservada durante a hidratação. Após a tela inicial correta
   realizar seu primeiro layout, a camada React permite no máximo duas tentativas
   de `hideAsync` e um fallback `hide`, sem nova chamada depois do sucesso.
@@ -128,7 +132,10 @@ Requisitos documentados: Node.js 20.19 ou superior e npm 10 ou superior.
 - Os ícones internos usam somente `MaterialCommunityIcons` e complementam os
   textos existentes.
 - Expo Go não valida fielmente os assets nativos; splash, máscaras adaptativas e
-  ícone monocromático ainda precisam de verificação em preview APK.
+  ícone monocromático, partida fria e fundo anterior ao JavaScript ainda
+  precisam de verificação em preview APK.
+- `Bundling (%)` pertence ao ambiente de desenvolvimento e não é uma mensagem
+  controlada pelo `LaunchLoadingScreen`.
 
 ### Onboarding inicial
 
@@ -399,7 +406,7 @@ existe, embora ainda não esteja ligada a uma tela ou persistência.
 - validação visual automatizada e testes de interface;
 - auditoria com leitores de tela em diferentes fabricantes Android;
 - testes de interface ou navegação;
-- histórico permanente de ciclos encerrados;
+- auditoria visual da aparência em preview/release;
 
 Não descreva esses itens como prontos e não invente requisitos de interação para
 eles. Quando houver alternativas de produto relevantes, apresente-as ao usuário
@@ -409,12 +416,17 @@ antes de consolidar uma decisão.
 
 Esta seção é um **roadmap sugerido**, não um conjunto de requisitos já aprovado:
 
+Backlog adiado:
+
 1. categorias;
 2. edição da data do gasto;
 3. comparação simples entre ciclos;
-4. exportação ou backup local;
-5. modo escuro;
-6. animações avançadas.
+4. exportação ou backup local.
+
+Próximos itens ativos:
+
+1. animações avançadas;
+2. validação do carregamento inicial em preview/release.
 
 Em cada etapa, mantenha estados de erro, valores negativos, datas-limite,
 arredondamento e acessibilidade visíveis no desenho da solução.

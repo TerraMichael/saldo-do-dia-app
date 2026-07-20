@@ -8,7 +8,7 @@
     "android": "expo start --android",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test tests/foundation.test.js tests/brand-assets.test.js tests/splash-accessibility.test.ts tests/daily-limit.test.ts tests/onboarding.test.ts tests/home.test.ts tests/expenses.test.ts tests/expense-management.test.ts tests/expense-description.test.ts tests/storage.test.ts tests/history.test.ts tests/new-cycle.test.ts tests/cycle-history.test.ts"
+    "test": "tsx --test tests/foundation.test.js tests/brand-assets.test.js tests/splash-accessibility.test.ts tests/theme.test.ts tests/theme-preference.test.ts tests/daily-limit.test.ts tests/onboarding.test.ts tests/home.test.ts tests/expenses.test.ts tests/expense-management.test.ts tests/expense-description.test.ts tests/storage.test.ts tests/history.test.ts tests/new-cycle.test.ts tests/cycle-history.test.ts"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
@@ -23,6 +23,7 @@
     "expo-router": "~6.0.24",
     "expo-splash-screen": "~31.0.13",
     "expo-status-bar": "~3.0.9",
+    "expo-system-ui": "~6.0.9",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-native": "0.81.5",

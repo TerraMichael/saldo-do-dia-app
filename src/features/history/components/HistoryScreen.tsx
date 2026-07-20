@@ -1,5 +1,5 @@
 import { type Href, useRouter } from 'expo-router';
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
 
 import {
@@ -8,11 +8,12 @@ import {
   AppHeader,
   AppScreen,
   AppStateView,
-  colors,
+  type AppColors,
   InfoRow,
   InlineFeedback,
   spacing,
   typography,
+  useAppTheme,
 } from '../../../ui';
 import { useOnboarding } from '../../onboarding';
 import { PlanningStateScreen } from '../../onboarding/components/PlanningStateScreen';
@@ -20,6 +21,8 @@ import { criarApresentacaoHistorico } from '../presenter';
 
 export function HistoryScreen() {
   const router = useRouter();
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => criarEstilos(colors), [colors]);
   const { status, configuracao, excluirGasto } = useOnboarding();
   const [idProcessando, setIdProcessando] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
@@ -196,7 +199,8 @@ export function HistoryScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function criarEstilos(colors: AppColors) {
+  return StyleSheet.create({
   summary: { marginTop: spacing.xl },
   cyclesAction: { marginTop: spacing.sm },
   feedback: { marginTop: spacing.md },
@@ -258,4 +262,5 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
   },
   itemAction: { minWidth: 108 },
-});
+  });
+}

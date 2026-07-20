@@ -1,11 +1,14 @@
 import { type Href, useRouter } from 'expo-router';
+import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useOnboarding } from '../../onboarding';
-import { AppCard, AppHeader, AppScreen, AppStateView, InfoRow, InlineFeedback, SectionTitle, colors, spacing, typography } from '../../../ui';
+import { AppCard, AppHeader, AppScreen, AppStateView, type AppColors, InfoRow, InlineFeedback, SectionTitle, spacing, typography, useAppTheme } from '../../../ui';
 import { criarApresentacaoDetalheCiclo } from '../presenter';
 
 export function CycleHistoryDetailScreen({ id }: { id: string }) {
   const router = useRouter();
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => criarEstilos(colors), [colors]);
   const { ciclosEncerrados } = useOnboarding();
   const ciclo = criarApresentacaoDetalheCiclo(ciclosEncerrados, id);
   if (!ciclo) {
@@ -48,11 +51,13 @@ export function CycleHistoryDetailScreen({ id }: { id: string }) {
     </AppScreen>
   );
 }
-const styles = StyleSheet.create({
+function criarEstilos(colors: AppColors) {
+ return StyleSheet.create({
   feedback: { marginTop: spacing.lg },
   section: { marginTop: spacing.xl },
   group: { marginBottom: spacing.sm },
   groupHeader: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: spacing.sm },
   date: { color: colors.text, ...typography.section },
   total: { color: colors.primaryDark, ...typography.label },
-});
+ });
+}

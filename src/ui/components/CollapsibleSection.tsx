@@ -1,8 +1,15 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { type PropsWithChildren, useState } from 'react';
+import { type PropsWithChildren, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors, radii, sizes, spacing, typography } from '../theme';
+import {
+  type AppColors,
+  radii,
+  sizes,
+  spacing,
+  typography,
+  useAppTheme,
+} from '../theme';
 
 interface CollapsibleSectionProps extends PropsWithChildren {
   title: string;
@@ -16,6 +23,8 @@ export function CollapsibleSection({
   initiallyExpanded = false,
   children,
 }: CollapsibleSectionProps) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => criarEstilos(colors), [colors]);
   const [expanded, setExpanded] = useState(initiallyExpanded);
   const accessibleTitle = title.toLocaleLowerCase('pt-BR');
 
@@ -59,7 +68,8 @@ export function CollapsibleSection({
   );
 }
 
-const styles = StyleSheet.create({
+function criarEstilos(colors: AppColors) {
+  return StyleSheet.create({
   container: {
     backgroundColor: colors.surface,
     borderColor: colors.border,
@@ -88,4 +98,5 @@ const styles = StyleSheet.create({
     gap: spacing.xl,
     padding: spacing.md,
   },
-});
+  });
+}

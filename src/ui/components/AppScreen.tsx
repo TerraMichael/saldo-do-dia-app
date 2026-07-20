@@ -1,4 +1,4 @@
-import type { PropsWithChildren } from 'react';
+import { type PropsWithChildren, useMemo } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { colors, sizes, spacing } from '../theme';
+import { type AppColors, sizes, spacing, useAppTheme } from '../theme';
 import { useMarkInitialScreenReady } from './LaunchSplashController';
 
 interface AppScreenProps extends PropsWithChildren {
@@ -28,6 +28,8 @@ export function AppScreen({
   contentStyle,
   children,
 }: AppScreenProps) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => criarEstilos(colors), [colors]);
   const markInitialScreenReady = useMarkInitialScreenReady();
   const handleLayout = (_event: LayoutChangeEvent) => {
     markInitialScreenReady?.();
@@ -35,6 +37,7 @@ export function AppScreen({
 
   const content = scroll ? (
     <ScrollView
+      style={styles.scroll}
       contentContainerStyle={[
         styles.content,
         centered && styles.centered,
@@ -73,9 +76,11 @@ export function AppScreen({
   );
 }
 
-const styles = StyleSheet.create({
+function criarEstilos(colors: AppColors) {
+  return StyleSheet.create({
   safeArea: { backgroundColor: colors.background, flex: 1 },
   flex: { flex: 1 },
+  scroll: { backgroundColor: colors.background },
   content: {
     alignSelf: 'center',
     paddingBottom: spacing.xxl,
@@ -86,4 +91,5 @@ const styles = StyleSheet.create({
   },
   staticContent: { flex: 1 },
   centered: { justifyContent: 'center' },
-});
+  });
+}

@@ -1,7 +1,14 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { type ComponentProps, useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors, sizes, spacing, typography } from '../theme';
+import {
+  type AppColors,
+  sizes,
+  spacing,
+  typography,
+  useAppTheme,
+} from '../theme';
 
 interface AppHeaderProps {
   title: string;
@@ -9,6 +16,12 @@ interface AppHeaderProps {
   eyebrow?: string;
   backLabel?: string;
   onBack?: () => void;
+  rightAction?: {
+    accessibilityLabel: string;
+    accessibilityHint?: string;
+    icon: ComponentProps<typeof MaterialCommunityIcons>['name'];
+    onPress: () => void;
+  };
 }
 
 export function AppHeader({
@@ -17,31 +30,63 @@ export function AppHeader({
   eyebrow,
   backLabel = 'Voltar',
   onBack,
+  rightAction,
 }: AppHeaderProps) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => criarEstilos(colors), [colors]);
+
   return (
     <View>
-      {onBack ? (
-        <Pressable
-          accessibilityHint="Retorna à tela anterior sem confirmar alterações."
-          accessibilityLabel={backLabel}
-          accessibilityRole="button"
-          hitSlop={8}
-          onPress={onBack}
-          style={({ pressed }) => [
-            styles.backButton,
-            pressed && styles.pressed,
-          ]}
-        >
-          <MaterialCommunityIcons
-            accessibilityElementsHidden
-            accessible={false}
-            color={colors.primary}
-            importantForAccessibility="no-hide-descendants"
-            name="arrow-left"
-            size={22}
-          />
-          <Text style={styles.backText}>{backLabel}</Text>
-        </Pressable>
+      {onBack || rightAction ? (
+        <View style={styles.topActions}>
+          {onBack ? (
+            <Pressable
+              accessibilityHint="Retorna à tela anterior sem confirmar alterações."
+              accessibilityLabel={backLabel}
+              accessibilityRole="button"
+              hitSlop={8}
+              onPress={onBack}
+              style={({ pressed }) => [
+                styles.backButton,
+                pressed && styles.pressed,
+              ]}
+            >
+              <MaterialCommunityIcons
+                accessibilityElementsHidden
+                accessible={false}
+                color={colors.primary}
+                importantForAccessibility="no-hide-descendants"
+                name="arrow-left"
+                size={22}
+              />
+              <Text style={styles.backText}>{backLabel}</Text>
+            </Pressable>
+          ) : (
+            <View />
+          )}
+          {rightAction ? (
+            <Pressable
+              accessibilityHint={rightAction.accessibilityHint}
+              accessibilityLabel={rightAction.accessibilityLabel}
+              accessibilityRole="button"
+              hitSlop={8}
+              onPress={rightAction.onPress}
+              style={({ pressed }) => [
+                styles.rightAction,
+                pressed && styles.pressed,
+              ]}
+            >
+              <MaterialCommunityIcons
+                accessibilityElementsHidden
+                accessible={false}
+                color={colors.primary}
+                importantForAccessibility="no-hide-descendants"
+                name={rightAction.icon}
+                size={24}
+              />
+            </Pressable>
+          ) : null}
+        </View>
       ) : null}
       {eyebrow ? <Text style={styles.eyebrow}>{eyebrow}</Text> : null}
       <Text accessibilityRole="header" style={styles.title}>
@@ -52,15 +97,28 @@ export function AppHeader({
   );
 }
 
-const styles = StyleSheet.create({
+function criarEstilos(colors: AppColors) {
+  return StyleSheet.create({
+  topActions: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: spacing.md,
+    minHeight: sizes.touchTarget,
+  },
   backButton: {
     alignItems: 'center',
     alignSelf: 'flex-start',
     flexDirection: 'row',
     gap: spacing.xs,
     justifyContent: 'center',
-    marginBottom: spacing.md,
     minHeight: sizes.touchTarget,
+  },
+  rightAction: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: sizes.touchTarget,
+    minWidth: sizes.touchTarget,
   },
   backText: { color: colors.primary, ...typography.button },
   eyebrow: {
@@ -75,4 +133,5 @@ const styles = StyleSheet.create({
     ...typography.body,
   },
   pressed: { opacity: 0.72 },
-});
+  });
+}

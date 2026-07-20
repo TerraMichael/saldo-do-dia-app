@@ -1,7 +1,14 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { colors, radii, sizes, spacing, typography } from '../theme';
+import {
+  type AppColors,
+  radii,
+  sizes,
+  spacing,
+  typography,
+  useAppTheme,
+} from '../theme';
 
 interface MoneyInputProps {
   label: string;
@@ -26,6 +33,8 @@ export function MoneyInput({
   editable = true,
   placeholder = 'R$ 0,00',
 }: MoneyInputProps) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => criarEstilos(colors), [colors]);
   const [focused, setFocused] = useState(false);
 
   return (
@@ -47,6 +56,7 @@ export function MoneyInput({
         }}
         placeholder={placeholder}
         placeholderTextColor={colors.placeholder}
+        selectionColor={colors.primary}
         style={[
           styles.input,
           focused && styles.focused,
@@ -65,7 +75,8 @@ export function MoneyInput({
   );
 }
 
-const styles = StyleSheet.create({
+function criarEstilos(colors: AppColors) {
+  return StyleSheet.create({
   field: { gap: spacing.xs },
   label: { color: colors.text, ...typography.label },
   input: {
@@ -83,4 +94,5 @@ const styles = StyleSheet.create({
   hint: { color: colors.textMuted, ...typography.bodySmall },
   error: { color: colors.error, ...typography.bodySmall },
   disabled: { opacity: 0.6 },
-});
+  });
+}
