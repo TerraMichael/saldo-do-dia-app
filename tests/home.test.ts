@@ -200,7 +200,9 @@ test('chevron do controle recolhível é decorativo e acompanha o estado', async
     'utf8',
   );
 
-  assert.match(component, /name=\{expanded \? 'chevron-up' : 'chevron-down'\}/);
+  assert.match(component, /name="chevron-down"/);
+  assert.match(component, /withTiming\(expanded \? 180 : 0/);
+  assert.match(component, /rotate: `\$\{chevronRotation\.value\}deg`/);
   assert.match(component, /accessible=\{false\}/);
   assert.match(component, /accessibilityElementsHidden/);
   assert.match(component, /importantForAccessibility="no-hide-descendants"/);

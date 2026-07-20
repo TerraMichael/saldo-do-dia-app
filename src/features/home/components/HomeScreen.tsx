@@ -1,5 +1,5 @@
-import { useRouter } from 'expo-router';
-import { useMemo } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import {
@@ -8,6 +8,7 @@ import {
   AppHeader,
   AppScreen,
   AppStateView,
+  AnimatedValueText,
   type AppColors,
   CollapsibleSection,
   InfoRow,
@@ -25,7 +26,15 @@ export function HomeScreen() {
   const router = useRouter();
   const { colors } = useAppTheme();
   const styles = useMemo(() => criarEstilos(colors), [colors]);
+  const [screenFocused, setScreenFocused] = useState(true);
   const { status, configuracao, resultado } = useOnboarding();
+
+  useFocusEffect(
+    useCallback(() => {
+      setScreenFocused(true);
+      return () => setScreenFocused(false);
+    }, []),
+  );
 
   if (status === 'carregando' || status === 'expirado' || status === 'erro') {
     return <PlanningStateScreen />;
@@ -66,9 +75,12 @@ export function HomeScreen() {
         variant={estadoCritico ? 'warning' : 'highlight'}
       >
         <Text style={styles.heroLabel}>Você ainda pode gastar hoje</Text>
-        <Text accessibilityLabel="Valor restante para hoje" style={styles.heroAmount}>
-          {apresentacao.restanteHoje}
-        </Text>
+        <AnimatedValueText
+          active={screenFocused}
+          accessibilityLabel={`Valor restante para hoje: ${apresentacao.restanteHoje}`}
+          style={styles.heroAmount}
+          value={apresentacao.restanteHoje}
+        />
         <View
           accessibilityLabel={`Estado do planejamento: ${apresentacao.tituloEstado}`}
           style={[styles.statusBadge, estadoCritico && styles.statusBadgeCritical]}

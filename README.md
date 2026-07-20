@@ -169,6 +169,19 @@ reutilizados de tela, cabeçalho, botão, card, campo monetário, linha informat
 feedback e estados do sistema. Esses componentes são somente visuais e não
 conhecem cálculo financeiro, Context ou persistência.
 
+O sistema de movimento usa `react-native-reanimated` e tokens centralizados em
+`src/ui/motion`. As interações são curtas e funcionais: botões respondem à
+pressão, detalhes expandem com continuidade, o valor principal da Home sinaliza
+mudanças e o histórico reorganiza itens somente depois da exclusão persistida.
+O feedback global confirma registro, edição e exclusão por aproximadamente 2,2
+segundos e nunca faz parte dos dados persistidos.
+
+`ReducedMotionConfig` segue a preferência **Reduzir movimento** do aparelho.
+Quando ativa, conteúdo e feedback continuam presentes, mas deslocamentos,
+escalas e a respiração do loading chegam imediatamente ao estado final. As
+animações acompanham o estado real e não atrasam persistência, recálculo ou
+navegação.
+
 A Home mantém o valor disponível hoje como foco e deixa **Registrar gasto** e
 **Ver histórico** sempre acessíveis. Resumo do dia, planejamento e opções ficam
 na seção local **Detalhes do planejamento**, recolhida por padrão. Déficit,
@@ -190,7 +203,8 @@ um fallback nativo final, sem repetição após sucesso. Assim, primeiro acesso,
 Home restaurada e estados de recuperação não exibem uma rota intermediária.
 
 Os ícones da interface usam exclusivamente `MaterialCommunityIcons` e sempre
-complementam textos de ação. Não existem animações elaboradas. A validação nativa
+complementam textos de ação. Não existem efeitos decorativos, animações
+personalizadas de navegação ou contadores monetários. A validação nativa
 definitiva da splash clara/escura, adaptive icon, partida fria e fundo anterior
 ao JavaScript exige um APK próprio, pois o Expo Go não reproduz integralmente
 essas configurações. A indicação `Bundling (%)` pertence ao ambiente de

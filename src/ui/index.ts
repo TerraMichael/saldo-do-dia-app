@@ -11,6 +11,7 @@ export { InlineFeedback } from './components/InlineFeedback';
 export { MoneyInput } from './components/MoneyInput';
 export { SectionTitle } from './components/SectionTitle';
 export { LaunchLoadingScreen } from './components/LaunchLoadingScreen';
+export { AnimatedValueText } from './components/AnimatedValueText';
 export {
   LaunchSplashController,
   useMarkInitialScreenReady,
@@ -33,3 +34,15 @@ export {
   type AppTheme,
   type PreferenciaAparencia,
 } from './theme';
+export { motion } from './motion';
+export {
+  AppFeedbackHost,
+  AppFeedbackProvider,
+  APP_FEEDBACK_INITIAL_STATE,
+  reduceAppFeedback,
+  useAppFeedback,
+  type AppFeedbackAction,
+  type AppFeedbackMessage,
+  type AppFeedbackState,
+  type AppFeedbackVariant,
+} from './feedback';

@@ -11,6 +11,7 @@ import {
   AppTextField,
   MoneyInput,
   spacing,
+  useAppFeedback,
 } from '../../../ui';
 import { useOnboarding } from '../../onboarding';
 import {
@@ -35,6 +36,7 @@ function formatarEntrada(valor: string): string {
 
 export function ExpenseForm() {
   const router = useRouter();
+  const { showFeedback } = useAppFeedback();
   const { configuracao, registrarGasto } = useOnboarding();
   const [valor, setValor] = useState('');
   const [descricao, setDescricao] = useState('');
@@ -64,7 +66,8 @@ export function ExpenseForm() {
     setErroDescricao(null);
     try {
       await registrarGasto({ valor, descricao });
-      router.replace('/home');
+      showFeedback('Gasto registrado');
+      router.dismissTo('/home');
     } catch (falha) {
       if (falha instanceof ErroDescricaoGasto) {
         setErroDescricao(falha.message);

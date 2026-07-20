@@ -1,7 +1,18 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { type PropsWithChildren, useMemo, useState } from 'react';
+import { type PropsWithChildren, useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  FadeInDown,
+  FadeOut,
+  LinearTransition,
+  ReduceMotion,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 
+import { motion, motionEasing } from '../motion';
 import {
   type AppColors,
   radii,
@@ -26,10 +37,30 @@ export function CollapsibleSection({
   const { colors } = useAppTheme();
   const styles = useMemo(() => criarEstilos(colors), [colors]);
   const [expanded, setExpanded] = useState(initiallyExpanded);
+  const reduceMotion = useReducedMotion();
+  const chevronRotation = useSharedValue(initiallyExpanded ? 180 : 0);
   const accessibleTitle = title.toLocaleLowerCase('pt-BR');
+  const chevronStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${chevronRotation.value}deg` }],
+  }));
+
+  useEffect(() => {
+    chevronRotation.value = withTiming(expanded ? 180 : 0, {
+      duration: reduceMotion
+        ? motion.duration.immediate
+        : motion.duration.standard,
+      easing: motionEasing.standard,
+      reduceMotion: ReduceMotion.System,
+    });
+  }, [chevronRotation, expanded, reduceMotion]);
 
   return (
-    <View style={styles.container}>
+    <Animated.View
+      layout={LinearTransition.duration(motion.duration.standard).reduceMotion(
+        ReduceMotion.System,
+      )}
+      style={styles.container}
+    >
       <Pressable
         accessibilityHint={
           expanded
@@ -53,18 +84,38 @@ export function CollapsibleSection({
             <Text style={styles.description}>{description}</Text>
           ) : null}
         </View>
-        <MaterialCommunityIcons
-          accessibilityElementsHidden
-          accessible={false}
-          color={colors.primary}
-          importantForAccessibility="no-hide-descendants"
-          name={expanded ? 'chevron-up' : 'chevron-down'}
-          size={24}
-        />
+        <Animated.View style={chevronStyle}>
+          <MaterialCommunityIcons
+            accessibilityElementsHidden
+            accessible={false}
+            color={colors.primary}
+            importantForAccessibility="no-hide-descendants"
+            name="chevron-down"
+            size={24}
+          />
+        </Animated.View>
       </Pressable>
 
-      {expanded ? <View style={styles.content}>{children}</View> : null}
-    </View>
+      {expanded ? (
+        <Animated.View
+          entering={FadeInDown.duration(motion.duration.standard)
+            .withInitialValues({
+              opacity: 0,
+              transform: [{ translateY: -motion.distance.small }],
+            })
+            .reduceMotion(ReduceMotion.System)}
+          exiting={FadeOut.duration(motion.duration.fast).reduceMotion(
+            ReduceMotion.System,
+          )}
+          layout={LinearTransition.duration(
+            motion.duration.standard,
+          ).reduceMotion(ReduceMotion.System)}
+          style={styles.content}
+        >
+          {children}
+        </Animated.View>
+      ) : null}
+    </Animated.View>
   );
 }
 

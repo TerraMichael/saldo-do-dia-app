@@ -1,6 +1,11 @@
 import { type Href, useRouter } from 'expo-router';
 import { useMemo, useRef, useState } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  FadeOut,
+  LinearTransition,
+  ReduceMotion,
+} from 'react-native-reanimated';
 
 import {
   AppButton,
@@ -11,8 +16,10 @@ import {
   type AppColors,
   InfoRow,
   InlineFeedback,
+  motion,
   spacing,
   typography,
+  useAppFeedback,
   useAppTheme,
 } from '../../../ui';
 import { useOnboarding } from '../../onboarding';
@@ -21,6 +28,7 @@ import { criarApresentacaoHistorico } from '../presenter';
 
 export function HistoryScreen() {
   const router = useRouter();
+  const { showFeedback } = useAppFeedback();
   const { colors } = useAppTheme();
   const styles = useMemo(() => criarEstilos(colors), [colors]);
   const { status, configuracao, excluirGasto } = useOnboarding();
@@ -66,6 +74,9 @@ export function HistoryScreen() {
             setIdProcessando(id);
             setErro(null);
             void excluirGasto(id)
+              .then(() => {
+                showFeedback('Gasto excluído');
+              })
               .catch((falha: unknown) => {
                 setErro(
                   falha instanceof Error
@@ -88,7 +99,7 @@ export function HistoryScreen() {
       <AppHeader
         description="Confira os gastos registrados até o próximo recebimento."
         eyebrow="CICLO ATUAL"
-        onBack={() => router.back()}
+        onBack={() => router.dismissTo('/home')}
         title="Histórico de gastos"
       />
 
@@ -135,7 +146,16 @@ export function HistoryScreen() {
       ) : (
         <View style={styles.groups}>
           {apresentacao.grupos.map((grupo) => (
-            <AppCard key={grupo.chave} style={styles.groupCard}>
+            <Animated.View
+              exiting={FadeOut.duration(motion.duration.fast).reduceMotion(
+                ReduceMotion.System,
+              )}
+              key={grupo.chave}
+              layout={LinearTransition.duration(
+                motion.duration.standard,
+              ).reduceMotion(ReduceMotion.System)}
+            >
+            <AppCard style={styles.groupCard}>
               <View style={styles.groupHeader}>
                 <View style={styles.groupHeading}>
                   <Text style={styles.groupDate}>{grupo.data}</Text>
@@ -152,7 +172,16 @@ export function HistoryScreen() {
               </View>
 
               {grupo.itens.map((item) => (
-                <View key={item.chave} style={styles.expenseRow}>
+                <Animated.View
+                  exiting={FadeOut.duration(
+                    motion.duration.fast,
+                  ).reduceMotion(ReduceMotion.System)}
+                  key={item.chave}
+                  layout={LinearTransition.duration(
+                    motion.duration.standard,
+                  ).reduceMotion(ReduceMotion.System)}
+                  style={styles.expenseRow}
+                >
                   <View style={styles.expenseMain}>
                     <Text style={styles.expenseLabel}>{item.descricao}</Text>
                     <Text
@@ -189,9 +218,10 @@ export function HistoryScreen() {
                       />
                     </View>
                   </View>
-                </View>
+                </Animated.View>
               ))}
             </AppCard>
+            </Animated.View>
           ))}
         </View>
       )}
