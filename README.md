@@ -186,6 +186,24 @@ A Home mantém o valor disponível hoje como foco e deixa **Registrar gasto** e
 **Ver histórico** sempre acessíveis. Resumo do dia, planejamento e opções ficam
 na seção local **Detalhes do planejamento**, recolhida por padrão. Déficit,
 excedente e alertas críticos permanecem visíveis no card principal.
+
+No primeiro acesso sem planejamento, uma apresentação opcional de três telas
+explica a proposta, o cálculo e o armazenamento local desta versão. Depois da
+confirmação do primeiro planejamento, um tour curto apresenta quatro elementos
+reais da Home. Ambos podem ser pulados; a apresentação pode ser revista e o tour
+repetido pela seção **Ajuda** das Configurações. O estado educativo usa a chave
+isolada `@saldo-do-dia/tutorial:v1`, não altera o planejamento financeiro v3 e
+não interfere na preferência de aparência.
+
+Os campos do planejamento explicam saldo, recebimento, contas e reserva junto
+dos controles. Na primeira abertura de **Novo recebimento**, uma dica informa
+que o ciclo atual será arquivado; a revisão mantém permanentemente o aviso de
+que o novo ciclo começará sem gastos.
+
+No tour da Home, o painel explicativo é posicionado dinamicamente acima ou
+abaixo do alvo. Safe Area, tamanho da janela, fonte aumentada e um afastamento
+mínimo são considerados; se necessário, a Home rola e mede o alvo novamente
+antes de mostrar o painel.
 Formulários, revisões, histórico e estados de carregamento ou erro compartilham
 hierarquia, áreas de toque e feedback consistentes. A implementação usa apenas
 React Native, `StyleSheet` e componentes nativos; nenhuma biblioteca externa de

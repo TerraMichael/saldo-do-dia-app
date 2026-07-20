@@ -28,6 +28,7 @@ import {
   useOnboarding,
 } from '../../onboarding';
 import { ErroNovoCiclo, iniciarNovoCiclo, type CampoNovoCiclo } from '..';
+import { NewCycleTip } from '../../tutorial/components/NewCycleTip';
 
 type ErrosFormulario = Partial<Record<CampoNovoCiclo, string>>;
 
@@ -150,6 +151,8 @@ export function NewCycleForm() {
         onBack={cancelar}
         title="Novo ciclo"
       />
+
+      <NewCycleTip />
 
       <View style={styles.form}>
         <MoneyInput

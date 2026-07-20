@@ -21,10 +21,10 @@ test('configura a identidade e o alvo Android do aplicativo', () => {
   assert.equal(appConfig.extra.defaultLocale, 'pt-BR');
 });
 
-test('a tela inicial contém a mensagem principal e a ação inicial', () => {
-  assert.match(home, /Saldo do Dia/);
-  assert.match(home, /Descubra quanto você pode gastar hoje/);
-  assert.match(home, /Começar/);
+test('a rota inicial resolve apresentação, planejamento e Home sem tela redundante', () => {
+  assert.match(home, /resolverDestinoInicial/);
+  assert.match(home, /<Redirect href=\{destino\}/);
+  assert.doesNotMatch(home, /Descubra quanto você pode gastar hoje/);
 });
 
 test('campos monetários não selecionam automaticamente o primeiro valor digitado', () => {

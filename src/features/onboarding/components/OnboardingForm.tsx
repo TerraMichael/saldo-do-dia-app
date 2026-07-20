@@ -121,7 +121,7 @@ export function OnboardingForm() {
     <AppScreen keyboard scroll>
       <AppHeader
         backLabel="Voltar"
-        description="Seus dados ficam salvos somente neste dispositivo."
+        description="Nesta versão, seus dados ficam salvos somente neste aparelho."
         eyebrow="ETAPA 1 DE 3"
         onBack={() => router.back()}
         title="Conte sobre seu momento"
@@ -130,7 +130,7 @@ export function OnboardingForm() {
       <View style={styles.form}>
         <MoneyInput
           error={erros.saldoAtual}
-          hint="Use o botão abaixo se o saldo estiver negativo."
+          hint="O valor disponível agora antes dos gastos que ainda serão registrados. Use o botão abaixo se estiver negativo."
           label="Saldo atual"
           onBlur={() => setSaldoAtual(formatarEntradaMonetaria(saldoAtual))}
           onChangeText={(valor) => {
@@ -151,6 +151,9 @@ export function OnboardingForm() {
 
         <View style={styles.field}>
           <Text style={styles.label}>Próximo recebimento</Text>
+          <Text style={styles.hint}>
+            A data em que você espera receber novamente.
+          </Text>
           <Pressable
             accessibilityHint="Abre o seletor de data."
             accessibilityLabel="Selecionar data do próximo recebimento"
@@ -189,6 +192,7 @@ export function OnboardingForm() {
 
         <MoneyInput
           error={erros.contasPendentes}
+          hint="Contas que ainda serão pagas antes do próximo recebimento."
           label="Total de contas pendentes"
           onBlur={() => setContasPendentes(formatarEntradaMonetaria(contasPendentes))}
           onChangeText={(valor) => {
@@ -202,7 +206,7 @@ export function OnboardingForm() {
         />
         <MoneyInput
           error={erros.reserva}
-          hint="Opcional"
+          hint="Opcional. Dinheiro que você deseja proteger e não usar durante este ciclo."
           label="Valor que deseja reservar"
           onBlur={() => setReserva(formatarEntradaMonetaria(reserva))}
           onChangeText={(valor) => {
@@ -226,6 +230,7 @@ function criarEstilos(colors: AppColors) {
   form: { gap: spacing.lg, marginTop: spacing.xl },
   field: { gap: spacing.xs },
   label: { color: colors.text, ...typography.label },
+  hint: { color: colors.textSecondary, ...typography.bodySmall },
   dateButton: {
     backgroundColor: colors.surface,
     borderColor: colors.borderStrong,

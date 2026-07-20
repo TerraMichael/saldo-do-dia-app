@@ -20,6 +20,22 @@ import {
   useAppTheme,
   type PreferenciaAparencia,
 } from '../../../ui';
+import { useTutorial } from '../../tutorial';
+
+const OPCOES_AJUDA = [
+  {
+    title: 'Ver apresentação do aplicativo',
+    description: 'Revise a proposta e como o Saldo do Dia funciona.',
+    icon: 'presentation-play' as const,
+    action: 'introduction' as const,
+  },
+  {
+    title: 'Repetir tour da tela inicial',
+    description: 'Veja novamente os principais elementos da Home.',
+    icon: 'map-marker-path' as const,
+    action: 'tour' as const,
+  },
+] as const;
 
 const OPCOES: readonly {
   preference: PreferenciaAparencia;
@@ -50,6 +66,7 @@ const OPCOES: readonly {
 export function SettingsScreen() {
   const router = useRouter();
   const { colors, preference, setPreference } = useAppTheme();
+  const { resetHomeTour } = useTutorial();
   const styles = useMemo(() => criarEstilos(colors), [colors]);
   const [saving, setSaving] = useState<PreferenciaAparencia | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -76,6 +93,23 @@ export function SettingsScreen() {
       operationInProgress.current = false;
       setSaving(null);
     }
+  }
+
+  async function openHelp(action: (typeof OPCOES_AJUDA)[number]['action']) {
+    if (action === 'introduction') {
+      router.push({
+        pathname: '/apresentacao',
+        params: { modo: 'revisao' },
+      });
+      return;
+    }
+
+    try {
+      await resetHomeTour();
+    } catch {
+      // O estado da sessão já permite repetir o tour.
+    }
+    router.dismissTo('/home');
   }
 
   return (
@@ -161,6 +195,50 @@ export function SettingsScreen() {
               </Pressable>
             );
           })}
+        </View>
+      </View>
+
+      <View style={styles.section}>
+        <Text accessibilityRole="header" style={styles.sectionTitle}>
+          Ajuda
+        </Text>
+        <View style={styles.options}>
+          {OPCOES_AJUDA.map((option) => (
+            <Pressable
+              accessibilityHint={option.description}
+              accessibilityLabel={`${option.title}. ${option.description}`}
+              accessibilityRole="button"
+              key={option.action}
+              onPress={() => void openHelp(option.action)}
+              style={({ pressed }) => [
+                styles.option,
+                pressed && styles.optionPressed,
+              ]}
+            >
+              <MaterialCommunityIcons
+                accessibilityElementsHidden
+                accessible={false}
+                color={colors.primary}
+                importantForAccessibility="no-hide-descendants"
+                name={option.icon}
+                size={26}
+              />
+              <View style={styles.optionContent}>
+                <Text style={styles.optionTitle}>{option.title}</Text>
+                <Text style={styles.optionDescription}>
+                  {option.description}
+                </Text>
+              </View>
+              <MaterialCommunityIcons
+                accessibilityElementsHidden
+                accessible={false}
+                color={colors.textMuted}
+                importantForAccessibility="no-hide-descendants"
+                name="chevron-right"
+                size={24}
+              />
+            </Pressable>
+          ))}
         </View>
       </View>
 
