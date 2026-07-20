@@ -21,11 +21,13 @@ import {
   type PreferenciaAparencia,
 } from '../../../ui';
 import { useTutorial } from '../../tutorial';
+import { APP_IDENTITY } from '../../../shared/app-identity';
+import { AboutSection } from './AboutSection';
 
 const OPCOES_AJUDA = [
   {
     title: 'Ver apresentação do aplicativo',
-    description: 'Revise a proposta e como o Saldo do Dia funciona.',
+    description: `Revise a proposta e como o ${APP_IDENTITY.productName} funciona.`,
     icon: 'presentation-play' as const,
     action: 'introduction' as const,
   },
@@ -115,7 +117,7 @@ export function SettingsScreen() {
   return (
     <AppScreen scroll>
       <AppHeader
-        description="Personalize a aparência do Saldo do Dia."
+        description={`Personalize a aparência do ${APP_IDENTITY.productName}.`}
         eyebrow="PREFERÊNCIAS"
         onBack={() => router.back()}
         title="Configurações"
@@ -241,6 +243,8 @@ export function SettingsScreen() {
           ))}
         </View>
       </View>
+
+      <AboutSection />
 
       {feedback ? (
         <View style={styles.feedback}>

@@ -401,7 +401,8 @@ npm test
 `tests/daily-limit.test.ts`, `tests/onboarding.test.ts`, `tests/home.test.ts` e
 `tests/expenses.test.ts`, `tests/expense-management.test.ts`,
 `tests/storage.test.ts`, `tests/history.test.ts`, `tests/new-cycle.test.ts` e
-`tests/tutorial.test.ts` com o
+`tests/tutorial.test.ts`, `tests/tour-positioning.test.ts` e
+`tests/release-identity.test.ts` com o
 test runner nativo do Node.js por meio do `tsx`.
 Os caminhos explícitos mantêm o comando compatível com Windows PowerShell sem
 depender da expansão de globs feita pelo shell.
@@ -419,6 +420,13 @@ existe, embora ainda não esteja ligada a uma tela ou persistência.
 - auditoria com leitores de tela em diferentes fabricantes Android;
 - testes de interface ou navegação;
 - auditoria visual da aparência em preview/release;
+- validação completa em APK de preview/release;
+- testes automatizados de interface;
+- testes automatizados de navegação;
+- validação visual automatizada;
+- auditoria com TalkBack em diferentes fabricantes;
+- auditoria em aparelhos físicos e tamanhos variados;
+- atualização futura do Expo SDK;
 
 Não descreva esses itens como prontos e não invente requisitos de interação para
 eles. Quando houver alternativas de produto relevantes, apresente-as ao usuário
@@ -434,10 +442,11 @@ Backlog adiado:
 2. edição da data do gasto;
 3. comparação simples entre ciclos;
 4. exportação ou backup local.
-5. autenticação e cadastro;
-6. armazenamento e sincronização em nuvem;
-7. notificações;
-8. gamificação.
+5. autenticação;
+6. registro ou cadastro de usuário;
+7. armazenamento e sincronização em nuvem;
+8. notificações;
+9. gamificação.
 
 Próximos itens ativos:
 
@@ -460,6 +469,15 @@ uma função pura escolhe o lado sem colisão com gap de 16 pontos e a Home refa
 medição depois de qualquer rolagem necessária. Painéis altos usam rolagem
 interna; Safe Area, largura, orientação, escala de fonte e retorno ao primeiro
 plano disparam novo cálculo.
+
+A identificação inicial de publicação usa versão pública `1.0.0` sincronizada
+entre Expo e package, com `android.versionCode: 1`. A tela Configurações mostra
+uma seção Sobre não interativa e lê esses metadados por `expo-constants`, com
+fallback seguro. Produto e publisher ficam centralizados em `src/shared`; a
+assinatura aprovada é `Powered by Leahcim`. Leahcim é tratada como marca
+responsável pelo produto, sem declaração de entidade jurídica registrada. O
+`versionCode` deve crescer em cada novo envio Android e não se confunde com
+Semantic Versioning.
 
 Em cada etapa, mantenha estados de erro, valores negativos, datas-limite,
 arredondamento e acessibilidade visíveis no desenho da solução.

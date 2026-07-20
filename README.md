@@ -50,6 +50,23 @@ npm test
 O comando `npm test` executa explicitamente os testes JavaScript e TypeScript
 existentes com o test runner nativo do Node.js por meio do `tsx`.
 
+## Versão e publicação
+
+A identificação inicial para publicação Android é:
+
+- versão pública `1.0.0`, sincronizada entre `app.json` e `package.json`;
+- release Android `1`, configurada em `android.versionCode`;
+- assinatura institucional `Powered by Leahcim`.
+
+A versão pública segue Semantic Versioning e comunica a evolução do produto. O
+`versionCode` é um inteiro interno diferente da versão pública: deve aumentar em
+cada novo envio Android e nunca ser reutilizado após o envio à loja. Uma mesma
+versão pública pode possuir mais de uma release interna.
+
+Leahcim é a marca responsável pelo produto nesta identificação. A assinatura
+não declara uma entidade jurídica registrada. As regras completas estão em
+[`docs/RELEASE.md`](./docs/RELEASE.md).
+
 ## Fluxo disponível
 
 O botão **Começar** abre um onboarding:
@@ -233,3 +250,14 @@ desenvolvimento do Expo e não é controlada pelo `LaunchLoadingScreen`.
 O arquivo [`CONTEXTO_CODEX.md`](./CONTEXTO_CODEX.md) consolida a visão do produto,
 as decisões técnicas, o estado atual, as limitações conhecidas e um prompt de
 início para continuar o desenvolvimento em uma nova sessão do Codex CLI.
+
+## Roadmap e pendências
+
+Permanecem fora do escopo atual: categorias; edição da data do gasto;
+comparação entre ciclos; exportação ou backup local; autenticação; registro ou
+cadastro; armazenamento e sincronização em nuvem; notificações; e gamificação.
+
+Também permanecem pendentes a validação completa em APK de preview/release,
+testes automatizados de interface e navegação, validação visual automatizada,
+auditoria com TalkBack em diferentes fabricantes, auditoria em aparelhos físicos
+e tamanhos variados e uma atualização futura do Expo SDK.
