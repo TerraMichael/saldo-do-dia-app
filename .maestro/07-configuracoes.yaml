@@ -1,11 +1,29 @@
 appId: com.terramichael.saldododia
 ---
 - launchApp
-- tapOn: "Abrir configurações"
-- assertVisible: "Configurações"
-- assertVisible: "Aparência"
+- tapOn: "Abrir configura.*"
+- assertVisible: "Configura.*"
+- assertVisible: "Apar.*ncia"
+- tapOn: "Escuro"
+- assertVisible: "Configura.*"
+- takeScreenshot: "settings-dark"
+- tapOn: "Claro"
+- assertVisible: "Configura.*"
+- takeScreenshot: "settings-light"
+- tapOn: "Usar tema do aparelho"
+- assertVisible: "Configura.*"
+- scrollUntilVisible:
+    element:
+      text: "Ajuda"
+    direction: DOWN
+    centerElement: true
 - assertVisible: "Ajuda"
+- scrollUntilVisible:
+    element:
+      text: "Sobre"
+    direction: DOWN
+    centerElement: true
 - assertVisible: "Sobre"
-- assertVisible: "Versão 1.0.0"
+- assertVisible: "Vers.*o 1.0.0"
 - assertVisible: "Release 1"
 - assertVisible: "Powered by Leahcim"
