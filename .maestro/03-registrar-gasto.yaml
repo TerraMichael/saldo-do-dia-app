@@ -2,11 +2,14 @@ appId: com.terramichael.saldododia
 ---
 - launchApp
 - tapOn: "Registrar gasto"
-- assertVisible: "Novo gasto"
+- assertVisible: "Registrar gasto"
 - tapOn: "Valor do gasto"
 - inputText: "1234"
+- pressKey: Enter
 - tapOn: "Descrição (opcional)"
-- inputText: "Mercado teste"
-- hideKeyboard
-- tapOn: "Registrar gasto"
+- inputText: "Mercado"
+- pressKey: Enter
+- tapOn:
+    text: "Registrar gasto"
+    index: 1
 - assertVisible: "Gasto registrado"
