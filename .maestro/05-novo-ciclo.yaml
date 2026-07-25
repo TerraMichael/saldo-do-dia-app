@@ -1,0 +1,8 @@
+appId: com.terramichael.saldododia
+---
+- launchApp
+- tapOn: "Novo recebimento"
+- assertVisible: "Novo ciclo"
+- assertVisible: "Seu ciclo atual ficará salvo"
+- tapOn: "Entendi"
+- tapOn: "Cancelar"

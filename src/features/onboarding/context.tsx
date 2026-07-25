@@ -39,6 +39,7 @@ import {
   hidratarPlanejamento,
   iniciarNovoCicloPersistido,
   registrarGastoPersistido,
+  CoordenadorMutacoes,
   type ArmazenamentoPlanejamento,
   type EstadoRestauracaoPlanejamento,
 } from '../../storage';
@@ -213,19 +214,25 @@ export function OnboardingProvider({
   const [estado, dispatch] = useReducer(reduzirPlanejamento, ESTADO_INICIAL);
   const estadoAtual = useRef(estado);
   const atualizandoData = useRef(false);
+  const coordenadorMutacoes = useRef(new CoordenadorMutacoes());
 
   useEffect(() => {
     estadoAtual.current = estado;
   }, [estado]);
 
+  const aplicarAcao = useCallback((acao: AcaoPlanejamento) => {
+    estadoAtual.current = reduzirPlanejamento(estadoAtual.current, acao);
+    dispatch(acao);
+  }, []);
+
   const tentarHidratar = useCallback(async () => {
-    dispatch({ tipo: 'CARREGAR' });
+    aplicarAcao({ tipo: 'CARREGAR' });
     const restauracao = await hidratarPlanejamento(
       armazenamento,
       obterDataCivilHoje(),
     );
-    dispatch(criarAcaoRestauracao(restauracao));
-  }, [armazenamento]);
+    aplicarAcao(criarAcaoRestauracao(restauracao));
+  }, [aplicarAcao, armazenamento]);
 
   useEffect(() => {
     void tentarHidratar();
@@ -237,6 +244,7 @@ export function OnboardingProvider({
       if (
         proximoEstado !== 'active' ||
         atualizandoData.current ||
+        coordenadorMutacoes.current.ocupado ||
         !atual.configuracao ||
         (atual.status !== 'pronto' && atual.status !== 'expirado')
       ) {
@@ -250,23 +258,25 @@ export function OnboardingProvider({
 
       atualizandoData.current = true;
       try {
-        const restauracao = await atualizarPlanejamentoParaData(
-          armazenamento,
-          atual.dados!,
-          hoje,
-        );
-        if (restauracao.tipo === 'erro') {
-          dispatch({
-            tipo: 'ERRO',
-            falha: {
-              origem: restauracao.origem,
-              mensagem: restauracao.mensagem,
-            },
-            preservarPlanejamento: true,
-          });
-        } else {
-          dispatch(criarAcaoRestauracao(restauracao));
-        }
+        await coordenadorMutacoes.current.executar(async () => {
+          const restauracao = await atualizarPlanejamentoParaData(
+            armazenamento,
+            atual.dados!,
+            hoje,
+          );
+          if (restauracao.tipo === 'erro') {
+            aplicarAcao({
+              tipo: 'ERRO',
+              falha: {
+                origem: restauracao.origem,
+                mensagem: restauracao.mensagem,
+              },
+              preservarPlanejamento: true,
+            });
+          } else {
+            aplicarAcao(criarAcaoRestauracao(restauracao));
+          }
+        });
       } finally {
         atualizandoData.current = false;
       }
@@ -276,7 +286,7 @@ export function OnboardingProvider({
       void tratarMudancaDeEstado(proximoEstado);
     });
     return () => assinatura.remove();
-  }, [armazenamento]);
+  }, [aplicarAcao, armazenamento]);
 
   const valor = useMemo<EstadoOnboarding>(
     () => ({
@@ -287,125 +297,135 @@ export function OnboardingProvider({
       falhaHidratacao: estado.falhaHidratacao,
       rascunhoNovoCiclo: estado.rascunhoNovoCiclo,
       definirConfiguracao: (novaConfiguracao) => {
-        dispatch({ tipo: 'CONFIGURAR', configuracao: novaConfiguracao });
+        aplicarAcao({ tipo: 'CONFIGURAR', configuracao: novaConfiguracao });
       },
       confirmarConfiguracao: async () => {
-        if (!estado.configuracao) {
-          throw new Error('A configuração inicial ainda não foi preenchida.');
-        }
-
-        const planejamento = await confirmarPlanejamentoPersistido(
-          armazenamento,
-          estado.configuracao,
-          estado.dados,
-          gerarUuidCiclo,
-        );
-        dispatch({
-          tipo: 'PRONTO',
-          configuracao: planejamento.configuracao,
-          resultado: planejamento.resultado,
-          dados: planejamento.dados,
+        return coordenadorMutacoes.current.executar(async () => {
+          const atual = estadoAtual.current;
+          if (!atual.configuracao) {
+            throw new Error('A configuração inicial ainda não foi preenchida.');
+          }
+          const planejamento = await confirmarPlanejamentoPersistido(
+            armazenamento,
+            atual.configuracao,
+            atual.dados,
+            gerarUuidCiclo,
+          );
+          aplicarAcao({
+            tipo: 'PRONTO',
+            configuracao: planejamento.configuracao,
+            resultado: planejamento.resultado,
+            dados: planejamento.dados,
+          });
+          return planejamento.resultado;
         });
-        return planejamento.resultado;
       },
       registrarGasto: async (dadosGasto, dataAtual = obterDataCivilHoje()) => {
-        if (!estado.dados || !estado.resultado || estado.status !== 'pronto') {
-          throw new Error('O planejamento precisa estar disponível para registrar um gasto.');
-        }
-
-        const planejamento = await registrarGastoPersistido(
-          armazenamento,
-          estado.dados,
-          dadosGasto,
-          dataAtual,
-          gerarUuidGasto,
-        );
-        dispatch({
-          tipo: 'PRONTO',
-          configuracao: planejamento.configuracao,
-          resultado: planejamento.resultado,
-          dados: planejamento.dados,
+        return coordenadorMutacoes.current.executar(async () => {
+          const atual = estadoAtual.current;
+          if (!atual.dados || !atual.resultado || atual.status !== 'pronto') {
+            throw new Error('O planejamento precisa estar disponível para registrar um gasto.');
+          }
+          const planejamento = await registrarGastoPersistido(
+            armazenamento,
+            atual.dados,
+            dadosGasto,
+            dataAtual,
+            gerarUuidGasto,
+          );
+          aplicarAcao({
+            tipo: 'PRONTO',
+            configuracao: planejamento.configuracao,
+            resultado: planejamento.resultado,
+            dados: planejamento.dados,
+          });
+          return planejamento;
         });
-        return planejamento;
       },
       editarGasto: async (
         id,
         dadosGasto,
         dataAtual = obterDataCivilHoje(),
       ) => {
-        if (!estado.dados || !estado.resultado || estado.status !== 'pronto') {
-          throw new Error('O planejamento precisa estar disponível para editar um gasto.');
-        }
-
-        const planejamento = await editarGastoPersistido(
-          armazenamento,
-          estado.dados,
-          id,
-          dadosGasto,
-          dataAtual,
-        );
-        if (planejamento.alterado) {
-          dispatch({
+        return coordenadorMutacoes.current.executar(async () => {
+          const atual = estadoAtual.current;
+          if (!atual.dados || !atual.resultado || atual.status !== 'pronto') {
+            throw new Error('O planejamento precisa estar disponível para editar um gasto.');
+          }
+          const planejamento = await editarGastoPersistido(
+            armazenamento,
+            atual.dados,
+            id,
+            dadosGasto,
+            dataAtual,
+          );
+          if (planejamento.alterado) {
+            aplicarAcao({
+              tipo: 'PRONTO',
+              configuracao: planejamento.configuracao,
+              resultado: planejamento.resultado,
+              dados: planejamento.dados,
+            });
+          }
+          return planejamento;
+        });
+      },
+      excluirGasto: async (id, dataAtual = obterDataCivilHoje()) => {
+        return coordenadorMutacoes.current.executar(async () => {
+          const atual = estadoAtual.current;
+          if (!atual.dados || !atual.resultado || atual.status !== 'pronto') {
+            throw new Error('O planejamento precisa estar disponível para excluir um gasto.');
+          }
+          const planejamento = await excluirGastoPersistido(
+            armazenamento,
+            atual.dados,
+            id,
+            dataAtual,
+          );
+          aplicarAcao({
             tipo: 'PRONTO',
             configuracao: planejamento.configuracao,
             resultado: planejamento.resultado,
             dados: planejamento.dados,
           });
-        }
-        return planejamento;
-      },
-      excluirGasto: async (id, dataAtual = obterDataCivilHoje()) => {
-        if (!estado.dados || !estado.resultado || estado.status !== 'pronto') {
-          throw new Error('O planejamento precisa estar disponível para excluir um gasto.');
-        }
-
-        const planejamento = await excluirGastoPersistido(
-          armazenamento,
-          estado.dados,
-          id,
-          dataAtual,
-        );
-        dispatch({
-          tipo: 'PRONTO',
-          configuracao: planejamento.configuracao,
-          resultado: planejamento.resultado,
-          dados: planejamento.dados,
+          return planejamento;
         });
-        return planejamento;
       },
       prepararNovoCiclo: (dados) => {
-        dispatch({ tipo: 'PREPARAR_NOVO_CICLO', dados });
+        aplicarAcao({ tipo: 'PREPARAR_NOVO_CICLO', dados });
       },
       cancelarNovoCiclo: () => {
-        dispatch({ tipo: 'CANCELAR_NOVO_CICLO' });
+        aplicarAcao({ tipo: 'CANCELAR_NOVO_CICLO' });
       },
       iniciarNovoCiclo: async (dataAtual = obterDataCivilHoje()) => {
-        if (!estado.dados || !estado.rascunhoNovoCiclo) {
-          throw new Error('Preencha e revise os dados do novo ciclo primeiro.');
-        }
-
-        const planejamento = await iniciarNovoCicloPersistido(
-          armazenamento,
-          estado.dados,
-          estado.rascunhoNovoCiclo,
-          dataAtual,
-          gerarUuidCiclo,
-        );
-        dispatch({
-          tipo: 'PRONTO',
-          configuracao: planejamento.configuracao,
-          resultado: planejamento.resultado,
-          dados: planejamento.dados,
+        return coordenadorMutacoes.current.executar(async () => {
+          const atual = estadoAtual.current;
+          if (!atual.dados || !atual.rascunhoNovoCiclo) {
+            throw new Error('Preencha e revise os dados do novo ciclo primeiro.');
+          }
+          const planejamento = await iniciarNovoCicloPersistido(
+            armazenamento,
+            atual.dados,
+            atual.rascunhoNovoCiclo,
+            dataAtual,
+            gerarUuidCiclo,
+          );
+          aplicarAcao({
+            tipo: 'PRONTO',
+            configuracao: planejamento.configuracao,
+            resultado: planejamento.resultado,
+            dados: planejamento.dados,
+          });
+          return planejamento;
         });
-        return planejamento;
       },
       tentarHidratar,
       recomecarPlanejamento: async () => {
         await armazenamento.remover();
-        dispatch({ tipo: 'VAZIO' });
+        aplicarAcao({ tipo: 'VAZIO' });
       },
     }),
-    [armazenamento, estado, tentarHidratar],
+    [aplicarAcao, armazenamento, estado, tentarHidratar],
   );
 
   return <ContextoOnboarding.Provider value={valor}>{children}</ContextoOnboarding.Provider>;

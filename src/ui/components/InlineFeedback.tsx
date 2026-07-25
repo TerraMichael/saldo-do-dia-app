@@ -36,6 +36,7 @@ export function InlineFeedback({
           : 'information-outline';
   return (
     <View
+      accessible
       accessibilityRole={alert ? 'alert' : undefined}
       style={[styles.base, styles[variant]]}
     >

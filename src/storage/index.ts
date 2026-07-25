@@ -33,6 +33,10 @@ export {
   type PlanejamentoConfirmado,
 } from './planning-service';
 export {
+  CoordenadorMutacoes,
+  ErroOperacaoEmAndamento,
+} from './mutation-coordinator';
+export {
   desserializarPlanejamento,
   desserializarPlanejamentoV1,
   desserializarPlanejamentoV2,

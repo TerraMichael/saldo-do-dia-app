@@ -1,0 +1,8 @@
+appId: com.terramichael.saldododia
+---
+- launchApp
+- stopApp
+- launchApp
+- assertVisible: "Você ainda pode gastar hoje"
+- tapOn: "Ver histórico"
+- assertVisible: "Histórico de gastos"

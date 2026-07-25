@@ -19,7 +19,12 @@ release é enviada à loja. A versão pública e a release possuem objetivos
 diferentes; por isso uma versão pública pode ter mais de uma release interna.
 Por exemplo: versão `1.0.1`, release `2`.
 
-Este projeto ainda não configura `ios.buildNumber`, EAS, credenciais, canais de
-atualização ou identificadores de projeto. Leahcim é a assinatura de marca atual
-do produto e não representa, neste repositório, a declaração de uma entidade
-jurídica registrada.
+O projeto está vinculado ao EAS somente para validação da Release Candidate.
+`eas.json` possui exclusivamente o perfil `preview`, com distribuição interna e
+APK Android. Não existe perfil de produção ou submissão, auto incremento,
+`ios.buildNumber`, canal de atualização ou credencial versionada. O vínculo usa
+o proprietário `michaelterra`; segredos e keystore permanecem gerenciados fora
+do repositório.
+
+Leahcim é a assinatura de marca atual do produto e não representa, neste
+repositório, a declaração de uma entidade jurídica registrada.

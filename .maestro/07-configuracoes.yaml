@@ -1,0 +1,11 @@
+appId: com.terramichael.saldododia
+---
+- launchApp
+- tapOn: "Abrir configurações"
+- assertVisible: "Configurações"
+- assertVisible: "Aparência"
+- assertVisible: "Ajuda"
+- assertVisible: "Sobre"
+- assertVisible: "Versão 1.0.0"
+- assertVisible: "Release 1"
+- assertVisible: "Powered by Leahcim"

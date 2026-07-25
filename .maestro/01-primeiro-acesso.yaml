@@ -1,0 +1,10 @@
+appId: com.terramichael.saldododia
+---
+- clearState
+- launchApp
+- assertVisible: "Seu dinheiro até o próximo recebimento"
+- tapOn: "Continuar"
+- assertVisible: "Um planejamento que se ajusta"
+- tapOn: "Continuar"
+- assertVisible: "Seus dados ficam no aparelho"
+- tapOn: "Começar meu planejamento"

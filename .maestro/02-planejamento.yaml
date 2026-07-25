@@ -1,0 +1,9 @@
+appId: com.terramichael.saldododia
+---
+- launchApp
+- assertVisible: "Seu planejamento"
+- tapOn: "Saldo atual"
+- inputText: "100000"
+- hideKeyboard
+- tapOn: "Próximo recebimento"
+- assertVisible: "Total de contas pendentes"

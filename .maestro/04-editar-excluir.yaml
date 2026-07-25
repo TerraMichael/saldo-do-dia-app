@@ -1,0 +1,11 @@
+appId: com.terramichael.saldododia
+---
+- launchApp
+- tapOn: "Ver histórico"
+- assertVisible: "Histórico de gastos"
+- tapOn: "Editar"
+- assertVisible: "Editar gasto"
+- tapOn: "Cancelar"
+- tapOn: "Excluir"
+- assertVisible: "Excluir gasto?"
+- tapOn: "Cancelar"

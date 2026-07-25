@@ -59,6 +59,19 @@ function validarCentavos(valor: Centavos, campo: string): void {
   }
 }
 
+function validarCentavosNaoNegativos(
+  valor: Centavos,
+  campo: string,
+): void {
+  validarCentavos(valor, campo);
+  if (valor < 0) {
+    throw new ErroCalculoFinanceiro(
+      'VALOR_MONETARIO_INVALIDO',
+      `${campo} não pode ser negativo.`,
+    );
+  }
+}
+
 function converterData(data: string, campo: string): number {
   const correspondencia = /^(\d{4})-(\d{2})-(\d{2})$/.exec(data);
 
@@ -93,8 +106,8 @@ export function calcularValorDisponivel(
   contasPendentes: Centavos,
 ): Centavos {
   validarCentavos(saldoAtual, 'saldoAtual');
-  validarCentavos(reserva, 'reserva');
-  validarCentavos(contasPendentes, 'contasPendentes');
+  validarCentavosNaoNegativos(reserva, 'reserva');
+  validarCentavosNaoNegativos(contasPendentes, 'contasPendentes');
 
   const valorDisponivel = saldoAtual - reserva - contasPendentes;
   validarCentavos(valorDisponivel, 'valorDisponivel');
@@ -150,6 +163,12 @@ export function calcularPlanoDiario(entrada: EntradaCalculoDiario): ResultadoCal
   const { totalGastosRegistrados, totalGastosHoje } = entrada.gastosRegistrados.reduce(
     (totais, gasto, indice) => {
     validarCentavos(gasto.valor, `gastosRegistrados[${indice}].valor`);
+    if (gasto.valor <= 0) {
+      throw new ErroCalculoFinanceiro(
+        'VALOR_MONETARIO_INVALIDO',
+        `gastosRegistrados[${indice}].valor deve ser maior que zero.`,
+      );
+    }
     converterData(gasto.data, `gastosRegistrados[${indice}].data`);
     const novoTotal = totais.totalGastosRegistrados + gasto.valor;
     validarCentavos(novoTotal, 'totalGastosRegistrados');

@@ -1,5 +1,9 @@
 # Saldo do Dia
 
+O hardening separa testes Node de domínio/persistência de uma suíte Jest Expo
+para os fluxos críticos de interface. A decisão de cobertura nominal e
+semântica do motor está em `docs/COVERAGE_DECISION_RECORD.md`.
+
 Aplicativo mobile que responde, de forma simples, **quanto você pode gastar hoje sem ficar sem dinheiro até o próximo recebimento**.
 
 O MVP possui uma fundação técnica, onboarding inicial e uma tela principal que
@@ -253,11 +257,34 @@ início para continuar o desenvolvimento em uma nova sessão do Codex CLI.
 
 ## Roadmap e pendências
 
+## Hardening pré-release
+
+O hardening profissional está ativo. A especificação do motor, estratégia de
+testes, mapa de privacidade, gates de release e preparação E2E ficam em
+`docs/`. O motor possui oráculo independente, matriz determinística, testes de
+propriedade, sequências e volumes. A persistência mantém a regra
+calcular → salvar documento v3 completo → publicar estado; mutações concorrentes
+são recusadas por um coordenador simples no provider.
+
+O backup automático Android está desativado. O aplicativo não implementa envio
+de dados financeiros a servidores. Testes de componentes usam Jest Expo e
+Testing Library em comando separado; fluxos Maestro aguardam um APK instalado
+para execução real. APK, E2E real e auditoria TalkBack continuam sendo gates da
+Release Candidate, não resultados deste PR.
+
+A matriz comportamental de interface está em
+[`docs/UI_HARDENING_MATRIX.md`](./docs/UI_HARDENING_MATRIX.md). A avaliação dos
+advisories e de seus caminhos transitivos está em
+[`docs/DEPENDENCY_SECURITY_ASSESSMENT.md`](./docs/DEPENDENCY_SECURITY_ASSESSMENT.md).
+Os achados altos atuais são ferramentas Node não alcançáveis no aplicativo
+instalado; não foi aplicado `npm audit fix --force` nem atualização isolada do
+SDK.
+
 Permanecem fora do escopo atual: categorias; edição da data do gasto;
 comparação entre ciclos; exportação ou backup local; autenticação; registro ou
 cadastro; armazenamento e sincronização em nuvem; notificações; e gamificação.
 
 Também permanecem pendentes a validação completa em APK de preview/release,
-testes automatizados de interface e navegação, validação visual automatizada,
+execução E2E real, validação visual automatizada,
 auditoria com TalkBack em diferentes fabricantes, auditoria em aparelhos físicos
 e tamanhos variados e uma atualização futura do Expo SDK.
