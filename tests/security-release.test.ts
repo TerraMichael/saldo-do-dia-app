@@ -82,6 +82,12 @@ test('release preserva identidade, versão e EAS mínimo somente para preview AP
   assert.equal(expo.android.versionCode, 1);
   assert.equal(expo.android.package, 'com.terramichael.saldododia');
   assert.equal(expo.extra.defaultLocale, 'pt-BR');
+
+  const localizationPlugin = expo.plugins.find(
+    (plugin: unknown) => Array.isArray(plugin) && plugin[0] === 'expo-localization',
+  );
+  assert.ok(Array.isArray(localizationPlugin));
+  assert.deepEqual(localizationPlugin[1].supportedLocales.android, ['pt']);
   assert.equal(expo.experiments.typedRoutes, true);
   assert.equal(expo.owner, 'michaelterra');
   assert.match(expo.extra.eas.projectId, /^[0-9a-f-]{36}$/i);

@@ -63,7 +63,7 @@ pelo produto.
 - Expo Router com rotas tipadas;
 - AsyncStorage para persistência local do planejamento;
 - Expo Crypto para UUID v4 dos novos gastos;
-- Expo Localization configurado para `pt-BR` no Android;
+- Expo Localization declara `pt` como locale Android suportado (qualificador aceito pelo AAPT do SDK 54), mantendo `pt-BR` como locale padrão e de formatação em runtime;
 - nova arquitetura do React Native habilitada;
 - ESLint com a configuração flat do Expo;
 - testes baseados no test runner nativo do Node, com `tsx` para executar arquivos
