@@ -47,11 +47,12 @@ primeiro comando de produto e não foram classificadas como falha do app.
 - Densidade física: 600 dpi
 - Densidade configurada: 560 dpi
 - Driver ADB: Samsung Electronics Co., Ltd. 2.21.4.0
-- Serial usado explicitamente no Maestro: `RQCX30463KY`
+- Dispositivo físico selecionado explicitamente pelo identificador ADB
+- Serial omitido do repositório por privacidade
 
 Todos os comandos de shell destinados ao Galaxy foram executados com
 `adb -d`. Todos os fluxos Maestro foram executados com
-`--udid RQCX30463KY`, mantendo o emulador conectado sem risco de seleção
+`--udid <serial-do-dispositivo>`, mantendo o emulador conectado sem risco de seleção
 acidental.
 
 ## Resultado dos fluxos Maestro
@@ -117,8 +118,16 @@ depois de uma mutação:
 A correção final mantém estável o slot do indicador de processamento do
 `AppButton` e cancela animações de pressão no unmount. A regressão Node,
 UI, lint, typecheck, Expo Doctor e export Android passou antes da geração
-do APK `bb6a34d`. Os fluxos reais de planejamento, registro, edição,
-exclusão e novo ciclo passaram nesse APK sem a exceção.
+do APK `bb6a34d`. Esse foi o APK que validou inicialmente a correção
+Fabric/Reanimated: os fluxos reais de planejamento, registro, edição,
+exclusão e novo ciclo passaram nele sem a exceção.
+
+O APK final aprovado para merge corresponde ao commit de produto
+`95dc43341d885f83c55dc648f5cd8ae6d0974502`, EAS Build
+`1085ee0e-e7c2-40ca-a05a-816a547dad5e`, SHA-256
+`65EA3898896881E5F594E5FB6DCE5EB87C94A790C494129BFCA468C0A0FB0C71`.
+Os sete fluxos também passaram nesse APK final, sem regressão da correção
+Fabric/Reanimated.
 
 Durante a validação humana do primeiro APK aprovado, o TalkBack não anunciou
 automaticamente o erro de valor obrigatório no formulário de gasto. O erro
