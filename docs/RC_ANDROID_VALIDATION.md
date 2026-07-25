@@ -38,6 +38,22 @@ ao iniciar novas sessões do Maestro depois do reinício do Windows. Um cold
 boot do mesmo AVD estabilizou o ambiente. Essas falhas ocorreram antes do
 primeiro comando de produto e não foram classificadas como falha do app.
 
+### Dispositivo físico Samsung
+
+- Fabricante e modelo: Samsung Galaxy S24 Ultra (`SM-S928B`)
+- Android: 16 / API 36
+- Arquitetura: arm64-v8a
+- Resolução: 1440 x 3120
+- Densidade física: 600 dpi
+- Densidade configurada: 560 dpi
+- Driver ADB: Samsung Electronics Co., Ltd. 2.21.4.0
+- Serial usado explicitamente no Maestro: `RQCX30463KY`
+
+Todos os comandos de shell destinados ao Galaxy foram executados com
+`adb -d`. Todos os fluxos Maestro foram executados com
+`--udid RQCX30463KY`, mantendo o emulador conectado sem risco de seleção
+acidental.
+
 ## Resultado dos fluxos Maestro
 
 | Fluxo | Resultado no APK | Evidência principal |
@@ -49,6 +65,10 @@ primeiro comando de produto e não foram classificadas como falha do app.
 | 05 novo ciclo | passou | revisão, arquivamento, ciclo novo vazio e ciclo anterior listado |
 | 06 persistência | passou | force-stop, nova abertura e histórico disponível |
 | 07 configurações | passou | temas, Ajuda, versão, release e assinatura Leahcim |
+
+Os sete fluxos passaram tanto no emulador quanto no Galaxy S24 Ultra físico.
+No Galaxy, não houve `FATAL EXCEPTION`, ANR,
+`RetryableMountingLayerException` ou `Unable to find viewState`.
 
 Os artefatos locais do Maestro, screenshots e logs ficam fora do
 repositório em `%LOCALAPPDATA%\AndroidValidation\reports`.
@@ -64,6 +84,11 @@ repositório em `%LOCALAPPDATA%\AndroidValidation\reports`.
   e histórico passaram sem dependência de rede.
 - Reinício completo do Windows e cold boot do AVD: o APK e os dados
   permaneceram utilizáveis.
+- Instalação limpa no Galaxy S24 Ultra: passou.
+- Modo avião real no Galaxy: registro, persistência, force-stop e reabertura
+  passaram; o modo avião foi restaurado ao estado anterior.
+- Fonte ampliada no Galaxy: Home, histórico, temas, Ajuda e Sobre passaram
+  com escala 1,3; a escala original 0,9 foi restaurada.
 
 Isso não equivale a uma atualização de loja: não existe APK anterior com
 version code e assinatura adequados para validar esse cenário.
@@ -100,29 +125,32 @@ exclusão e novo ciclo passaram nesse APK sem a exceção.
 Não foram aprovados nesta execução:
 
 - TalkBack operado por uma pessoa;
-- aparelhos físicos Samsung e Motorola;
+- aparelho físico Motorola;
 - atualização real de loja;
-- comportamento de partida fria nativa em fabricantes diferentes;
+- reinício completo do Galaxy e abertura após boot;
 - Play Console e publicação.
 
-Esses itens não podem ser inferidos de um emulador genérico. A Draft PR
-deve permanecer sem merge até decisão humana explícita sobre esses riscos
-residuais ou execução do checklist em dispositivos reais.
+O Galaxy S24 Ultra físico está aprovado nos fluxos automatizados, modo avião,
+fonte ampliada, temas e partida fria do processo. TalkBack continua pendente
+porque exige navegação e avaliação humanas. A Draft PR deve permanecer sem
+merge até execução dos itens restantes ou decisão humana explícita sobre
+esses riscos residuais.
 
 ## Checklist humano restante
 
-1. Instalar o APK em ao menos um Samsung e um Motorola compatíveis.
-2. Repetir primeiro acesso, planejamento, gasto, edição, exclusão e novo ciclo.
-3. Ativar TalkBack e validar ordem, labels, estados busy/disabled, modais,
+1. Ativar TalkBack no Galaxy e validar ordem, labels, estados busy/disabled,
+   campos, erros, valores monetários, modais,
    exclusão destrutiva, tour e isolamento do conteúdo atrás do overlay.
-4. Repetir em fonte ampliada, claro, escuro e modo avião.
+2. Confirmar que não há anúncios duplicados nem elementos invisíveis focáveis.
+3. Reiniciar completamente o Galaxy e confirmar dados e preferências.
+4. Instalar e repetir os fluxos críticos em um Motorola compatível.
 5. Registrar modelo, Android, resolução, densidade, resultado e evidências.
 
 ## Decisão desta rodada
 
 **BLOQUEADO PARA MERGE**
 
-O APK e os sete fluxos automatizados reais foram aprovados no emulador.
-O bloqueio permanece exclusivamente nos gates humanos obrigatórios de
-TalkBack e fabricantes físicos, para os quais não houve dispositivo real
-disponível. A PR permanece Draft e nenhum merge ou envio à loja foi feito.
+O APK e os sete fluxos automatizados reais foram aprovados no emulador e no
+Galaxy S24 Ultra físico. O bloqueio permanece nos gates humanos de TalkBack,
+reinício completo do Galaxy e validação em Motorola físico. A PR permanece
+Draft e nenhum merge ou envio à loja foi feito.
