@@ -1,6 +1,36 @@
+import { execFileSync } from 'node:child_process';
 import { readdir, readFile } from 'node:fs/promises';
-import { execSync } from 'node:child_process';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
+
+const SENSITIVE_FILE_EXTENSIONS = new Set([
+  '.jks',
+  '.keystore',
+  '.p12',
+  '.pem',
+  '.key',
+]);
+
+export function isSensitiveFilePath(filePath: string): boolean {
+  const basename = path.basename(filePath.replaceAll('\\', '/')).toLowerCase();
+
+  if (SENSITIVE_FILE_EXTENSIONS.has(path.extname(basename))) return true;
+  if (basename === 'google-services.json') return true;
+  if (/^service-account.*\.json$/.test(basename)) return true;
+  if (basename === '.env.example') return false;
+
+  return basename === '.env' || basename.startsWith('.env.');
+}
+
+export function listRepositoryFiles(directory = process.cwd()): string[] {
+  return execFileSync(
+    'git',
+    ['ls-files', '--cached', '--others', '--exclude-standard'],
+    { cwd: directory, encoding: 'utf8' },
+  )
+    .split(/\r?\n/)
+    .filter(Boolean);
+}
 
 async function walk(directory: string): Promise<string[]> {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -21,15 +51,9 @@ async function main() {
     const content = await readFile(file, 'utf8');
     if (forbiddenNetwork.test(content)) findings.push(`${file}: comunicação de rede`);
   }
-  const repositoryFiles = execSync(
-    'git ls-files --cached --others --exclude-standard',
-    { encoding: 'utf8' },
-  )
-    .split(/\r?\n/)
-    .filter(Boolean);
-  for (const file of repositoryFiles) {
-    if (/\.(?:jks|keystore|p12|pem|key)$/i.test(file) ||
-        /(?:google-services\.json|service-account.*\.json|^|\/)\.env(?:\.|$)/i.test(file)) {
+
+  for (const file of listRepositoryFiles()) {
+    if (isSensitiveFilePath(file)) {
       findings.push(`${file}: arquivo sensível`);
       continue;
     }
@@ -39,10 +63,17 @@ async function main() {
       findings.push(`${file}: possível segredo`);
     }
   }
+
   if (findings.length) {
     throw new Error(`Auditoria de segurança falhou:\n${findings.join('\n')}`);
   }
   console.log('Auditoria de segurança: nenhuma chamada de rede de produto encontrada.');
 }
 
-void main();
+const executedFile = process.argv[1]
+  ? pathToFileURL(path.resolve(process.argv[1])).href
+  : undefined;
+
+if (import.meta.url === executedFile) {
+  void main();
+}

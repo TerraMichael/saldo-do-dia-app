@@ -1,7 +1,13 @@
 import assert from 'node:assert/strict';
-import { readFile, readdir } from 'node:fs/promises';
+import { execFileSync } from 'node:child_process';
+import { mkdtemp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
+import {
+  isSensitiveFilePath,
+  listRepositoryFiles,
+} from '../scripts/audit-security';
 
 async function sources(directory: string): Promise<string[]> {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -71,6 +77,70 @@ test('gitignore protege segredos e artefatos de cobertura', async () => {
     'coverage/',
   ]) {
     assert.match(ignore, new RegExp(pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  }
+});
+
+test('auditoria reconhece arquivos sensíveis na raiz e em subdiretórios', () => {
+  for (const file of [
+    'google-services.json',
+    'config/google-services.json',
+    'service-account.json',
+    'secrets/service-account-prod.json',
+    'nested/service-account-ci-preview.json',
+    '.env',
+    'config/.env.local',
+    'config/.env.production',
+    'release.jks',
+    'certificates/release.keystore',
+    'certificates/app.p12',
+    'certificates/public.pem',
+    'certificates/private.key',
+  ]) {
+    assert.equal(isSensitiveFilePath(file), true, file);
+  }
+});
+
+test('auditoria não confunde templates, documentação ou JSON comum com segredos', () => {
+  for (const file of [
+    'google-services.json.md',
+    'examples/service-account.json.example',
+    '.env.example',
+    'templates/.env.example',
+    'docs/security.md',
+    'docs/google-services.md',
+    'config/app.json',
+    'config/service.json',
+  ]) {
+    assert.equal(isSensitiveFilePath(file), false, file);
+  }
+});
+
+test('auditoria inclui arquivo ignorado rastreado com force-add', async () => {
+  const repository = await mkdtemp(path.join(os.tmpdir(), 'saldo-audit-'));
+
+  try {
+    execFileSync('git', ['init', '--quiet'], { cwd: repository });
+    await writeFile(
+      path.join(repository, '.gitignore'),
+      'google-services.json\nnested/service-account*.json\n',
+    );
+    await mkdir(path.join(repository, 'nested'));
+    await writeFile(path.join(repository, 'google-services.json'), '{}');
+    await writeFile(path.join(repository, 'nested', 'service-account-prod.json'), '{}');
+
+    execFileSync('git', ['add', '.gitignore'], { cwd: repository });
+    execFileSync(
+      'git',
+      ['add', '--force', 'google-services.json', 'nested/service-account-prod.json'],
+      { cwd: repository },
+    );
+
+    const files = listRepositoryFiles(repository);
+    assert.equal(files.includes('google-services.json'), true);
+    assert.equal(files.includes('nested/service-account-prod.json'), true);
+    assert.equal(files.filter(isSensitiveFilePath).length, 2);
+  } finally {
+    await rm(repository, { recursive: true, force: true });
   }
 });
 
