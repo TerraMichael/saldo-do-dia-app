@@ -1,7 +1,8 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { type ComponentProps, useMemo } from 'react';
+import { type ComponentProps, useEffect, useMemo } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, {
+  cancelAnimation,
   FadeIn,
   FadeOut,
   ReduceMotion,
@@ -55,6 +56,14 @@ export function AppButton({
     opacity: opacity.value,
     transform: [{ scale: scale.value }],
   }));
+
+  useEffect(
+    () => () => {
+      cancelAnimation(scale);
+      cancelAnimation(opacity);
+    },
+    [opacity, scale],
+  );
 
   function animatePress(pressed: boolean) {
     if (indisponivel) return;

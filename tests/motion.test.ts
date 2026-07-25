@@ -78,6 +78,8 @@ test('AppButton preserva acessibilidade e desativa movimento quando indisponíve
   assert.match(source, /busy: processing, disabled: indisponivel/);
   assert.match(source, /if \(indisponivel\) return/);
   assert.match(source, /useReducedMotion\(\)/);
+  assert.match(source, /cancelAnimation\(scale\)/);
+  assert.match(source, /cancelAnimation\(opacity\)/);
 });
 
 test('seção recolhível preserva contrato acessível e movimento reduzido', async () => {
