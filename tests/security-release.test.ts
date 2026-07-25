@@ -5,8 +5,10 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import {
+  findRepositorySecretFindings,
   isSensitiveFilePath,
   listRepositoryFiles,
+  parseGitFileList,
 } from '../scripts/audit-security';
 
 async function sources(directory: string): Promise<string[]> {
@@ -139,6 +141,98 @@ test('auditoria inclui arquivo ignorado rastreado com force-add', async () => {
     assert.equal(files.includes('google-services.json'), true);
     assert.equal(files.includes('nested/service-account-prod.json'), true);
     assert.equal(files.filter(isSensitiveFilePath).length, 2);
+  } finally {
+    await rm(repository, { recursive: true, force: true });
+  }
+});
+
+test('enumeração Git preserva espaços, Unicode e quebras de linha incomuns', () => {
+  const paths = [
+    'segredos-á/release.key',
+    'pasta com espaços/arquivo.properties',
+    'nome-com\nquebra.txt',
+  ];
+
+  assert.deepEqual(parseGitFileList(`${paths.join('\0')}\0`), paths);
+});
+
+test('auditoria detecta caminho Unicode ignorado após force-add', async () => {
+  const repository = await mkdtemp(path.join(os.tmpdir(), 'saldo-audit-unicode-'));
+  const sensitiveDirectory = path.join(repository, 'segredos-á');
+  const spacedDirectory = path.join(repository, 'segredos com espaços');
+
+  try {
+    execFileSync('git', ['init', '--quiet'], { cwd: repository });
+    await writeFile(
+      path.join(repository, '.gitignore'),
+      'segredos-á/\nsegredos com espaços/\n',
+    );
+    await mkdir(sensitiveDirectory);
+    await mkdir(spacedDirectory);
+    await writeFile(path.join(sensitiveDirectory, 'release.key'), 'conteúdo');
+    await writeFile(path.join(spacedDirectory, 'release.key'), 'conteúdo');
+
+    execFileSync('git', ['add', '.gitignore'], { cwd: repository });
+    execFileSync(
+      'git',
+      [
+        'add',
+        '--force',
+        'segredos-á/release.key',
+        'segredos com espaços/release.key',
+      ],
+      { cwd: repository },
+    );
+
+    const files = listRepositoryFiles(repository);
+    assert.equal(files.includes('segredos-á/release.key'), true);
+    assert.equal(files.includes('segredos com espaços/release.key'), true);
+    assert.deepEqual(
+      files.filter(isSensitiveFilePath).sort(),
+      ['segredos com espaços/release.key', 'segredos-á/release.key'].sort(),
+    );
+  } finally {
+    await rm(repository, { recursive: true, force: true });
+  }
+});
+
+test('auditoria inspeciona segredos em todo arquivo textual e ignora binário', async () => {
+  const repository = await mkdtemp(path.join(os.tmpdir(), 'saldo-audit-content-'));
+  const expoToken = ['EXPO', '_TOKEN=', 'abcdefghijklmnopqrstuvwxyz012345'].join('');
+  const bearerToken = ['Bearer ', 'abcdefghijklmnopqrstuvwxyz012345'].join('');
+  const privateKey = [
+    '-----BEGIN ',
+    'PRIVATE KEY-----\nconteúdo\n-----END PRIVATE KEY-----',
+  ].join('');
+
+  try {
+    execFileSync('git', ['init', '--quiet'], { cwd: repository });
+    await writeFile(path.join(repository, 'deploy.sh'), expoToken);
+    await writeFile(path.join(repository, 'gradle.properties'), bearerToken);
+    await writeFile(path.join(repository, 'release.toml'), privateKey);
+    await writeFile(path.join(repository, 'credencial'), expoToken);
+    await writeFile(
+      path.join(repository, 'imagem.png'),
+      Buffer.concat([
+        Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x00, 0xff]),
+        Buffer.from(bearerToken),
+      ]),
+    );
+    execFileSync(
+      'git',
+      ['add', 'deploy.sh', 'gradle.properties', 'release.toml', 'credencial', 'imagem.png'],
+      { cwd: repository },
+    );
+
+    assert.deepEqual(
+      (await findRepositorySecretFindings(repository)).sort(),
+      [
+        'credencial: possível segredo',
+        'deploy.sh: possível segredo',
+        'gradle.properties: possível segredo',
+        'release.toml: possível segredo',
+      ].sort(),
+    );
   } finally {
     await rm(repository, { recursive: true, force: true });
   }

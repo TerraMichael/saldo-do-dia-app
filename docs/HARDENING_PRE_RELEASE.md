@@ -29,7 +29,7 @@ O oráculo financeiro é independente; cenários determinísticos exibem seed e 
 
 ## Resultados finais
 
-- `npm test`: 300/300 após três regressões da auditoria de arquivos sensíveis.
+- `npm test`: 303/303 após seis regressões da auditoria de arquivos sensíveis.
 - `npm run test:ui`: 57/57 em duas execuções consecutivas sem alteração de produção entre elas.
 - matriz: 720 cenários; propriedades: 1.000 casos; seed `1511853338`.
 - cobertura crítica: motor com 100% statements/functions/lines, 95,45% branches
@@ -76,7 +76,7 @@ remoção efetiva e então eliminada.
 Os dois gates executáveis anteriormente abertos foram tratados: a suíte UI
 exercita componentes reais de todos os fluxos críticos e rastreia cada requisito
 em `UI_HARDENING_MATRIX.md`; as duas branches nominais do c8 foram analisadas
-individualmente sem `ignore` ou redução de meta. A regressão final reúne 300
+individualmente sem `ignore` ou redução de meta. A regressão final reúne 303
 testes Node e 57 testes UI em duas execuções consecutivas, além de lint,
 typecheck, Doctor, introspecção, auditorias, benchmarks, validação estrutural do
 Maestro e export Android. Não há bloqueador ou crítico executável aberto.
