@@ -20,6 +20,8 @@ Antes das alterações: Node 24.17.0, npm 11.13.0, 273 testes em 3,15 s, lint e 
 | HR-05 | Testes UI | alto | A suíte inicial cobria apenas sete componentes compartilhados | 57 testes, incluindo 50 integrações com telas reais, falha, processamento e duplicidade; matriz rastreável em `UI_HARDENING_MATRIX.md` | corrigido |
 | HR-06 | Supply chain | médio | Versão inicial de RNTL exigia React 19.2 | Fixada série 13.3.3 compatível | corrigido |
 | HR-07 | APK | informativo | Nenhum APK permitido neste PR | E2E/roteiro preparados para próxima etapa | pendente planejado |
+| HR-08 | Ciclo de vida | médio | Retorno a `active` durante mutação descartava a atualização civil | Atualização coalescida aguarda o coordenador, lê o estado confirmado mais recente e não publica após desmontagem | corrigido |
+| HR-09 | Segurança | médio | `EXPO_TOKEN=` vazio era tratado como credencial | Detecção exige valor com formato mínimo de token e continua inspecionando `.env.example` | corrigido |
 
 ## Garantias implementadas
 
@@ -29,7 +31,7 @@ O oráculo financeiro é independente; cenários determinísticos exibem seed e 
 
 ## Resultados finais
 
-- `npm test`: 303/303 após seis regressões da auditoria de arquivos sensíveis.
+- `npm test`: 307/307 após regressões de atualização civil concorrente e `EXPO_TOKEN`.
 - `npm run test:ui`: 57/57 em duas execuções consecutivas sem alteração de produção entre elas.
 - matriz: 720 cenários; propriedades: 1.000 casos; seed `1511853338`.
 - cobertura crítica: motor com 100% statements/functions/lines, 95,45% branches
@@ -76,7 +78,7 @@ remoção efetiva e então eliminada.
 Os dois gates executáveis anteriormente abertos foram tratados: a suíte UI
 exercita componentes reais de todos os fluxos críticos e rastreia cada requisito
 em `UI_HARDENING_MATRIX.md`; as duas branches nominais do c8 foram analisadas
-individualmente sem `ignore` ou redução de meta. A regressão final reúne 303
+individualmente sem `ignore` ou redução de meta. A regressão final reúne 307
 testes Node e 57 testes UI em duas execuções consecutivas, além de lint,
 typecheck, Doctor, introspecção, auditorias, benchmarks, validação estrutural do
 Maestro e export Android. Não há bloqueador ou crítico executável aberto.

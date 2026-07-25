@@ -238,6 +238,40 @@ test('auditoria inspeciona segredos em todo arquivo textual e ignora binário', 
   }
 });
 
+test('.env.example aceita placeholder vazio, mas rejeita token real', async () => {
+  const repository = await mkdtemp(path.join(os.tmpdir(), 'saldo-audit-env-example-'));
+  const assignment = ['EXPO', '_TOKEN'].join('');
+  const example = path.join(repository, '.env.example');
+
+  try {
+    execFileSync('git', ['init', '--quiet'], { cwd: repository });
+    await writeFile(
+      example,
+      [
+        `${assignment}=`,
+        `${assignment}=   `,
+        `${assignment}=""`,
+        `${assignment}=''`,
+        `${assignment}=placeholder`,
+        `${assignment}=\${EXPO_TOKEN}`,
+      ].join('\n'),
+    );
+    execFileSync('git', ['add', '.env.example'], { cwd: repository });
+    assert.deepEqual(await findRepositorySecretFindings(repository), []);
+
+    await writeFile(
+      example,
+      `${assignment}=abcdefghijklmnopqrstuvwxyz012345`,
+    );
+    assert.deepEqual(
+      await findRepositorySecretFindings(repository),
+      ['.env.example: possível segredo'],
+    );
+  } finally {
+    await rm(repository, { recursive: true, force: true });
+  }
+});
+
 test('release preserva identidade, versão e EAS mínimo somente para preview APK', async () => {
   const source = await readFile('app.json', 'utf8');
   const { expo } = JSON.parse(source);

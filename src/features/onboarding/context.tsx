@@ -1,6 +1,5 @@
 import {
   AppState,
-  type AppStateStatus,
 } from 'react-native';
 import {
   createContext,
@@ -44,6 +43,7 @@ import {
   type EstadoRestauracaoPlanejamento,
 } from '../../storage';
 import { obterDataCivilHoje } from './model';
+import { AgendadorAtualizacaoData } from './date-refresh-scheduler';
 
 export type StatusPlanejamento =
   | 'carregando'
@@ -213,7 +213,6 @@ export function OnboardingProvider({
 }: OnboardingProviderProps) {
   const [estado, dispatch] = useReducer(reduzirPlanejamento, ESTADO_INICIAL);
   const estadoAtual = useRef(estado);
-  const atualizandoData = useRef(false);
   const coordenadorMutacoes = useRef(new CoordenadorMutacoes());
 
   useEffect(() => {
@@ -239,53 +238,60 @@ export function OnboardingProvider({
   }, [tentarHidratar]);
 
   useEffect(() => {
-    async function tratarMudancaDeEstado(proximoEstado: AppStateStatus) {
-      const atual = estadoAtual.current;
-      if (
-        proximoEstado !== 'active' ||
-        atualizandoData.current ||
-        coordenadorMutacoes.current.ocupado ||
-        !atual.configuracao ||
-        (atual.status !== 'pronto' && atual.status !== 'expirado')
-      ) {
-        return;
-      }
+    let montado = true;
+    const agendador = new AgendadorAtualizacaoData(
+      coordenadorMutacoes.current,
+      async (podePublicar) => {
+        const atual = estadoAtual.current;
+        if (
+          !atual.configuracao ||
+          !atual.dados ||
+          (
+            atual.status !== 'pronto' &&
+            atual.status !== 'expirado' &&
+            atual.status !== 'erro'
+          )
+        ) {
+          return;
+        }
 
-      const hoje = obterDataCivilHoje();
-      if (atual.configuracao.dataAtual === hoje) {
-        return;
-      }
+        const hoje = obterDataCivilHoje();
+        if (atual.configuracao.dataAtual === hoje) {
+          return;
+        }
 
-      atualizandoData.current = true;
-      try {
-        await coordenadorMutacoes.current.executar(async () => {
-          const restauracao = await atualizarPlanejamentoParaData(
-            armazenamento,
-            atual.dados!,
-            hoje,
-          );
-          if (restauracao.tipo === 'erro') {
-            aplicarAcao({
-              tipo: 'ERRO',
-              falha: {
-                origem: restauracao.origem,
-                mensagem: restauracao.mensagem,
-              },
-              preservarPlanejamento: true,
-            });
-          } else {
-            aplicarAcao(criarAcaoRestauracao(restauracao));
-          }
-        });
-      } finally {
-        atualizandoData.current = false;
-      }
-    }
+        const restauracao = await atualizarPlanejamentoParaData(
+          armazenamento,
+          atual.dados,
+          hoje,
+        );
+        if (!montado || !podePublicar()) return;
+
+        if (restauracao.tipo === 'erro') {
+          aplicarAcao({
+            tipo: 'ERRO',
+            falha: {
+              origem: restauracao.origem,
+              mensagem: restauracao.mensagem,
+            },
+            preservarPlanejamento: true,
+          });
+        } else {
+          aplicarAcao(criarAcaoRestauracao(restauracao));
+        }
+      },
+    );
 
     const assinatura = AppState.addEventListener('change', (proximoEstado) => {
-      void tratarMudancaDeEstado(proximoEstado);
+      if (proximoEstado === 'active') {
+        agendador.solicitar();
+      }
     });
-    return () => assinatura.remove();
+    return () => {
+      montado = false;
+      agendador.desmontar();
+      assinatura.remove();
+    };
   }, [aplicarAcao, armazenamento]);
 
   const valor = useMemo<EstadoOnboarding>(

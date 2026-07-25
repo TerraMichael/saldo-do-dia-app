@@ -9,9 +9,18 @@ export class ErroOperacaoEmAndamento extends Error {
 
 export class CoordenadorMutacoes {
   private emAndamento = false;
+  private readonly aguardandoLiberacao = new Set<() => void>();
 
   get ocupado(): boolean {
     return this.emAndamento;
+  }
+
+  aguardarLiberacao(): Promise<void> {
+    if (!this.emAndamento) return Promise.resolve();
+
+    return new Promise((resolve) => {
+      this.aguardandoLiberacao.add(resolve);
+    });
   }
 
   async executar<T>(operacao: () => Promise<T>): Promise<T> {
@@ -24,6 +33,9 @@ export class CoordenadorMutacoes {
       return await operacao();
     } finally {
       this.emAndamento = false;
+      const aguardando = [...this.aguardandoLiberacao];
+      this.aguardandoLiberacao.clear();
+      aguardando.forEach((resolver) => resolver());
     }
   }
 }

@@ -12,7 +12,7 @@ const SENSITIVE_FILE_EXTENSIONS = new Set([
 ]);
 
 const SECRET_CONTENT =
-  /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|Bearer\s+[A-Za-z0-9._-]{20,}|EXPO_TOKEN\s*=/i;
+  /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|Bearer\s+[A-Za-z0-9._-]{20,}|EXPO_TOKEN[ \t]*=[ \t]*(?:"[A-Za-z0-9._-]{20,}"|'[A-Za-z0-9._-]{20,}'|[A-Za-z0-9._-]{20,})/i;
 
 export function isSensitiveFilePath(filePath: string): boolean {
   const basename = path.basename(filePath.replaceAll('\\', '/')).toLowerCase();
