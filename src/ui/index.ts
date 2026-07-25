@@ -1,4 +1,5 @@
 export { AppButton } from './components/AppButton';
+export { AppFieldError } from './components/AppFieldError';
 export { AppCard } from './components/AppCard';
 export { AppHeader } from './components/AppHeader';
 export { AppScreen } from './components/AppScreen';

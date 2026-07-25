@@ -418,18 +418,35 @@ describe('registro e edição reais', () => {
     expect(await screen.findByText(/no máximo 80 caracteres/i)).toBeTruthy();
     expect(mockRouter.dismissTo).not.toHaveBeenCalled();
   });
-  test('registro valida valor obrigatório e mantém descrição', async () => {
+  test('registro anuncia erro obrigatório uma vez, preserva o formulário e permite nova tentativa', async () => {
+    const registrarGasto = jest.fn()
+      .mockRejectedValueOnce(new Error('Informe o valor do gasto.'))
+      .mockResolvedValueOnce({});
     mockOnboardingValue = contexto({
-      registrarGasto: jest.fn(async () => {
-        throw new Error('Informe o valor do gasto.');
-      }),
+      registrarGasto,
     });
     renderFeature(<ExpenseForm />);
+    expect(screen.queryByRole('alert')).toBeNull();
     fireEvent.changeText(screen.getByLabelText('Descrição (opcional)'), 'Mercado');
     fireEvent.press(screen.getByRole('button', { name: 'Registrar gasto' }));
     expect(await screen.findByText(/Informe o valor do gasto/i)).toBeTruthy();
+    const alert = screen.getByRole('alert');
+    expect(alert.props.accessibilityLiveRegion).toBe('assertive');
+    expect(alert.props.accessibilityLabel).toBe(
+      'Erro em Valor do gasto: Informe o valor do gasto.',
+    );
+    expect(screen.getAllByRole('alert')).toHaveLength(1);
     expect(screen.getByDisplayValue('Mercado')).toBeTruthy();
-    expect(mockOnboardingValue.registrarGasto).toHaveBeenCalledTimes(1);
+    expect(registrarGasto).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText('Gasto registrado')).toBeNull();
+    expect(mockRouter.dismissTo).not.toHaveBeenCalled();
+
+    fireEvent.changeText(screen.getByLabelText('Valor do gasto'), '10,00');
+    expect(screen.queryByRole('alert')).toBeNull();
+    fireEvent.press(screen.getByRole('button', { name: 'Registrar gasto' }));
+    await waitFor(() => expect(registrarGasto).toHaveBeenCalledTimes(2));
+    expect(await screen.findByText('Gasto registrado')).toBeTruthy();
+    expect(mockRouter.dismissTo).toHaveBeenCalledWith('/home');
   });
 
   test('registro bloqueia duplicidade, dá sucesso e navega após persistir', async () => {
@@ -442,6 +459,10 @@ describe('registro e edição reais', () => {
     fireEvent.press(button);
     fireEvent.press(button);
     expect(registrarGasto).toHaveBeenCalledTimes(1);
+    expect(
+      screen.getByRole('button', { name: 'Registrando…' }).props
+        .accessibilityState,
+    ).toEqual({ busy: true, disabled: true });
     expect(mockRouter.dismissTo).not.toHaveBeenCalled();
     await act(async () => persistence.resolve({} as never));
     expect(await screen.findByText('Gasto registrado')).toBeTruthy();

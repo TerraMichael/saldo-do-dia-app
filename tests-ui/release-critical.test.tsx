@@ -79,6 +79,23 @@ test('campo textual mantém label, hint e alteração observável', () => {
   expect(screen.getByText('Ajuda você a identificar o gasto.')).toBeTruthy();
 });
 
+test('campo textual anuncia erro por uma única região viva', () => {
+  renderWithTheme(
+    <AppTextField
+      error="A descrição deve ter no máximo 80 caracteres."
+      label="Descrição (opcional)"
+      onChangeText={jest.fn()}
+      value=""
+    />,
+  );
+  const alert = screen.getByRole('alert');
+  expect(alert.props.accessibilityLiveRegion).toBe('assertive');
+  expect(alert.props.accessibilityLabel).toBe(
+    'Erro em Descrição (opcional): A descrição deve ter no máximo 80 caracteres.',
+  );
+  expect(screen.getAllByRole('alert')).toHaveLength(1);
+});
+
 test('campo monetário apresenta erro próximo ao controle', () => {
   renderWithTheme(
     <MoneyInput
@@ -90,6 +107,12 @@ test('campo monetário apresenta erro próximo ao controle', () => {
   );
   expect(screen.getByLabelText('Valor do gasto')).toBeTruthy();
   expect(screen.getByText('Informe o valor do gasto.')).toBeTruthy();
+  const alert = screen.getByRole('alert');
+  expect(alert.props.accessibilityLiveRegion).toBe('assertive');
+  expect(alert.props.accessibilityLabel).toBe(
+    'Erro em Valor do gasto: Informe o valor do gasto.',
+  );
+  expect(screen.getAllByRole('alert')).toHaveLength(1);
 });
 
 test('feedback apresenta texto e semântica de alerta', () => {

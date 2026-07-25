@@ -9,6 +9,7 @@ import {
 } from '../../../shared/money';
 import {
   AppButton,
+  AppFieldError,
   AppHeader,
   AppScreen,
   AppStateView,
@@ -219,9 +220,10 @@ export function NewCycleForm() {
             </Text>
           </Pressable>
           {erros.dataProximoRecebimento ? (
-            <Text accessibilityRole="alert" style={styles.error}>
-              {erros.dataProximoRecebimento}
-            </Text>
+            <AppFieldError
+              label="Próximo recebimento"
+              message={erros.dataProximoRecebimento}
+            />
           ) : null}
           {mostrarSeletor ? (
             <DateTimePicker
@@ -259,7 +261,6 @@ function criarEstilos(colors: AppColors) {
   inputError: { borderColor: colors.error, borderWidth: 2 },
   dateText: { color: colors.text, fontSize: 17 },
   datePlaceholder: { color: colors.placeholder, fontSize: 17 },
-  error: { color: colors.error, ...typography.bodySmall },
   actions: { gap: spacing.xs, marginTop: spacing.xxl },
   pressed: { opacity: 0.78 },
   });

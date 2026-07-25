@@ -9,6 +9,7 @@ import {
   typography,
   useAppTheme,
 } from '../theme';
+import { AppFieldError } from './AppFieldError';
 
 interface MoneyInputProps {
   label: string;
@@ -67,9 +68,7 @@ export function MoneyInput({
       />
       {hint && !error ? <Text style={styles.hint}>{hint}</Text> : null}
       {error ? (
-        <Text accessibilityRole="alert" style={styles.error}>
-          {error}
-        </Text>
+        <AppFieldError label={label} message={error} />
       ) : null}
     </View>
   );
@@ -92,7 +91,6 @@ function criarEstilos(colors: AppColors) {
   focused: { borderColor: colors.primary, borderWidth: 2 },
   errorInput: { borderColor: colors.error, borderWidth: 2 },
   hint: { color: colors.textMuted, ...typography.bodySmall },
-  error: { color: colors.error, ...typography.bodySmall },
   disabled: { opacity: 0.6 },
   });
 }
