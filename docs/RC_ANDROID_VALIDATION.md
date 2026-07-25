@@ -4,16 +4,16 @@ Data: 25/07/2026
 
 Branch: `chore/hardening-pre-release`
 
-Commit de produto testado: `bb6a34db17631e20f2ac507ed06b25256ae5fa1d`
+Commit de produto testado: `95dc43341d885f83c55dc648f5cd8ae6d0974502`
 
 ## Artefato
 
-- EAS Build: `1315f832-5f06-4559-ae6d-f19f0edc7d97`
+- EAS Build: `1085ee0e-e7c2-40ca-a05a-816a547dad5e`
 - Perfil: `preview`
 - Package: `com.terramichael.saldododia`
 - Versão: `1.0.0`
 - Version code: `1`
-- SHA-256: `87AE3CCEEC8B909CE5894475BB121EA79CC1D86C5754DDB9CC9A4D515ADC88D7`
+- SHA-256: `65EA3898896881E5F594E5FB6DCE5EB87C94A790C494129BFCA468C0A0FB0C71`
 - Assinatura: APK Signature Scheme v2; certificado com SHA-256
   `80D0F47AC3524613F43ED79F94BD4D6089066F1A1372A27CA1D1209D31A0E2D4`.
 
@@ -120,37 +120,75 @@ UI, lint, typecheck, Expo Doctor e export Android passou antes da geração
 do APK `bb6a34d`. Os fluxos reais de planejamento, registro, edição,
 exclusão e novo ciclo passaram nesse APK sem a exceção.
 
-## Gates ainda manuais
+Durante a validação humana do primeiro APK aprovado, o TalkBack não anunciou
+automaticamente o erro de valor obrigatório no formulário de gasto. O erro
+visual existia, mas uma pessoa cega não recebia a causa da operação não ter
+avançado.
 
-Não foram aprovados nesta execução:
+A correção `95dc433` centraliza erros de campo em `AppFieldError`, com uma
+única região viva assertiva, role de alerta e label específica. Não usa timer,
+mudança forçada de foco ou anúncio imperativo. O novo APK foi submetido à
+regressão completa e aos sete fluxos Maestro no Galaxy antes do reteste humano.
 
-- TalkBack operado por uma pessoa;
-- aparelho físico Motorola;
-- atualização real de loja;
-- reinício completo do Galaxy e abertura após boot;
-- Play Console e publicação.
+## Validação humana com TalkBack
 
-O Galaxy S24 Ultra físico está aprovado nos fluxos automatizados, modo avião,
-fonte ampliada, temas e partida fria do processo. TalkBack continua pendente
-porque exige navegação e avaliação humanas. A Draft PR deve permanecer sem
-merge até execução dos itens restantes ou decisão humana explícita sobre
-esses riscos residuais.
+Validação executada por Michael Terra no Galaxy S24 Ultra com o novo APK:
 
-## Checklist humano restante
+- erro com campo vazio anunciado automaticamente: passou;
+- não foi necessário tocar no texto do erro: passou;
+- anúncio ocorreu uma única vez: passou;
+- erro para valor zero ou inválido anunciado automaticamente: passou;
+- não houve navegação nem falsa mensagem de sucesso: passou;
+- tentativa válida após o erro: passou;
+- gasto criado somente uma vez: passou;
+- erro anterior removido: passou;
+- nenhum travamento: passou;
+- botão final do modal anunciado como “Excluir, botão”: passou;
+- nenhum foco preso ou comportamento inesperado: passou.
 
-1. Ativar TalkBack no Galaxy e validar ordem, labels, estados busy/disabled,
-   campos, erros, valores monetários, modais,
-   exclusão destrutiva, tour e isolamento do conteúdo atrás do overlay.
-2. Confirmar que não há anúncios duplicados nem elementos invisíveis focáveis.
-3. Reiniciar completamente o Galaxy e confirmar dados e preferências.
-4. Instalar e repetir os fluxos críticos em um Motorola compatível.
-5. Registrar modelo, Android, resolução, densidade, resultado e evidências.
+O histórico lê corretamente cada gasto quando ele recebe foco. Não ler todos
+os gastos automaticamente ao entrar é comportamento esperado. Os anúncios de
+início e fim observados durante a navegação são limites normais de tela ou
+lista do TalkBack; nenhuma label ou hint do app expõe dimensões, pixels ou
+coordenadas.
+
+O reinício físico completo também passou: planejamento, gasto, ciclo e tema
+foram preservados, o tour não reapareceu e não houve crash ou tela branca.
+
+## Aceitação formal do risco Motorola
+
+Michael Terra aceita formalmente o risco residual de não executar esta
+Release Candidate em um aparelho Motorola físico. A aceitação se limita a
+possíveis diferenças específicas de fabricante e se apoia nas seguintes
+evidências:
+
+- APK validado no Samsung Galaxy S24 Ultra físico;
+- sete fluxos Maestro aprovados no aparelho físico;
+- TalkBack validado manualmente;
+- instalação, persistência, partida fria e modo avião aprovados;
+- temas e fonte ampliada aprovados;
+- layouts pequeno, médio e equivalente a tablet aprovados no emulador;
+- ausência de integração nativa específica de fabricante;
+- ausência de crash, ANR ou erro Fabric/Reanimated;
+- versão inicial sem base anterior de usuários ou atualização de loja.
+
+Essa aceitação não altera os resultados funcionais, financeiros, de segurança
+ou acessibilidade já executados.
+
+## Itens transferidos para publicação
+
+Não fazem parte do gate de merge desta RC:
+
+- atualização real de loja, pois não existe APK anterior compatível;
+- Play Console;
+- publicação.
 
 ## Decisão desta rodada
 
-**BLOQUEADO PARA MERGE**
+**APROVADO PARA MERGE**
 
 O APK e os sete fluxos automatizados reais foram aprovados no emulador e no
-Galaxy S24 Ultra físico. O bloqueio permanece nos gates humanos de TalkBack,
-reinício completo do Galaxy e validação em Motorola físico. A PR permanece
-Draft e nenhum merge ou envio à loja foi feito.
+Galaxy S24 Ultra físico. TalkBack e reinício físico completo foram aprovados
+por validação humana. O risco Motorola foi formalmente aceito por Michael
+Terra. Não há bloqueador ou crítico aberto. A PR permanece Draft e nenhum
+merge ou envio à loja foi feito.
