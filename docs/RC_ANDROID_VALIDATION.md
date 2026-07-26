@@ -4,16 +4,16 @@ Data: 25/07/2026
 
 Branch: `chore/hardening-pre-release`
 
-Commit de produto testado: `95dc43341d885f83c55dc648f5cd8ae6d0974502`
+Commit de produto testado: `a07b4302e4a120a0d54619e23eb67cf0cbaabb16`
 
 ## Artefato
 
-- EAS Build: `1085ee0e-e7c2-40ca-a05a-816a547dad5e`
+- EAS Build: `cd4ddc20-1add-4c50-8792-b3e411474cef`
 - Perfil: `preview`
 - Package: `com.terramichael.saldododia`
 - Versão: `1.0.0`
 - Version code: `1`
-- SHA-256: `65EA3898896881E5F594E5FB6DCE5EB87C94A790C494129BFCA468C0A0FB0C71`
+- SHA-256: `3481D7C53FD031E31B5B0E7F3A270B58EA7203AE2F0284058723843EF1F40E94`
 - Assinatura: APK Signature Scheme v2; certificado com SHA-256
   `80D0F47AC3524613F43ED79F94BD4D6089066F1A1372A27CA1D1209D31A0E2D4`.
 
@@ -67,9 +67,11 @@ acidental.
 | 06 persistência | passou | force-stop, nova abertura e histórico disponível |
 | 07 configurações | passou | temas, Ajuda, versão, release e assinatura Leahcim |
 
-Os sete fluxos passaram tanto no emulador quanto no Galaxy S24 Ultra físico.
-No Galaxy, não houve `FATAL EXCEPTION`, ANR,
-`RetryableMountingLayerException` ou `Unable to find viewState`.
+Os sete fluxos passaram no novo APK no emulador. No Galaxy S24 Ultra, o
+smoke físico do novo APK cobriu reinstalação preservando dados, abertura,
+force-stop, persistência, histórico e Configurações. Não houve
+`FATAL EXCEPTION`, ANR, `RetryableMountingLayerException` ou
+`Unable to find viewState`.
 
 Os artefatos locais do Maestro, screenshots e logs ficam fora do
 repositório em `%LOCALAPPDATA%\AndroidValidation\reports`.
@@ -91,8 +93,10 @@ repositório em `%LOCALAPPDATA%\AndroidValidation\reports`.
 - Fonte ampliada no Galaxy: Home, histórico, temas, Ajuda e Sobre passaram
   com escala 1,3; a escala original 0,9 foi restaurada.
 
-Isso não equivale a uma atualização de loja: não existe APK anterior com
-version code e assinatura adequados para validar esse cenário.
+O APK anterior `95dc433` e o novo APK foram instalados em sequência com
+`adb install -r`, mesma assinatura e dados preservados. Isso comprova
+reinstalação compatível entre as duas RCs, mas não equivale a uma atualização
+de loja: ambos usam version code 1 e ainda não existe versão publicada.
 
 ## Tema e tamanhos
 
@@ -122,12 +126,18 @@ do APK `bb6a34d`. Esse foi o APK que validou inicialmente a correção
 Fabric/Reanimated: os fluxos reais de planejamento, registro, edição,
 exclusão e novo ciclo passaram nele sem a exceção.
 
-O APK final aprovado para merge corresponde ao commit de produto
-`95dc43341d885f83c55dc648f5cd8ae6d0974502`, EAS Build
+O APK `95dc43341d885f83c55dc648f5cd8ae6d0974502`, EAS Build
 `1085ee0e-e7c2-40ca-a05a-816a547dad5e`, SHA-256
-`65EA3898896881E5F594E5FB6DCE5EB87C94A790C494129BFCA468C0A0FB0C71`.
-Os sete fluxos também passaram nesse APK final, sem regressão da correção
-Fabric/Reanimated.
+`65EA3898896881E5F594E5FB6DCE5EB87C94A790C494129BFCA468C0A0FB0C71`,
+foi o artefato aprovado antes das correções P2 e permanece como evidência
+histórica da correção Fabric/Reanimated e do TalkBack.
+
+O artefato final desta rodada corresponde ao commit de produto
+`a07b4302e4a120a0d54619e23eb67cf0cbaabb16`, EAS Build
+`cd4ddc20-1add-4c50-8792-b3e411474cef`, SHA-256
+`3481D7C53FD031E31B5B0E7F3A270B58EA7203AE2F0284058723843EF1F40E94`.
+Os sete fluxos Maestro passaram no emulador e o smoke físico passou no Galaxy,
+sem regressão Fabric/Reanimated.
 
 Durante a validação humana do primeiro APK aprovado, o TalkBack não anunciou
 automaticamente o erro de valor obrigatório no formulário de gasto. O erro
@@ -164,6 +174,15 @@ coordenadas.
 O reinício físico completo também passou: planejamento, gasto, ciclo e tema
 foram preservados, o tour não reapareceu e não houve crash ou tela branca.
 
+### Reutilização da evidência TalkBack
+
+A correção P2 altera somente a coordenação interna da atualização de data ao
+retornar ao estado ativo e o script de auditoria de segredos. A auditoria do
+diff confirma que nenhuma tela, árvore acessível, label, hint, role, região
+viva, componente visual ou fluxo de foco foi alterado. Por isso, a validação
+humana TalkBack realizada no APK `95dc433` permanece aplicável e não foi
+repetida no novo APK.
+
 ## Aceitação formal do risco Motorola
 
 Michael Terra aceita formalmente o risco residual de não executar esta
@@ -196,8 +215,9 @@ Não fazem parte do gate de merge desta RC:
 
 **APROVADO PARA MERGE**
 
-O APK e os sete fluxos automatizados reais foram aprovados no emulador e no
-Galaxy S24 Ultra físico. TalkBack e reinício físico completo foram aprovados
-por validação humana. O risco Motorola foi formalmente aceito por Michael
-Terra. Não há bloqueador ou crítico aberto. A PR permanece Draft e nenhum
-merge ou envio à loja foi feito.
+O novo APK e os sete fluxos automatizados reais foram aprovados no emulador;
+o smoke físico, a reinstalação e a persistência passaram no Galaxy S24 Ultra.
+TalkBack e reinício físico completo permanecem aprovados pelas evidências
+humanas anteriores, reutilizadas conforme a auditoria do diff. O risco Motorola
+foi formalmente aceito por Michael Terra. Não há bloqueador ou crítico aberto.
+A PR permanece Ready for Review e nenhum merge ou envio à loja foi feito.
