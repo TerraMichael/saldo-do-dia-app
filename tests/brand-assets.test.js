@@ -82,7 +82,7 @@ test('configurações funcionais existentes permanecem declaradas', async () => 
 
   assert.ok(expo.plugins.includes('expo-router'));
   assert.ok(expo.plugins.includes('@react-native-community/datetimepicker'));
-  assert.deepEqual(localization[1].supportedLocales.android, ['pt-BR']);
+  assert.deepEqual(localization[1].supportedLocales.android, ['pt']);
   assert.equal(expo.experiments.typedRoutes, true);
   assert.equal(expo.android.package, 'com.terramichael.saldododia');
 });

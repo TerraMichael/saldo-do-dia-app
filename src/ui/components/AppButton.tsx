@@ -1,9 +1,8 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { type ComponentProps, useMemo } from 'react';
+import { type ComponentProps, useEffect, useMemo } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, {
-  FadeIn,
-  FadeOut,
+  cancelAnimation,
   ReduceMotion,
   useAnimatedStyle,
   useReducedMotion,
@@ -56,6 +55,14 @@ export function AppButton({
     transform: [{ scale: scale.value }],
   }));
 
+  useEffect(
+    () => () => {
+      cancelAnimation(scale);
+      cancelAnimation(opacity);
+    },
+    [opacity, scale],
+  );
+
   function animatePress(pressed: boolean) {
     if (indisponivel) return;
     const duration = pressed
@@ -95,31 +102,15 @@ export function AppButton({
         {processing || icon ? (
           <View style={styles.leading}>
             {processing ? (
-              <Animated.View
-                entering={FadeIn.duration(motion.duration.fast).reduceMotion(
-                  ReduceMotion.System,
-                )}
-                exiting={FadeOut.duration(motion.duration.fast).reduceMotion(
-                  ReduceMotion.System,
-                )}
-                style={styles.centered}
-              >
+              <View style={styles.centered}>
                 <ActivityIndicator
                   color={indicadorClaro ? colors.white : colors.primary}
                   size="small"
                 />
-              </Animated.View>
+              </View>
             ) : null}
             {!processing && icon ? (
-              <Animated.View
-                entering={FadeIn.duration(motion.duration.fast).reduceMotion(
-                  ReduceMotion.System,
-                )}
-                exiting={FadeOut.duration(motion.duration.fast).reduceMotion(
-                  ReduceMotion.System,
-                )}
-                style={styles.centered}
-              >
+              <View style={styles.centered}>
                 <MaterialCommunityIcons
                   accessibilityElementsHidden
                   accessible={false}
@@ -128,7 +119,7 @@ export function AppButton({
                   name={icon}
                   size={20}
                 />
-              </Animated.View>
+              </View>
             ) : null}
           </View>
         ) : null}

@@ -1,0 +1,42 @@
+appId: com.terramichael.saldododia
+---
+- launchApp
+- assertVisible: "Conte sobre seu momento"
+- tapOn: "Saldo atual"
+- inputText: "1000"
+- pressKey: Enter
+- tapOn: "Selecionar data do próximo recebimento"
+- tapOn: "OK"
+- tapOn: "Total de contas pendentes"
+- inputText: "100"
+- pressKey: Enter
+- scrollUntilVisible:
+    element:
+      text: "Valor que deseja reservar"
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    text: "Valor que deseja reservar"
+    index: 1
+- inputText: "50"
+- pressKey: Enter
+- scrollUntilVisible:
+    element:
+      text: "Revisar dados"
+    direction: DOWN
+- tapOn: "Revisar dados"
+- assertVisible: "Revise seus dados"
+- assertVisible: "R$ 1.000,00"
+- assertVisible: "R$ 100,00"
+- assertVisible: "R$ 50,00"
+- tapOn: "Confirmar"
+- assertVisible: "Seu limite de hoje"
+- assertVisible: "1 de 4"
+- tapOn: "Próximo"
+- assertVisible: "2 de 4"
+- tapOn: "Próximo"
+- assertVisible: "3 de 4"
+- tapOn: "Próximo"
+- assertVisible: "4 de 4"
+- tapOn: "Entendi"
+- assertVisible: "Você ainda pode gastar hoje"

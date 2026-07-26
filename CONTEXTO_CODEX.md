@@ -63,7 +63,7 @@ pelo produto.
 - Expo Router com rotas tipadas;
 - AsyncStorage para persistência local do planejamento;
 - Expo Crypto para UUID v4 dos novos gastos;
-- Expo Localization configurado para `pt-BR` no Android;
+- Expo Localization declara `pt` como locale Android suportado (qualificador aceito pelo AAPT do SDK 54), mantendo `pt-BR` como locale padrão e de formatação em runtime;
 - nova arquitetura do React Native habilitada;
 - ESLint com a configuração flat do Expo;
 - testes baseados no test runner nativo do Node, com `tsx` para executar arquivos
@@ -450,7 +450,17 @@ Backlog adiado:
 
 Próximos itens ativos:
 
-1. validação do carregamento inicial em preview/release.
+1. hardening profissional pré-release;
+2. validação do carregamento inicial em preview/release.
+
+O hardening adiciona especificação financeira verificável, oráculo independente,
+matriz determinística, propriedades, sequências, cobertura crítica, testes de
+componentes, auditorias de Android/segurança, benchmarks e fluxos Maestro
+preparados. `android.allowBackup` está desativado. Mutações financeiras no
+provider são serializadas por um coordenador simples e continuam publicando
+estado somente após a persistência. A execução real em APK, os fluxos E2E e a
+auditoria TalkBack permanecem obrigatoriamente pendentes para a Release
+Candidate.
 
 O sistema centralizado de movimento, as microinterações funcionais, o feedback
 temporário e a redução de movimento foram concluídos. Animações decorativas ou
@@ -525,4 +535,20 @@ Antes de concluir:
 - atualizar documentação e este arquivo se o estado ou uma decisão duradoura tiver
   mudado;
 - não declarar como implementado algo que ainda seja apenas planejamento.
+
+### Continuação do hardening de release
+
+- A suíte de interface foi ampliada de 7 para 56 testes, incluindo 49
+  integrações com telas reais, matriz requisito por requisito e prevenção de
+  duplicidade nas mutações principais.
+- O motor permanece com 100% statements/functions/lines, 95,45% branches bruto
+  do c8 e 100% das branches semânticas; os dois ranges artificiais estão
+  documentados em `docs/COVERAGE_DECISION_RECORD.md`.
+- Maestro real, APK, partida fria, TalkBack e aparelhos físicos continuam
+  pendentes para a etapa de Release Candidate.
+- Os advisories altos atuais pertencem a `brace-expansion` e `postcss` em
+  ferramentas Node de build/teste e não são alcançáveis no aplicativo
+  instalado; a análise completa está em
+  `docs/DEPENDENCY_SECURITY_ASSESSMENT.md`. A atualização ampla do Expo SDK
+  continua no backlog técnico.
 

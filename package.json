@@ -8,7 +8,15 @@
     "android": "expo start --android",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test tests/foundation.test.js tests/brand-assets.test.js tests/release-identity.test.ts tests/splash-accessibility.test.ts tests/theme.test.ts tests/theme-preference.test.ts tests/motion.test.ts tests/tutorial.test.ts tests/tour-positioning.test.ts tests/daily-limit.test.ts tests/onboarding.test.ts tests/home.test.ts tests/expenses.test.ts tests/expense-management.test.ts tests/expense-description.test.ts tests/storage.test.ts tests/history.test.ts tests/new-cycle.test.ts tests/cycle-history.test.ts"
+    "test": "tsx --test tests/foundation.test.js tests/brand-assets.test.js tests/release-identity.test.ts tests/splash-accessibility.test.ts tests/theme.test.ts tests/theme-preference.test.ts tests/motion.test.ts tests/tutorial.test.ts tests/tour-positioning.test.ts tests/daily-limit.test.ts tests/onboarding.test.ts tests/home.test.ts tests/expenses.test.ts tests/expense-management.test.ts tests/expense-description.test.ts tests/storage.test.ts tests/history.test.ts tests/new-cycle.test.ts tests/cycle-history.test.ts tests/financial-hardening.test.ts tests/financial-sequences.test.ts tests/storage-hardening.test.ts tests/security-release.test.ts tests/performance.test.ts",
+    "test:coverage": "c8 --all --reporter=text --include=src/features/daily-limit/** --include=src/features/expenses/** --include=src/features/cycle/start-new-cycle.ts --include=src/storage/** tsx --test tests/daily-limit.test.ts tests/expenses.test.ts tests/expense-management.test.ts tests/expense-description.test.ts tests/storage.test.ts tests/new-cycle.test.ts tests/cycle-history.test.ts tests/financial-hardening.test.ts tests/financial-sequences.test.ts tests/storage-hardening.test.ts",
+    "test:ui": "jest --config jest.ui.config.js --runInBand",
+    "test:financial-matrix": "tsx --test tests/financial-hardening.test.ts",
+    "audit:security": "tsx scripts/audit-security.ts",
+    "audit:android": "tsx scripts/audit-android-config.ts",
+    "benchmark": "tsx scripts/benchmark.ts",
+    "validate:e2e": "tsx scripts/validate-maestro.ts",
+    "validate:maestro": "tsx scripts/validate-maestro.ts"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
@@ -34,9 +42,13 @@
     "react-native-worklets": "0.5.1"
   },
   "devDependencies": {
+    "@testing-library/react-native": "^13.3.3",
     "@types/react": "~19.1.10",
+    "c8": "^12.0.0",
     "eslint": "^9.0.0",
     "eslint-config-expo": "~10.0.0",
+    "jest-expo": "~54.0.17",
+    "react-test-renderer": "^19.1.0",
     "tsx": "^4.23.1",
     "typescript": "~5.9.2"
   }

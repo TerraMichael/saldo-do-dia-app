@@ -1,0 +1,43 @@
+appId: com.terramichael.saldododia
+---
+- launchApp
+- tapOn: "Detalhes do planejamento"
+- swipe:
+    direction: UP
+    duration: 800
+- swipe:
+    direction: UP
+    duration: 800
+- swipe:
+    direction: UP
+    duration: 800
+- tapOn: "Novo recebimento"
+- assertVisible: "Novo ciclo"
+- tapOn:
+    text: "Entendi"
+    optional: true
+- tapOn:
+    text: "Saldo atual depois de receber"
+    index: 1
+- inputText: "2000"
+- tapOn:
+    text: "Contas pendentes"
+    index: 1
+- inputText: "100"
+- tapOn:
+    text: "Reserva protegida"
+    index: 1
+- inputText: "200"
+- pressKey: Enter
+- tapOn: "Selecionar pr.*ximo recebimento"
+- tapOn: "OK"
+- tapOn: "Revisar novo ciclo"
+- assertVisible: "Revise o novo ciclo"
+- assertVisible: "Encerramento do ciclo atual"
+- tapOn: "Iniciar novo ciclo"
+- assertVisible: "Voc.* ainda pode gastar hoje"
+- tapOn: "Ver hist.*rico"
+- assertVisible: "Hist.*rico de gastos"
+- tapOn: "Ver ciclos anteriores"
+- assertVisible: "Ciclos anteriores"
+- assertVisible: "Ver detalhes"

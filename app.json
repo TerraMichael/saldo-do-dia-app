@@ -2,6 +2,7 @@
   "expo": {
     "name": "Saldo do Dia",
     "slug": "saldo-do-dia-app",
+    "owner": "michaelterra",
     "version": "1.0.0",
     "orientation": "portrait",
     "scheme": "saldododia",
@@ -13,6 +14,13 @@
     "android": {
       "package": "com.terramichael.saldododia",
       "versionCode": 1,
+      "allowBackup": false,
+      "blockedPermissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.VIBRATE"
+      ],
       "backgroundColor": "#F4F8F5",
       "adaptiveIcon": {
         "foregroundImage": "./assets/brand/adaptive-icon-foreground.png",
@@ -27,7 +35,7 @@
         {
           "supportedLocales": {
             "android": [
-              "pt-BR"
+              "pt"
             ]
           }
         }
@@ -52,7 +60,11 @@
       "typedRoutes": true
     },
     "extra": {
-      "defaultLocale": "pt-BR"
+      "defaultLocale": "pt-BR",
+      "router": {},
+      "eas": {
+        "projectId": "4e738876-2b22-4742-a4fc-b5db5d323aec"
+      }
     }
   }
 }
