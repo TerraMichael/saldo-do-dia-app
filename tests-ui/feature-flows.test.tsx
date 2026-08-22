@@ -201,6 +201,8 @@ describe('apresentação e onboarding reais', () => {
   });
 
   test('formulário válido publica rascunho uma vez e abre revisão', () => {
+    (globalThis as { __mockDatePickerDate?: Date }).__mockDatePickerDate =
+      new Date(2099, 0, 2);
     renderFeature(<OnboardingForm />);
     fireEvent.changeText(screen.getByLabelText('Saldo atual'), '1000');
     fireEvent.press(
@@ -584,6 +586,8 @@ describe('exclusão e novo ciclo reais', () => {
   });
 
   test('formulário válido prepara uma única revisão e cancelar não arquiva', () => {
+    (globalThis as { __mockDatePickerDate?: Date }).__mockDatePickerDate =
+      new Date(2099, 0, 2);
     renderFeature(<NewCycleForm />);
     fireEvent.changeText(screen.getByLabelText('Saldo atual depois de receber'), '2000');
     fireEvent.press(

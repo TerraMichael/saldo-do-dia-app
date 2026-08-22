@@ -272,7 +272,7 @@ test('.env.example aceita placeholder vazio, mas rejeita token real', async () =
   }
 });
 
-test('release preserva identidade, versão e EAS mínimo somente para preview APK', async () => {
+test('release preserva identidade, versão e perfis EAS Android', async () => {
   const source = await readFile('app.json', 'utf8');
   const { expo } = JSON.parse(source);
   const eas = JSON.parse(await readFile('eas.json', 'utf8'));
@@ -291,9 +291,12 @@ test('release preserva identidade, versão e EAS mínimo somente para preview AP
   assert.match(expo.extra.eas.projectId, /^[0-9a-f-]{36}$/i);
   assert.equal('runtimeVersion' in expo, false);
   assert.equal('updates' in expo, false);
-  assert.deepEqual(Object.keys(eas.build), ['preview']);
+  assert.deepEqual(Object.keys(eas.build), ['preview', 'production']);
   assert.equal(eas.build.preview.distribution, 'internal');
   assert.equal(eas.build.preview.android.buildType, 'apk');
   assert.equal('autoIncrement' in eas.build.preview, false);
+  assert.equal(eas.build.production.distribution, 'store');
+  assert.equal(eas.build.production.android.buildType, 'app-bundle');
+  assert.equal('autoIncrement' in eas.build.production, false);
   assert.equal('submit' in eas, false);
 });
